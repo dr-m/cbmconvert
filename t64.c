@@ -5,7 +5,7 @@
  */
 
 /*
-** Copyright © 1997,2001 Marko Mäkelä
+** Copyright © 1997,2001,2003 Marko Mäkelä
 ** Based on the cbmarcs.c file of fvcbm 2.0 by Daniel Fandrich
 **
 **     This program is free software; you can redistribute it and/or modify
@@ -178,14 +178,22 @@ ReadT64 (FILE* file,
       t64entry.fileOffsetHighest << 24;
 
     length =
-      ((size_t) t64entry.endAddrLow | t64entry.endAddrHigh << 8) -
-      ((size_t) t64entry.startAddrLow | t64entry.startAddrHigh << 8);
+      (((size_t) t64entry.endAddrLow | t64entry.endAddrHigh << 8) -
+       ((size_t) t64entry.startAddrLow | t64entry.startAddrHigh << 8)) &
+      0xFFFF;
 
-    if (t64entry.entryType != 1 ||
-	(t64entry.fileType != 1 && t64entry.fileType != PRG)) {
-      (*log) (Errors, &name, "Unknown types %02x %02x, proceeding anyway",
+    if (t64entry.entryType != 1) {
+    unknown:
+      (*log) (Errors, &name,
+	      "Unknown entry type 0x%02x 0x%02x, assuming PRG",
 	      t64entry.entryType, t64entry.fileType);
-      /* continue; */
+    }
+    else if (t64entry.fileType != 1) {
+      unsigned filetype = t64entry.fileType & 0x8F;
+      if (filetype >= DEL && filetype <= USR)
+	name.type = filetype;
+      else
+	goto unknown;
     }
 
     /* Read the file */

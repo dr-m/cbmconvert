@@ -5,7 +5,7 @@
  */
 
 /*
-** Copyright © 1993-1998,2001 Marko Mäkelä
+** Copyright © 1993-1998,2001,2003 Marko Mäkelä
 **
 **     This program is free software; you can redistribute it and/or modify
 **     it under the terms of the GNU General Public License as published by
@@ -457,7 +457,7 @@ main (int argc, char** argv)
   if (argc < 2) {
   Usage:
     fprintf (stderr,
-	     "cbmconvert 2.1 - Commodore archive converter\n"
+	     "cbmconvert 2.1.2 - Commodore archive converter\n"
 	     "Usage: %s [options] file(s)\n", prog);
 
     fputs ("Options: -I: Create ISO 9660 compliant file names.\n"

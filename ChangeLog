@@ -1,4 +1,12 @@
-2002-06-16  Marko Mäkelä  <Marko.Makela@NIC.FUNET.FI>
+2003-08-29  Marko Mäkelä  <msmakela@nic.funet.fi>
+
+	* cbmconvert.html, main.c (main): version 2.1.2
+
+	* t64.c (ReadT64):
+	allow end address to wrap around
+	allow fileType to refer to any sequential disk type
+
+2002-06-16  Marko Mäkelä  <msmakela@nic.funet.fi>
 
 	* cbmconvert.html: renamed from README.html revised for version 2.1.1
 
