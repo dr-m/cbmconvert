@@ -1,0 +1,11 @@
+main.o: main.c input.h util.h output.h
+util.o: util.c util.h
+read.o: read.c input.h util.h output.h
+write.o: write.c output.h util.h
+lynx.o: lynx.c input.h util.h output.h
+unark.o: unark.c input.h util.h output.h
+unarc.o: unarc.c input.h util.h output.h
+t64.o: t64.c input.h util.h output.h
+c2n.o: c2n.c input.h util.h output.h
+image.o: image.c output.h util.h input.h
+archive.o: archive.c output.h util.h

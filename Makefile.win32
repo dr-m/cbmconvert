@@ -1,0 +1,17 @@
+## -*- makefile -*- for 32-bit MS-Windows
+# Location of the compiler
+PATH := /usr/local/cross-tools/bin:/usr/local/cross-tools/i386-mingw32msvc/bin:$(PATH)
+CC = gcc
+CFLAGS = -Wall -O3
+LDFLAGS = -s
+
+EXE =.exe
+
+all: zip
+
+include Makefile
+
+zip: COPYING ChangeLog cbmconvert.html $(MANPAGES:.1=.txt) $(TARGETS)
+	zip -l cbmconvert.zip COPYING ChangeLog cbmconvert.html \
+		$(MANPAGES:.1=.txt)
+	zip cbmconvert.zip $(TARGETS)

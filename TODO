@@ -17,6 +17,14 @@ Things to be done (feel free to contribute):
 	Improper free blocks count on tracks:
 	17 (10, should be 9)
 	18 (1, should be 3)
+    - use memory-mapped files or sector-level file access (with seeks)
 
 - main.c:
-    - interactive readline-based interface
+    - interactive GNU Readline based interface
+
+- integrate cbmconvert with cbmlink
+    - writing files to Commodore memory
+    - reading files from Commodore memory?
+    - writing and reading files on Commodore mass storage devices
+    - disk image access?  maybe not; arbitrary seeks would be slow
+

@@ -1,0 +1,47 @@
+DISK2ZIP(1)                                           DISK2ZIP(1)
+
+
+
+NAME
+       disk2zip - Commodore 1541 ZipCode compressor
+
+SYNOPSIS
+       disk2zip [options] imagefile.d64 [ zipcodefile ]
+
+DESCRIPTION
+       This manual page documents briefly the disk2zip command.
+
+       The  Commodore 1541 disk archiver ZipCode was developed in
+       order to make it possible to  transfer  disk  images  over
+       modem  lines.  Nowadays it is better to use gzip(1) on the
+       disk images.  The disk2zip command is provided mainly  for
+       historical  reasons, as a replacement for the ZipCode com­
+       pressor.
+
+OPTIONS
+       disk2zip follows the usual Unix command line syntax,  with
+       options starting with a dash (`-').
+
+       --     Stop  processing  options.   This  is useful if the
+              first file name argument begins with a dash.
+
+       -iiidd Use 0xii 0xdd (hexadecimal) as the disk identifier.
+              The default is 0x36 0x34, or `64'.
+
+SECURITY
+       The  names  of the created ZipCode files are prefixed with
+       the strings 1!, 2!, 3!, and 4!, just like ZipCode works on
+       the  Commodore 64.  Some Unix shells treat the character !
+       specially.  To avoid unpleasant situations,  please  refer
+       to the documentation of the shell you are using.
+
+AUTHOR
+       The disk2zip utility was designed and implemented by Marko
+       Mäkelä <marko.makela@nic.funet.fi>.
+
+SEE ALSO
+       cbmconvert(1), zip2disk(1).
+
+
+
+                        September 18, 2001            DISK2ZIP(1)

@@ -1,0 +1,201 @@
+CBMCONVERT(1)                                       CBMCONVERT(1)
+
+
+
+NAME
+       cbmconvert - create, extract and convert various Commodore
+       binary archives
+
+SYNOPSIS
+       cbmconvert [options] file...
+
+DESCRIPTION
+       This manual page documents briefly the cbmconvert command.
+
+       There  are  many  archiving programs for the Commodore 64,
+       all of which are incompatible with archiving  programs  on
+       other  systems.   The  cbmconvert utility tries to address
+       this problem.  It extracts files from most  known  formats
+       and  writes  them  to several different formats, including
+       some formats used by some Commodore 64 emulators:
+
+       Native (raw) files
+              Files with just the raw data.  Written with the  -I
+              and -N options, read with the -n option.
+
+       PC64 files
+              Also  known  as  "P00"  files.  Written with the -P
+              option, read with the -p option.
+
+       Lynx archives
+              Lynx was originally developed for the Commodore 64.
+              It modifies the next-sector links in place and com­
+              bines a number of files on a Commodore  disk  to  a
+              single  file  that  can  be transferred e.g. over a
+              modem connection.  Earlier versions of this  format
+              do  not  specify  the  length of the last contained
+              file, not protecting it from padding that could  be
+              introduced  e.g.  by the X-modem transfer protocol.
+              There are no checksums on the  data  either.   Lynx
+              archives are written with -L and read with -l.
+
+       Commodore C2N tape archives
+              Written with -C, read with -c.  These files are raw
+              dumps of the data format the Commodore KERNAL  rou­
+              tines  maintain.   Block  checksums  and  countdown
+              leaders (0x89..0x81 for the first copy and 9..1 for
+              the  second)  are  omitted,  and the blocks are not
+              stored twice, but only once.  The data consists  of
+              192-byte  tape  header  blocks,  192-byte data file
+              blocks, and arbitrary-length program file blocks.
+
+       Commodore 128 CP/M disk images
+              Written with -M, read with -m.
+
+       CBM DOS disk images
+              Written with -D, read with -d.  Commodore 1571  and
+              1581 support have not been tested properly, and not
+              all 1581 features have been implemented.
+
+       ARC/SDA (Self-Dissolving Archive)
+              Read with -a.  No write support.
+
+       Arkive Archives in this Lynx-like format are read with the
+              -k option.  There is no write support.
+
+       T64    This  tape  format was introduced by C64S emulator.
+              Many variations of this format exist.  These  files
+              are read with the -t option.
+
+       cbmconvert  reads  all  files in all input files listed on
+       the command line and writes them in the specified  format.
+       As there is no interactive user interface, the only way to
+       copy only some files from a set of  archive  files  to  an
+       archive  file  or a disk image is to extract all the files
+       to a single-file format such as the PC64  format,  and  to
+       copy  the  desited  individual files to the output archive
+       with another invocation of cbmconvert.
+
+OPTIONS
+       cbmconvert follows the usual  Unix  command  line  syntax,
+       with options starting with a dash (`-').
+
+       --     Stop  processing  options.   This  is useful if the
+              first file name begins with a dash.
+
+       -I     Output files in native (raw) format, with ISO  9660
+              compliant file names.
+
+       -P     Output files in PC64 format.
+
+       -N     Output files in native (raw) format.
+
+       -L archive.lnx
+              Output files in Lynx format.
+
+       -C archive.c2n
+              Output files in Commodore C2N tape format.
+
+       -D4[o] image.d64
+              Write  to a Commodore 1541 CBM DOS disk image.  The
+              o option specifies that file name collisions should
+              be  resolved  by  overwriting  existing files.  The
+              default behaviour is keep the old files.
+
+       -D7[o] image.d71
+              Write to a Commodore 1571 CBM DOS disk image.
+
+       -D8[o] image.d81
+              Write to a Commodore 1581 CBM DOS disk image.
+
+       -M4[o] image.d64
+              Write to a Commodore 1541 disk image  in  the  Com­
+              modore 128 CP/M format.
+
+       -M7[o] image.d71
+              Write  to  a  Commodore 1571 disk image in the Com­
+              modore 128 CP/M format.
+
+       -M8[o] image.d81
+              Write to a Commodore 1581 disk image  in  the  Com­
+              modore 128 CP/M format.
+
+       -i2    Switch  disk  images when running out of space or a
+              duplicate file name is detected.
+
+       -i1    Switch disk images when running out of space.  This
+              is the default behaviour.
+
+       -i0    Never switch disk images.
+
+       -n     Input files in native (raw) format.
+
+       -p     Input files in PC64 format.
+
+       -a     Input files in ARC/SDA format.
+
+       -k     Input files in Arkive format.
+
+       -l     Input files in Lynx format.
+
+       -t     Input files in T64 format.
+
+       -c     Input files in Commodore C2N format.
+
+       -d     Input files in CBM DOS disk image format.
+
+       -m     Input  files  in Commodore 128 CP/M disk image for­
+              mat.
+
+       -v2    Verbose mode.  Display all messages.
+
+       -v1    Display warning and error messages.   This  is  the
+              default option.
+
+       -v0    Display error messages only.
+
+BUGS
+       Many  of  the  file  formats lack safety measures, such as
+       storing the exact lengths of the contained files, or stor­
+       ing  even  rudimentary  checksums.  Most formats have been
+       reverse-engineered, and there may be other implementations
+       that  accept  files  in  a stricter format than cbmconvert
+       produces or produce files that cbmconvert does not  recog­
+       nize.
+
+       On  disk  images, it is common to decorate directory list­
+       ings with  unnecessary  entries  that  contain  Commodore-
+       specific  graphic  characters.   Since subdirectories were
+       not supported by Commodore until the 1581 disk  drive  was
+       introduced,  the  slash  character  (`/') is valid in Com­
+       modore file names but not on the Unix system.   For  these
+       reasons,  it is advisable to avoid the raw file format and
+       the host file system whenever  possible,  and  to  convert
+       directly from one Commodore-specific format to another.
+
+       The program lacks an interactive user interface.  A shell-
+       like command line interface could be useful, and a graphi­
+       cal file manager like interface could be even better.  Are
+       there any volunteers?
+
+       More disk image formats should be supported, and the  1571
+       and  1581  support  should  be tested extensively.  Unsup­
+       ported formats include the 8050, the 8250,  the  2040  and
+       the Commodore 64 CP/M format for the 1541.
+
+AUTHOR
+       The  cbmconvert  utility  was  designed and implemented by
+       Marko Mäkelä <marko.makela@nic.funet.fi>.
+
+       Support for Commodore 1581 disk images was  programmed  by
+       Pasi Ojala <albert@cs.tut.fi>.
+
+       The  ARC/SDA  dissolving  code  was  originally written by
+       Chris Smeets.
+
+SEE ALSO
+       c2n(1), disk2zip(1), zip2disk(1).
+
+
+
+                        September 18, 2001          CBMCONVERT(1)

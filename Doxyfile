@@ -1,0 +1,34 @@
+# Doxygen configuration file for cbmconvert, much like a -*- makefile -*-
+PROJECT_NAME		= cbmconvert-2.1
+WARNINGS		= YES
+HAVE_DOT		= YES
+GRAPHICAL_HIERARCHY	= YES
+CLASS_GRAPH		= YES
+COLLABORATION_GRAPH	= YES
+INCLUDE_GRAPH		= YES
+INCLUDED_BY_GRAPH	= YES
+EXTRACT_STATIC		= YES
+WARNINGS		= YES
+INPUT			= .
+FILE_PATTERNS		= *.h *.c
+ENABLE_PREPROCESSING	= YES
+MACRO_EXPANSION		= YES
+EXPAND_ONLY_PREDEF	= YES
+SEARCH_INCLUDES		= YES
+FULL_PATH_NAMES		= NO
+
+GENERATE_LATEX		= NO
+COMPACT_LATEX		= YES
+PDF_HYPERLINKS		= YES
+PAPER_TYPE		= a4
+
+GENERATE_RTF		= NO
+GENERATE_MAN		= NO
+
+GENERATE_HTML		= YES
+SEARCHENGINE		= YES
+CGI_NAME		= cbmconvert
+CGI_URL			= http://localhost/cgi-bin
+DOC_URL			= http://localhost/cbmconvert
+DOC_ABSPATH		= /var/www/cbmconvert
+BIN_ABSPATH		= /usr/lib/cgi-bin

@@ -1,6 +1,7 @@
 TARGET = cbmconvert
 
-OBJS = main.o util.o image.o read.o write.o unlynx.o unark.o unarc.o t64.o
+OBJS = main.o util.o read.o write.o unlynx.o unark.o unarc.o t64.o c2n.o \
+       image.o archive.o
 HDRS = util.h input.h output.h
 
 .c.o:
@@ -19,4 +20,4 @@ unlynx.o: unlynx.c $(HDRS)
 unark.o: unark.c $(HDRS)
 unarc.o: unarc.c $(HDRS)
 t64.o: t64.c $(HDRS)
-
+c2n.o: c2n.c $(HDRS)

@@ -1,0 +1,15 @@
+## -*- makefile -*- for Amiga based systems (not tested)
+PATH := /root/fsf/gg/m68k-amigaos/bin:/root/fsf/gg/bin:$(PATH)
+CC = gcc
+CFLAGS = -Wall -ansi -pedantic -O3
+LDFLAGS = -s -noixemul
+
+EXE =# no suffix for executable file names
+
+all: lha
+
+include Makefile
+
+lha: COPYING ChangeLog cbmconvert.html $(MANPAGES:.1=.txt) $(TARGETS)
+	lha cgo cbmconvert.lha COPYING ChangeLog cbmconvert.html \
+		$(MANPAGES:.1=.txt) $(TARGETS)

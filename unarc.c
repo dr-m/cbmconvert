@@ -1,8 +1,11 @@
+/**
+ * @file unarc.c
+ * ARC/SDA (C64/C128) archive extractor
+ * @author Chris Smeets
+ * @author Marko Mäkelä (marko.makela@nic.funet.fi)
+ */
+
 /*
-** $Id$
-**
-** ARC/SDA (C64/C128) archive extractor
-**
 **  Derived from Chris Smeets' MS-DOS utility a2l that converts Commodore
 **  ARK, ARC and SDA files to LZH using LHARC 1.12. Optimized for speed,
 **  converted to standard C and adapted to the cbmconvert package by
@@ -10,9 +13,7 @@
 **
 **  Original version: a2l.c       March   1st, 1990   Chris Smeets
 **  Unix port:        unarc.c     August 28th, 1993   Marko Mäkelä
-**  Restructured for cbmconvert 2.0 by Marko Mäkelä
-**
-** $Log$
+**  Restructured for cbmconvert 2.0 and 2.1 by Marko Mäkelä
 */
 
 #include <stdio.h>
@@ -24,114 +25,118 @@
 
 #include "input.h"
 
-/* Function prototypes */
+/** I/O status. 0=ok, or EOF */
+static int Status;
+/** Current offset from ARC or SDA file's beginning */
+static long FilePos;
+/** Current archive */
+static FILE* fp;
+/** Bit Buffer */
+static unsigned int BitBuf;
+/** checksum */
+static unsigned int  crc;
+/** used in checksum calculation */
+static unsigned char crc2;
+/** Huffman codes */
+static unsigned long hc[256];
+/** Lengths of huffman codes */
+static unsigned char hl[256];
+/** Character associated with Huffman code */
+static unsigned char hv[256];
+/** Number of Huffman codes */
+static unsigned int  hcount;
+/** Run-Length control character */
+static unsigned int  ctrl;
 
-/* Functions for sorting the Huffman tree */
-static void ssort (unsigned int n,
-		   int (*cmp) (int, int),
-		   void (*swp) (int, int));
-static int hcomp (int x, int y);
-static void hswap (int x, int y);
+/** C64 Archive entry header */
+struct entry
+{
+  /** Version number, must be 1 or 2 */
+  unsigned char version;
+  /** 0=store, 1=pack, 2=squeeze, 3=crunch,
+      4=squeeze+pack, 5=crunch in one pass */
+  unsigned char mode;
+  /** Checksum */
+  unsigned int  check;
+  /** Original size. Only three bytes are stored */
+  long          size;
+  /** Compressed size in CBM disk blocks */
+  unsigned int  blocks;
+  /** File type. P,S,U or R */
+  unsigned char type;
+  /** Filename length */
+  unsigned char fnlen;
+  /** Filename. Only fnlen bytes are stored */
+  unsigned char name[17];
+  /** Record length if relative file */
+  unsigned char rl;
+  /** Date archive was created. Same format as in MS-DOS directories */
+  unsigned int  date;
+};
 
-/* Data extraction functions */
-static bool GetBit (void); /* fetch 1 bit */
-static BYTE GetByte (void); /* fetch 8 bits */
-static WORD GetWord (void); /* fetch 16 bits */
-static TBYTE GetThree (void); /* fetch 24 bits */
+/** Current C64 Archive entry header */
+struct entry entry;
 
-static BYTE Huffin (void); /* fetch one byte from Huffman stream */
-static bool GetHeader (void);
-static long GetStartPos (void);
-static void push (BYTE c);
-static BYTE pop (void);
-static BYTE unc (void);
-static int getcode (void);
-static void UpdateChecksum (int c);
+/** Lempel Zev compression string table entry */
+struct lz
+{
+  unsigned int prefix;	/**< Prefix code */
+  byte_t ext;		/**< Extension character */
+};
 
-static BYTE UnPack (void); /* unpack one byte from archive */
+/** Lempel Zev compression string table */
+struct lz lztab[4096];
 
-/*  Globals */
+/** Lempel Zev stack handling error codes */
+enum LZStackErrorType
+{
+  PushError = 1,	/**< Stack overflow */
+  PopError		/**< Stack underflow (out of data) */
+};
 
-static int Status;      /* I/O status. 0=ok, or EOF */
-static long FilePos;	/* Current offset from ARC or SDA file's beginning */
-static FILE *fp;        /* archive */
-static unsigned int BitBuf;    /* Bit Buffer */
-static unsigned int  crc;      /* checksum */
-static unsigned char crc2;     /* used in checksum calculation */
-static unsigned long hc[256];  /* Huffman codes */
-static unsigned char hl[256];  /* Lengths of huffman codes */
-static unsigned char hv[256];  /* Character associated with Huffman code */
-static unsigned int  hcount;   /* Number of Huffman codes */
-static unsigned int  ctrl;     /* Run-Length control character */
+/** Lempel Zev exception handling structure */
+static jmp_buf LZStackError;
 
-/* C64 Archive entry header */
+/** Lempel Zev stack */
+static byte_t stack[512];
 
-struct {
-  unsigned char version;  /* Version number, must be 1 or 2 */
-  unsigned char mode;     /* 0=store, 1=pack, 2=squeeze, 3=crunch,
-			     4=squeeze+pack, 5=crunch in one pass */
-  unsigned int  check;    /* Checksum */
-  long          size;     /* Original size. Only three bytes are stored */
-  unsigned int  blocks;   /* Compressed size in CBM disk blocks */
-  unsigned char type;     /* File type. P,S,U or R */
-  unsigned char fnlen;    /* Filename length */
-  unsigned char name[17]; /* Filename. Only fnlen bytes are stored */
-  unsigned char rl;       /* Record length if relative file */
-  unsigned int  date;     /* Date archive was created. Same format 
-			     as in MS-DOS directories */
-} entry;
+/** Set to 0 to reset un-crunch */
+static int State = 0;
+/** Lempel Zev stack pointer */
+static int lzstack = 0;
+/** Current code size */
+static int cdlen;
+/** Last received code */
+static int code;
+/** Bump cdlen when code reaches this value */
+static int wtcl;
+/** Copy of wtcl */
+static int wttcl;
 
-/*  Lempel Zev compression string table */
-
-struct {
-  unsigned int  prefix;   /* Prefix code */
-  BYTE ext;               /* Extension character */
-} lztab[4096];
-
-/*  LZ globals */
-
-enum LZStackErrorType { PushError = 1, PopError };
-static jmp_buf LZStackError;/* for exiting cleanly in case of an error */
-static BYTE stack[512];/* Stack for push/pop */
-
-static int State = 0;  /* Set to 0 to reset un-crunch */
-static int lzstack = 0;/* Stack pointer */
-static int cdlen;      /* Current code size */
-static int code;       /* Last code rec'd */
-static int wtcl;       /* Bump cdlen when code reaches this value */
-static int wttcl;      /* Copy of wtcl */
-
-/*  --------------------------------------------------------------------------
-    Shell Sort.  From "C Programmer's Library" by Purdum, Leslie & Stegemoller
-
-    'swap' and 'comp' functions vary depending on the data type being sorted.
-
-    swp(i,j)  - simply swaps array elements i and j.
-    cmp(i,j)  - returns 0 if elements are equal.
-                      >0 if element[i] > element[j]
-                      <0 if    ''      <    ''
-    --------------------------------------------------------------------------
-    n   = Number of elements to be sorted. (0 is 1st, n-1 is last)
-    cmp = Compare two elements. Return result like strcmp()
-    swp = Swap to elements
-*/
-
-static void ssort (unsigned int n, int (*cmp) (int, int), void (*swp) (int, int))
+/** Shell Sort algorithm
+ * from "C Programmer's Library" by Purdum, Leslie and Stegemoller
+ */
+static void
+ssort (void)
 {
   int m;
   int h,i,j,k;
 
-  m=n;
+  m = sizeof hl;
 
-  while( (m /= 2) != 0) {
-    k = n-m;
+  while (m >>= 1) {
+    k = (sizeof hl) - m;
     j = 1;
     do {
-      i=j;
+      i = j;
       do {
-	h=i+m;
-	if ((*cmp)(i-1,h-1) >0 ) {
-	  (*swp)(i-1,h-1);
+	h = i + m;
+	if (hl[h - 1] > hl[i - 1]) {
+	  unsigned long t;
+	  unsigned char u;
+	  t = hc[i - 1], hc[i - 1] = hc[h - 1], hc[h - 1] = t;
+	  u = hv[i - 1], hv[i - 1] = hv[h - 1], hv[h - 1] = u;
+	  u = hl[i - 1], hl[i - 1] = hl[h - 1], hl[h - 1] = u;
 	  i -= m;
 	}
 	else
@@ -142,107 +147,91 @@ static void ssort (unsigned int n, int (*cmp) (int, int), void (*swp) (int, int)
   }
 }
 
-/*
-** Compare function for Shell Sort of Huffman codes
-** Set up to sort them in reverse order by length
-*/
-
-static int hcomp (int x, int y)
-{
-  return ( hl[y] - hl[x] );
-}
-
-static void hswap (int x, int y)
-{
-  unsigned long t0;
-  unsigned char t1, t2;
-
-  t0    = hc[x];
-  t1    = hv[x];
-  t2    = hl[x];
-  hc[x] = hc[y];
-  hv[x] = hv[y];
-  hl[x] = hl[y];
-  hc[y] = t0;
-  hv[y] = t1;
-  hl[y] = t2;
-}
-
-
-/*
-** Input Subroutines
-*/
-
-static BYTE GetByte ()
+/** Receive a byte (eight bits) from the input
+ * @return	the received byte
+ */
+static byte_t
+GetByte (void)
 {
   if (Status == EOF)
     return 0;
 
-  if (feof(fp) || ferror(fp)) {
-    Status = EOF;
-    return 0;
-  }
-  else {
-    Status = 0;
-  }
-
-  return (unsigned char)(fgetc (fp) & 0xff);
-}
-
-static WORD GetWord ()
-{
-  WORD u = 0;
-
-  if (Status == EOF)
-    return 0;
-
-  if (feof(fp) || ferror(fp)) {
-    Status = EOF;
-    return 0;
-  }
-  else {
-    Status = 0;
-  }
-
-  u = (WORD)fgetc (fp) & 0xff;
-  u |= ((WORD)fgetc (fp) & 0xff) << 8;
-
-  return u;
-}
-
-static TBYTE GetThree ()
-{
-  TBYTE u = 0;
-
-  if (Status == EOF || feof(fp) || ferror(fp)) {
+  if (feof (fp) || ferror (fp)) {
     Status = EOF;
     return 0;
   }
   else
     Status = 0;
 
-  u = (TBYTE)(fgetc (fp) & 0xff);
-  u |= ((TBYTE)fgetc (fp) & 0xff) << 8;
-  u |= ((TBYTE)fgetc (fp) & 0xff) << 16;
+  return (unsigned char) (fgetc (fp) & 0xff);
+}
+
+/** Receive a word (sixteen bits) from the input
+ * @return	the received word
+ */
+static word_t
+GetWord (void)
+{
+  word_t u = 0;
+
+  if (Status == EOF)
+    return 0;
+
+  if (feof (fp) || ferror (fp)) {
+    Status = EOF;
+    return 0;
+  }
+  else {
+    Status = 0;
+  }
+
+  u = (word_t) fgetc (fp) & 0xff;
+  u |= ((word_t) fgetc (fp) & 0xff) << 8;
 
   return u;
 }
 
-static bool GetBit ()
+/** Receive a three-byte integer (twenty-four bits) from the input
+ * @return	the received integer
+ */
+static tbyte_t
+GetThree (void)
 {
-  register int result = (BitBuf >>= 1);
+  tbyte_t u = 0;
+
+  if (Status == EOF || feof (fp) || ferror (fp)) {
+    Status = EOF;
+    return 0;
+  }
+  else
+    Status = 0;
+
+  u = (tbyte_t) (fgetc (fp) & 0xff);
+  u |= ((tbyte_t) fgetc (fp) & 0xff) << 8;
+  u |= ((tbyte_t) fgetc (fp) & 0xff) << 16;
+
+  return u;
+}
+
+/** Receive a bit from the input
+ * @return	the received bit
+ */
+static bool
+GetBit (void)
+{
+  register int result = BitBuf >>= 1;
 
   if (result == 1)
-    return (bool)(1 & (BitBuf = GetByte() | 0x0100));
+    return (bool) (1 & (BitBuf = GetByte() | 0x0100));
   else
-    return (bool)(1 & result);
+    return (bool) (1 & result);
 }
 
-/*
-** Fetch Huffman code and convert it to what it represents
-*/
-
-static BYTE Huffin ()
+/** Fetch a Huffman code and convert it to what it represents
+ * @return	the converted code
+ */
+static byte_t
+Huffin (void)
 {
   long hcode = 0;
   long mask  = 1;
@@ -252,7 +241,7 @@ static BYTE Huffin ()
   now = hcount;       /* First non=zero Huffman code */
 
   do {
-    if (GetBit())
+    if (GetBit ())
       hcode |= mask;
 
     while( hl[now] == size) {
@@ -267,17 +256,17 @@ static BYTE Huffin ()
     }
     size++;
     mask = mask << 1;
-  } while(size < 24);
+  } while (size < 24);
 
   Status = EOF;                /* Error. Huffman code too big */
   return 0;
 }
 
-/*
-** Fetch ARC64 header. Returns true if header is ok.
-*/
-
-static bool GetHeader ()
+/** Fetch ARC64 header.
+ * @return	true if header is ok.
+ */
+static bool
+GetHeader (void)
 {
   unsigned int  w, i;
   const char LegalTypes[] = "SPUR";
@@ -365,19 +354,18 @@ static bool GetHeader ()
       else
 	hcount--;
     }
-    ssort(256,hcomp,hswap);
+    ssort ();
   }
 
-  return strchr(LegalTypes, entry.type) ? true : false;
+  return !!strchr (LegalTypes, entry.type);
 }
 
-/*
-** Get start of data. Ignores SDA header, and returns -1 if not an archive.
-** Otherwise return value is the starting position of useful data within the
-** file. (Normally 0)
-*/
-
-static long GetStartPos ()
+/** Get start of data.  Ignores SDA header.
+ * @return	the starting position of useful data within the file
+ *		(normally 0), or -1 if not an archive
+ */
+static long
+GetStartPos (void)
 {
   int c;                      /* Temp */
   int cpu;                    /* C64 or C128 if SDA */
@@ -414,49 +402,105 @@ static long GetStartPos ()
   return skip;
 }
 
-
 /*
-** Un-Crunch a byte
-**
-** This is pretty straight forward if you have Terry Welch's article
-** "A Technique for High Performance Data Compression" from IEEE Computer
-** June 1984
-**
-** This implemention reserves code 256 to indicate the end of a crunched
-** file, and code 257 was reserved for future considerations. Codes grow
-** up to 12 bits and then stay there. There is no reset of the string
-** table.
-*/
+ * Un-Crunch a byte
+ *
+ * This is pretty straight forward if you have Terry Welch's article
+ * "A Technique for High Performance Data Compression" from IEEE Computer
+ * June 1984
+ *
+ * This implemention reserves code 256 to indicate the end of a crunched
+ * file, and code 257 was reserved for future considerations. Codes grow
+ * up to 12 bits and then stay there. There is no reset of the string
+ * table.
+ */
 
-    /* PUSH/POP LZ stack */
-
-static void push (BYTE c)
+/** Push a byte to the Lempel Zev stack
+ * @param c	the byte to be pushed
+ */
+static void
+push (byte_t c)
 {
   if (lzstack >= sizeof stack)
-    longjmp(LZStackError, PushError);
+    longjmp (LZStackError, PushError);
   else
     stack[lzstack++] = c;
 }
 
-static BYTE pop (void)
+/** Pop a byte from the Lempel Zev stack
+ * @return	the popped byte
+ */
+static byte_t
+pop (void)
 {
   if (!lzstack)
-    longjmp(LZStackError, PopError);
+    longjmp (LZStackError, PopError);
   else
     return stack[--lzstack];
 }
 
-static BYTE unc (void)
+/** Fetch LZ code
+ * @return	the fetched code
+ */
+static int getcode (void)
+{
+  register int i;
+  long blocks;
+
+  code = 0;
+  i = cdlen;
+
+  while(i--)
+    code = (code << 1) | GetBit ();
+
+  /*  Special case of 1 pass crunch. Checksum and size are at the end */
+
+  if ((code == 256) && (entry.mode == 5)) {
+    i = 16;
+    entry.check = 0;
+    while (i--)
+      entry.check = (entry.check << 1) | GetBit ();
+    i = 24;
+    entry.size = 0;
+    while (i--)
+      entry.size = (entry.size << 1) | GetBit ();
+    i = 16;
+    while (i--)                     /* This was never implemented */
+      GetBit ();
+    blocks = ftell(fp)-FilePos;
+    entry.blocks = blocks/254;
+    if (blocks % 254)
+      entry.blocks++;
+  }
+
+  /* Get ready for next time */
+
+  if ((cdlen < 12)) {
+    if (!(--wttcl)) {
+      wtcl = wtcl << 1;
+      cdlen++;
+      wttcl = wtcl;
+    }
+  }
+
+  return code;
+}
+
+/** Un-crunch a byte
+ * @return	the uncrunched byte
+ */
+static byte_t
+unc (void)
 {
   static int  oldcode, incode;
-  static BYTE kay;
+  static byte_t kay;
   static int  omega;
   static unsigned char finchar;
   static int  ncodes;   /* Current # of codes in table */
 
   switch (State) {
 
-  case 0: {                /* First time. Reset. */
+  case 0:                  /* First time. Reset. */
     lzstack = 0;
     ncodes  = 258;         /* 2 reserved codes */
     wtcl    = 256;         /* 256 Bump code size when we get here */
@@ -472,9 +516,8 @@ static BYTE unc (void)
     finchar = kay;
     State = 1;
     return kay;
-  }
 
-  case 1: {
+  case 1:
     incode = getcode();
 
     if (incode == 256) {
@@ -498,9 +541,8 @@ static BYTE unc (void)
     finchar = code;
     State = 2;
     return kay;
-  }
 
-  case 2: {
+  case 2:
     if (!lzstack) {             /* Empty stack */
       omega = oldcode;
       if (ncodes < sizeof lztab / sizeof *lztab) {
@@ -515,61 +557,16 @@ static BYTE unc (void)
     else
       return pop();
   }
-  }
 
   Status = EOF;
   return 0;
 }
 
-/*
-** Fetch LZ code
-*/
-
-static int getcode (void)
-{
-  register int i;
-  long blocks;
-
-  code = 0;
-  i = cdlen;
-
-  while(i--)
-    code = (code << 1) | GetBit();
-
-  /*  Special case of 1 pass crunch. Checksum and size are at the end */
-
-  if ( (code == 256) && (entry.mode == 5) ) {
-    i = 16;
-    entry.check = 0;
-    while(i--)
-      entry.check = (entry.check << 1) | GetBit();
-    i = 24;
-    entry.size = 0;
-    while(i--)
-      entry.size = (entry.size << 1) | GetBit();
-    i = 16;
-    while(i--)                      /* This was never implemented */
-      GetBit();
-    blocks = ftell(fp)-FilePos;
-    entry.blocks = blocks/254;
-    if (blocks % 254)
-      entry.blocks++;
-  }
-
-  /* Get ready for next time */
-
-  if ( (cdlen<12) ) {
-    if ( !(--wttcl) ) {
-      wtcl = wtcl << 1;
-      cdlen++;
-      wttcl = wtcl;
-    }
-  }
-
-  return code;
-}
-
-static void UpdateChecksum (int c)
+/** Update the checksum
+ * @param c	the data to be added to the checksum
+ */
+static void
+UpdateChecksum (int c)
 {
   c &= 0xff;
 
@@ -579,7 +576,11 @@ static void UpdateChecksum (int c)
     crc += (c ^ (++crc2));    /* A slightly better checksum for version 2 */
 }
 
-static BYTE UnPack ()
+/** Unpack a byte
+ * @return	the unpacked byte
+ */
+static byte_t
+UnPack (void)
 {
   switch (entry.mode) {
 
@@ -601,17 +602,27 @@ static BYTE UnPack ()
   }
 }
 
-RdStatus ReadARC (FILE *file, const char *filename,
-		  WriteCallback *writeCallback, LogCallback *log)
+/** Read and convert an ARC/SDA archive
+ * @param file		the file input stream
+ * @param filename	host system name of the file
+ * @param writeCallback	function for writing the contained files
+ * @param log		Call-back function for diagnostic output
+ * @return		status of the operation
+ */
+enum RdStatus
+ReadARC (FILE* file,
+	 const char* filename,
+	 write_file_t writeCallback,
+	 log_t log)
 {
   fp = file;
 
-  switch (setjmp(LZStackError)) {
+  switch (setjmp (LZStackError)) {
   case PopError:
-    (*log) (Errors, NULL, "Lempel Zev stack underflow");
+    (*log) (Errors, 0, "Lempel Zev stack underflow");
     return RdFail;
   case PushError:
-    (*log) (Errors, NULL, "Lempel Zev stack overflow");
+    (*log) (Errors, 0, "Lempel Zev stack overflow");
     return RdFail;
   }
 
@@ -619,11 +630,11 @@ RdStatus ReadARC (FILE *file, const char *filename,
     long temp;
 
     if ((temp = GetStartPos()) < 0) {
-      (*log) (Errors, NULL, "Not a Commodore ARC or SDA.");
+      (*log) (Errors, 0, "Not a Commodore ARC or SDA.");
       return RdFail;
     }
     else if (fseek (fp, temp, SEEK_SET)) {
-      (*log) (Errors, NULL, "fseek: %s", strerror(errno));
+      (*log) (Errors, 0, "fseek: %s", strerror(errno));
       return RdFail;
     }
   }
@@ -631,8 +642,9 @@ RdStatus ReadARC (FILE *file, const char *filename,
   FilePos = ftell (fp);
 
   while (GetHeader()) {
-    BYTE *buffer, *buf;
-    Filename name;
+    byte_t* buffer;
+    byte_t* buf;
+    struct Filename name;
 
     long length = entry.size;
 
@@ -640,12 +652,12 @@ RdStatus ReadARC (FILE *file, const char *filename,
       length = 65536; /* 64kB should be enough for everyone */
 
     if (!(buf = buffer = malloc (length))) {
-      (*log) (Errors, NULL, "Out of memory.");
+      (*log) (Errors, 0, "Out of memory.");
       return RdFail;
     }
 
     while (buf < &buffer[length]) {
-      BYTE c = UnPack();
+      byte_t c = UnPack ();
 
       if (Status == EOF)
 	break;
@@ -722,7 +734,7 @@ RdStatus ReadARC (FILE *file, const char *filename,
     FilePos += (long)entry.blocks * 254;
 
     if (fseek (fp, FilePos, SEEK_SET)) {
-      (*log) (Errors, NULL, "fseek: %s", strerror(errno));
+      (*log) (Errors, 0, "fseek: %s", strerror (errno));
       return RdFail;
     }
   }

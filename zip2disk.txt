@@ -1,0 +1,41 @@
+ZIP2DISK(1)                                           ZIP2DISK(1)
+
+
+
+NAME
+       zip2disk - Commodore 1541 ZipCode extractor
+
+SYNOPSIS
+       zip2disk  zipcodefile [ imagefile.d64 ]
+
+DESCRIPTION
+       This manual page documents briefly the zip2disk command.
+
+       The  Commodore 1541 disk archiver ZipCode was developed in
+       order to make it possible to  transfer  disk  images  over
+       modem  lines.  Nowadays it is better to use gzip(1) on the
+       disk images.  The zip2disk command can be used to  convert
+       ZipCode archives to 1541 disk images.
+
+SECURITY
+       The  ZipCode  file names must be prefixed with the strings
+       1!, 2!, 3!, and 4!, just like ZipCode works  on  the  Com­
+       modore  64.   Some  Unix shells treat the character ! spe­
+       cially.  To avoid unpleasant situations, please  refer  to
+       the documentation of the shell you are using.
+
+BUGS
+       The  sector-level  disk  identifier  stored in the ZipCode
+       files is not included in the disk image.
+
+AUTHOR
+       The zip2disk utility was originally written by Paul  David
+       Doherty.   It  was  improved  and packaged by Marko Mäkelä
+       <marko.makela@nic.funet.fi>.
+
+SEE ALSO
+       cbmconvert(1), disk2zip(1).
+
+
+
+                        September 18, 2001            ZIP2DISK(1)

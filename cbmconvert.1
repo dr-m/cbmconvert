@@ -1,0 +1,196 @@
+.\" Manual page in -*- nroff -*- format; see man(7)
+.TH CBMCONVERT 1 "September 18, 2001"
+.SH NAME
+cbmconvert \- create, extract and convert various Commodore binary archives
+.SH SYNOPSIS
+.B cbmconvert
+.RI [ options ] " \(file" ...
+.SH DESCRIPTION
+This manual page documents brie\(fly the
+.B cbmconvert
+command.
+.PP
+There are many archiving programs for the Commodore 64, all of which
+are incompatible with archiving programs on other systems.  The
+\fBcbmconvert\fP utility tries to address this problem.  It extracts
+\(files from most known formats and writes them to several different
+formats, including some formats used by some Commodore 64 emulators:
+.TP
+.B Native (raw) \(files
+Files with just the raw data.  Written with the \fB-I\fP and \fB-N\fP
+options, read with the \fB-n\fP option.
+.TP
+.B PC64 \(files
+Also known as "P00" \(files.  Written with the \fB-P\fP option, read
+with the \fB-p\fP option.
+.TP
+.B Lynx archives
+Lynx was originally developed for the Commodore 64.  It modi\(fies the
+next-sector links in place and combines a number of \(files on a
+Commodore disk to a single \(file that can be transferred e.g. over a
+modem connection.  Earlier versions of this format do not specify the
+length of the last contained \(file, not protecting it from padding
+that could be introduced e.g. by the X-modem transfer protocol.  There
+are no checksums on the data either.  Lynx archives are written with
+\fB-L\fP and read with \fB-l\fP.
+.TP
+.B Commodore C2N tape archives
+Written with \fB-C\fP, read with \fB-c\fP.  These \(files are raw
+dumps of the data format the Commodore KERNAL routines maintain.
+Block checksums and countdown leaders (0x89..0x81 for the \(first copy
+and 9..1 for the second) are omitted, and the blocks are not stored
+twice, but only once.  The data consists of 192-byte tape header
+blocks, 192-byte data \(file blocks, and arbitrary-length program
+\(file blocks.
+.TP
+.B Commodore 128 CP/M disk images
+Written with \fB-M\fP, read with \fB-m\fP.
+.TP
+.B CBM DOS disk images
+Written with \fB-D\fP, read with \fB-d\fP.  Commodore 1571 and
+1581 support have not been tested properly, and not all 1581 features
+have been implemented.
+.TP
+.B ARC/SDA (Self-Dissolving Archive)
+Read with \fB-a\fP.  No write support.
+.TP
+.B Arkive
+Archives in this Lynx-like format are read with the \fB-k\fP option.
+There is no write support.
+.TP
+.B T64
+This tape format was introduced by C64S emulator.  Many variations of
+this format exist.  These \(files are read with the \fB-t\fP option.
+.PP
+\fBcbmconvert\fP reads all \(files in all input \(files listed on the
+command line and writes them in the speci\(fied format.  As there is
+no interactive user interface, the only way to copy only some \(files
+from a set of archive \(files to an archive \(file or a disk image is
+to extract all the \(files to a single-\(file format such as the PC64
+format, and to copy the desited individual \(files to the output
+archive with another invocation of \fBcbmconvert\fP.
+.SH OPTIONS
+\fBcbmconvert\fP follows the usual Unix command line syntax, with
+options starting with a dash (`\fB-\fP').
+.TP
+.B --
+Stop processing options.  This is useful if the \(first \(file name
+begins with a dash.
+.TP
+.B -I
+Output \(files in native (raw) format, with ISO 9660 compliant \(file names.
+.TP
+.B -P
+Output \(files in PC64 format.
+.TP
+.B -N
+Output \(files in native (raw) format.
+.TP
+.BI -L " archive.lnx"
+Output \(files in Lynx format.
+.TP
+.BI -C " archive.c2n"
+Output \(files in Commodore C2N tape format.
+.TP
+.BR -D4 [ o ] " \fIimage.d64\fP"
+Write to a Commodore 1541 CBM DOS disk image.  The \fBo\fP option
+speci\(fies that \(file name collisions should be resolved by
+overwriting existing \(files.  The default behaviour is keep the old
+\(files.
+.TP
+.BR -D7 [ o ] " \fIimage.d71\fP"
+Write to a Commodore 1571 CBM DOS disk image.
+.TP
+.BR -D8 [ o ] " \fIimage.d81\fP"
+Write to a Commodore 1581 CBM DOS disk image.
+.TP
+.BR -M4 [ o ] " \fIimage.d64\fP"
+Write to a Commodore 1541 disk image in the Commodore 128 CP/M format.
+.TP
+.BR -M7 [ o ] " \fIimage.d71\fP"
+Write to a Commodore 1571 disk image in the Commodore 128 CP/M format.
+.TP
+.BR -M8 [ o ] " \fIimage.d81\fP"
+Write to a Commodore 1581 disk image in the Commodore 128 CP/M format.
+.TP
+.B -i2
+Switch disk images when running out of space or a duplicate \(file
+name is detected.
+.TP
+.B -i1
+Switch disk images when running out of space.  This is the default behaviour.
+.TP
+.B -i0
+Never switch disk images.
+.TP
+.B -n
+Input \(files in native (raw) format.
+.TP
+.B -p
+Input \(files in PC64 format.
+.TP
+.B -a
+Input \(files in ARC/SDA format.
+.TP
+.B -k
+Input \(files in Arkive format.
+.TP
+.B -l
+Input \(files in Lynx format.
+.TP
+.B -t
+Input \(files in T64 format.
+.TP
+.B -c
+Input \(files in Commodore C2N format.
+.TP
+.B -d
+Input \(files in CBM DOS disk image format.
+.TP
+.B -m
+Input \(files in Commodore 128 CP/M disk image format.
+.TP
+.B -v2
+Verbose mode.  Display all messages.
+.TP
+.B -v1
+Display warning and error messages.  This is the default option.
+.TP
+.B -v0
+Display error messages only.
+.SH BUGS
+Many of the \(file formats lack safety measures, such as storing the
+exact lengths of the contained \(files, or storing even rudimentary
+checksums.  Most formats have been reverse-engineered, and there may
+be other implementations that accept \(files in a stricter format than
+\fBcbmconvert\fP produces or produce \(files that \fBcbmconvert\fP
+does not recognize.
+.PP
+On disk images, it is common to decorate directory listings with
+unnecessary entries that contain Commodore-speci\(fic graphic
+characters.  Since subdirectories were not supported by Commodore
+until the 1581 disk drive was introduced, the slash character (`/') is
+valid in Commodore \(file names but not on the Unix system.  For these
+reasons, it is advisable to avoid the raw \(file format and the host
+\(file system whenever possible, and to convert directly from one
+Commodore-speci\(fic format to another.
+.PP
+The program lacks an interactive user interface.  A shell-like command
+line interface could be useful, and a graphical \(file manager like
+interface could be even better.  Are there any volunteers?
+.PP
+More disk image formats should be supported, and the 1571 and 1581
+support should be tested extensively.  Unsupported formats include the
+8050, the 8250, the 2040 and the Commodore 64 CP/M format for the 1541.
+.SH AUTHOR
+The \fBcbmconvert\fP utility was designed and implemented by
+Marko M\(:akel\(:a <marko.makela@nic.funet.fi>.
+.PP
+Support for Commodore 1581 disk images was programmed by Pasi Ojala
+<albert@cs.tut.fi>.
+.PP
+The ARC/SDA dissolving code was originally written by Chris Smeets.
+.SH SEE ALSO
+.BR c2n (1),
+.BR disk2zip (1),
+.BR zip2disk (1).

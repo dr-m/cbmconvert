@@ -1,0 +1,12 @@
+2002-06-16  Marko Mäkelä  <Marko.Makela@NIC.FUNET.FI>
+
+	* cbmconvert.html: renamed from README.html revised for version 2.1.1
+
+	* Makefile: split into Makefile.<platform> and Makefile
+
+	* TODO: mention plans on integrating cbmconvert with cbmlink
+	
+	* image.c (mapInode): tolerate partially unallocated inodes
+
+	* c2n.c (ReadC2N): tolerate nonsensial addresses in data header blocks
+

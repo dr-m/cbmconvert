@@ -1,0 +1,34 @@
+.\" Manual page in -*- nroff -*- format; see man(7)
+.TH ZIP2DISK 1 "September 18, 2001"
+.SH NAME
+zip2disk \- Commodore 1541 ZipCode extractor
+.SH SYNOPSIS
+.B zip2disk
+.IR " zipcode\(file " [ " image\(file.d64 " ]
+.SH DESCRIPTION
+This manual page documents brie\(fly the
+.B zip2disk
+command.
+.PP
+The Commodore 1541 disk archiver ZipCode was developed in order to make
+it possible to transfer disk images over modem lines.  Nowadays it is
+better to use
+.BR gzip (1)
+on the disk images.  The \fBzip2disk\fP command can be used to convert
+ZipCode archives to 1541 disk images.
+.SH SECURITY
+The ZipCode \(file names must be pre\(fixed with the strings \fB1!\fP,
+\fB2!\fP, \fB3!\fP, and \fB4!\fP, just like ZipCode works on the
+Commodore 64.  Some Unix shells treat the character \fB!\fP specially.
+To avoid unpleasant situations, please refer to the documentation of
+the shell you are using.
+.SH BUGS
+The sector-level disk identi\(fier stored in the ZipCode \(files is not
+included in the disk image.
+.SH AUTHOR
+The \fBzip2disk\fP utility was originally written by
+Paul David Doherty.  It was improved and packaged by
+Marko M\(:akel\(:a <marko.makela@nic.funet.fi>.
+.SH SEE ALSO
+.BR cbmconvert (1),
+.BR disk2zip (1).

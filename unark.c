@@ -1,25 +1,25 @@
+/**
+ * @file unark.c
+ * Arkive archive extractor
+ * @author Marko Mäkelä (marko.makela@nic.funet.fi)
+ */
+
 /*
-** $Id$
-**
-** Arkive archive extractor
-**
-** Copyright © 1993-1997 Marko Mäkelä
+** Copyright © 1993-1997,2001 Marko Mäkelä
 **
 **     This program is free software; you can redistribute it and/or modify
 **     it under the terms of the GNU General Public License as published by
 **     the Free Software Foundation; either version 2 of the License, or
 **     (at your option) any later version.
-** 
+**
 **     This program is distributed in the hope that it will be useful,
 **     but WITHOUT ANY WARRANTY; without even the implied warranty of
 **     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 **     GNU General Public License for more details.
-** 
+**
 **     You should have received a copy of the GNU General Public License
 **     along with this program; if not, write to the Free Software
 **     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-**
-** $Log$
 */
 
 #include <stdio.h>
@@ -29,23 +29,44 @@
 
 #include "input.h"
 
-typedef struct {
-  BYTE filetype;
-  BYTE lastSectorLength;
-  BYTE name[16];
-  BYTE recordLength;
-  BYTE unknown[6];
-  BYTE sidesectCount;
-  BYTE sidesectLastLength;
-  BYTE blocksLow;
-  BYTE blocksHigh;
-} ArkiveEntry;
-
-RdStatus ReadArkive (FILE *file, const char *filename,
-		     WriteCallback *writeCallback, LogCallback *log)
+/** Arkive directory entry */
+struct ArkiveEntry
 {
-  Filename name;
-  ArkiveEntry entry;
+  /** Commodore file type */
+  byte_t filetype;
+  /** Number of bytes in the last sector */
+  byte_t lastSectorLength;
+  /** Commodore file name */
+  byte_t name[16];
+  /** Record length for random-access (relative) files */
+  byte_t recordLength;
+  /** Unused bytes */
+  byte_t unknown[6];
+  /** Number of side sectors for random-access (relative) files */
+  byte_t sidesectCount;
+  /** Length of the last side sector */
+  byte_t sidesectLastLength;
+  /** Least significant byte of the file's block count */
+  byte_t blocksLow;
+  /** Most significant byte of the file's block count */
+  byte_t blocksHigh;
+};
+
+/** Read and convert an Arkive archive
+ * @param file		the file input stream
+ * @param filename	host system name of the file
+ * @param writeCallback	function for writing the contained files
+ * @param log		Call-back function for diagnostic output
+ * @return		status of the operation
+ */
+enum RdStatus
+ReadArkive (FILE* file,
+	    const char* filename,
+	    write_file_t writeCallback,
+	    log_t log)
+{
+  struct Filename name;
+  struct ArkiveEntry entry;
   int f, fcount;
 
   /* File positions */
@@ -54,12 +75,12 @@ RdStatus ReadArkive (FILE *file, const char *filename,
 
   if (EOF == (fcount = fgetc (file))) {
   hdrError:
-    (*log) (Errors, NULL, "File header read failed: %s", strerror(errno));
+    (*log) (Errors, 0, "File header read failed: %s", strerror(errno));
     return RdFail;
   }
 
   headerPos = ftell (file);
-  archivePos = 254 * rounddiv(headerPos + fcount * sizeof entry, 254);
+  archivePos = 254 * rounddiv (headerPos + fcount * sizeof entry, 254);
 
   /* start extracting files */
 
@@ -113,7 +134,7 @@ RdStatus ReadArkive (FILE *file, const char *filename,
 	length = (blocks - sidesectCount) * 254 - 255 +
 	  entry.lastSectorLength;
       }
-      
+
       break;
 
     default:
@@ -126,7 +147,7 @@ RdStatus ReadArkive (FILE *file, const char *filename,
     /* read the file */
 
     {
-      BYTE *buf;
+      byte_t* buf;
 
       if (fseek (file, archivePos, SEEK_SET)) {
 	(*log) (Errors, &name, "fseek: %s", strerror(errno));
