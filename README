@@ -1,0 +1,288 @@
+
+                      Documentation for cbmconvert 2.0.5
+                                       
+cbmconvert 2.0.5 - extract and convert different Commodore binary archives
+
+   Copyright © 1993-1999 [1]Marko Mäkelä
+   
+     This program is free software; you can redistribute it and/or
+     modify it under the terms of the GNU General Public License as
+     published by the Free Software Foundation; either version 2 of the
+     License, or (at your option) any later version.
+     
+     This program is distributed in the hope that it will be useful, but
+     WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+     General Public License for more details.
+     
+     You should have received a copy of the GNU General Public License
+     along with this program; if not, write to the Free Software
+     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+     
+1 Introduction
+
+   There are many archiving programs for the Commodore 64, all of which
+   are incompatible with archiving programs on other systems. This
+   cbmconvert utility tries to address this problem. It extracts files
+   from most known file formats and writes them to several different
+   formats, including some formats used by some Commodore 64 emulators.
+   
+   This release of cbmconvert does not contain LHARC support any more,
+   since 1541 disk images (either plain or ZipCoded) and Lynx archives
+   are much easier to handle. If you need LHARC support, get the older
+   release, cbmconvert 1.1.
+   
+   All code has been cleaned up. The file type management in cbmconvert
+   2.0.5 is very flexible, and it is very easy to add file types later.
+   Currently cbmconvert reads the following file types: Arkive, Lynx,
+   ARC64/128, PC64, disk images (1541, 1571, 1581, both native and C128
+   CP/M format), and raw files. Conversions between 1541 disk images and
+   ZipCoded files can be made with the two supplied utilities disk2zip
+   and zip2disk.
+   
+2 Getting Started
+
+  2.1 UNIX
+  
+   Compile cbmconvert by entering make unix. If you do not have GNU C
+   compiler (gcc) installed on your system, you will need to edit the
+   Makefile.
+   
+   The compilation should leave you with three executables: cbmconvert,
+   zip2disk and disk2zip. Install these to your binaries directory, and
+   you are ready to go. Ask your system administrator and/or a local guru
+   if you do not know where to install the binaries. Or just use them
+   from the current directory.
+   
+  2.2 AmigaDOS
+  
+   There is a make file for AmigaDOS in smakefile (written by [2]Pasi
+   Ojala), but it is not up to date, and I don't remember for which
+   compiler it is. You could use GNU C as well.
+   
+  2.3 MS-DOS
+  
+   You can compile cbmconvert for MS-DOS with DJGPP by using the supplied
+   Makefile. The required patches were friendly supplied by [3]Wolfgang
+   Moser.
+   
+   16-bit compilers will probably have trouble with cbmconvert. For
+   instance, the standard file I/O library in Borland C uses signed
+   16-bit integers for size_t, which is not enough.
+   
+3 Using cbmconvert
+
+   Starting with version 2.0.0, cbmconvert consists of three programs:
+   
+   cbmconvert
+          The main program that makes most conversions.
+          
+   disk2zip
+          ZipCode creator. Encodes a 35-track 1541 disk image to four
+          ZipCode files (1!filename..4!filename).
+          
+   zip2disk
+          ZipCode dissolver. Decodes a 35-track 1541 disk image from four
+          ZipCode files.
+          
+  3.1 cbmconvert
+  
+   Since version 2.0, cbmconvert has independent file reader and writer
+   modules that are controlled through a main program. There is only a
+   command-line interface, but adding an interactive user interface
+   should be easy (any volunteers?).
+   
+   cbmconvert reads all files in all input files you specify on the
+   command line and writes them in the format you specify. If you want to
+   copy only some files from a set of archive files to an archive file or
+   disk image, you will have to extract all the files to a single-file
+   format such as the PC64 format, and to copy the wanted individual
+   files to the output archive with another invocation of cbmconvert.
+   
+   You can get a list of cbmconvert options by invoking the program
+   without any arguments. cbmconvert supports following file formats:
+   
+   Raw files
+          Files with just the raw data. Written with the -I and -N
+          options, read with the -n option.
+          
+   PC64 files
+          Also known as "P00" files. Written with the -P option, read
+          with the -p option.
+          
+   Lynx archives
+          Written with -L, read with -l.
+          
+   C128 CP/M disk images
+          Written with -C[478], read with -c.
+          
+   CBM DOS disk images
+          Written with -D[478], read with -d. 1571 and 1581 support have
+          not been tested properly, and not all 1581 features are
+          implemented.
+          
+   ARC/SDA
+          Read with -a. No write support.
+          
+   Arkive
+          Read with -k. No write support.
+          
+   T64
+          Read with -t. No write support.
+          
+    3.1.1 CP/M disk images
+    
+   Since cbmconvert has been written exclusively with Commodore file
+   names in mind, the support for CP/M disk images is a bit clumsy. You
+   may want to rename the files after extracting them from the disks. For
+   instance, if you have downloaded the CP/M disk images from
+   http://www.funet.fi/pub/cbm/demodisks/c128/, you can use the following
+   commands in bash to extract the files from the disk images:
+gunzip *.d64.gz
+
+for i in *.d64; do mkdir ${i%.d64}; cd ${i%.d64}; cbmconvert -c ../$i; cd ..; d
+one
+
+for i in */*.prg; do mv $i "`echo ${i%.prg}|tr A-Z a-z`"; done
+
+   CP/M does not store the exact length of the files anywhere. That is
+   why many CP/M programs create files whose length is a multiple of 128
+   bytes. Text files in CP/M commonly use ^Z as an end-of-file delimiter,
+   and many programs fill the extra bytes in the last 128-byte block of
+   the file with this character. The CP/M routines in cbmconvert does so
+   as well, and it removes the padding when reading the files. So, you
+   could use cbmconvert to remove the padding. But you may prefer the
+   following bash command (requires Perl 5):
+for i in *; do perl -i -e 'undef $/; $_=<>; while(/\032$/){chop} print' "$i"; d
+one
+
+    3.1.2 GEOS disk images
+    
+   GEOS files on disk images will be handled transparently by converting
+   them to and from the Convert format on the fly. All unused areas in
+   the Convert file will be zeroed out, and all possible integrity checks
+   will be made in both conversions. If the file is interpreted to be in
+   GEOS or Convert format, and it fails in any integrity check, it will
+   be treated as a native Commodore file.
+   
+   You should note that Convert does not provide much safety for the
+   file. For sequential files, the original file length is not stored
+   anywhere. For VLIR files, it is, but even then there are no checksums.
+   
+   As a speciality, all GEOS files have a file information block. The
+   contents of this block can be viewed with the simple Perl script
+   cvtinfo.pl that reads files in Convert format. It was just a quick
+   hack; feel free to make it more robust.
+   
+   The GEOS routines have been tested with twelve 1541 disk images and
+   with several megabytes of *.cvt files, and they are believed to be
+   error free now. There were problems with the VLIR sector format; Mr.
+   Boyce's reverse engineered information about it was incorrect, or at
+   least inadequate.
+   
+    3.1.3 Flaws of cbmconvert
+    
+   The conversion may lose some file name or attribute information. In
+   some cases, the filenames will be converted from PETSCII to ASCII or
+   vice versa, and some PETSCII or ASCII specific characters will be lost
+   in the conversions. Non-standard directory information available in
+   some formats will be lost as well.
+   
+   Lynx, Arkive and ARC allow duplicate filenames. But cbmconvert detects
+   them and refuses to write multiple files with identical names to
+   archives or to disk images. These duplicates are often used as
+   directory separators, to separate groups of filenames. If you really
+   need such separators, use 1-block-long PRG or SEQ files with different
+   names. For example, the first separator can be a string of 16 dashes,
+   the second one can be 15 dashes, and so on.
+   
+   Arkive also works on illegal file types that cannot be created without
+   directly modifying the directory blocks. Such files will be converted
+   to a supported file type. Files with unknown types on disk images will
+   be skipped.
+   
+   Handling the errors on disk images could be more robust. Not all
+   (typically BAM-related) errors on CBM DOS disk images are detected.
+   For erroneous 1541 disk images that do not work with the new
+   cbmconvert, you may want to try the disk2files program of the previous
+   release.
+   
+  3.2 disk2zip
+  
+   This program converts a standard 35-track, 683-block 1541 disk image
+   to ZipCode format. Because the ZipCode format stores the disk
+   identifier, this conversion adds information. You can use the -i
+   option to specify the disk identifier.
+   
+  3.3 zip2disk
+  
+   ZipCoded archives consist of four files prefixed with a number from 1
+   to 4, and a exclamation point. To extract an archive having the files
+   "1!disk", "2!disk", "3!disk" and "4!disk", command "zip2disk disk".
+   You may then delete the original files with "rm [1-4]\!disk" or
+   similar. But note that some software (demos and copy-protected
+   software) may rely on the disk identifier, which will not be stored in
+   the 1541 disk image file.
+   
+   Support for ZipCode SixPacks ("1!!disk", "2!!disk", ..., "6!!disk")
+   could be added easily, but this format is used mainly for really
+   custom 1541 disks with abnormal low-level format, for which there
+   doesn't exist any commonly agreed representation format.
+   
+4 Credits
+
+   Most of the cbmconvert package was written by Marko Mäkelä. The
+   original version appeared in 1993, and a complete rewrite was started
+   in 1997 and finished in 1998.
+   
+   The zip2disk module was originally programmed by [4]Paul David
+   Doherty. The ISO 9660 compliant filename truncation algorithm was
+   taken from the T64TOP00 utility created by Wolfgang Lorenz as a part
+   of his now discontinued PC64 emulator.
+   
+   Support for 1581 CBM DOS disk images was programmed by [5]Pasi Ojala.
+   
+   The ARC/SDA dissolving code was originally written by Chris Smeets.
+   
+   The necessary information for supporting GEOS was provided by [6]Joe
+   Forster/STA, [7]Doug Cotton, Alexander Boyce (author of the unofficial
+   GEOS Programmer's Reference Guide) and by the anonymous author of the
+   file "convertfrmt.txt".
+   
+  4.1 Patches
+  
+   Version 2.0.5:
+          [8]Mikko Suonio provided patches for tolerating truncated T64
+          and Lynx archives. His patches also handle single-file T64
+          archives that have number of entries set to zero, and Lynx
+          archives that have file names starting with a space.
+          
+   Version 2.0.5.1:
+          It was brought to my attention that Lynx 17 on the Commodore 64
+          and some other utilities do not recognize the Lynx archives
+          created by cbmconvert. I slightly modified the magic cookie to
+          fix the problem.
+          
+5 Distribution
+
+   You can download the latest source code distribution of cbmconvert
+   from [9]http://www.funet.fi/pub/cbm/crossplatform/converters/unix/.
+   
+   You can find a 32-bit MS-DOS binary distribution of cbmconvert at
+   [10]http://www.funet.fi/pub/cbm/crossplatform/converters/msdos/. It
+   may be out of date; if you want to have the current version, compile
+   it from the sources yourself, and do not forget to write the author
+   that you could upload the binary somewhere.
+
+References
+
+   1. mailto:Marko.Makela@ftp.funet.fi
+   2. mailto:albert@cs.tut.fi
+   3. mailto:womo@mindless.com
+   4. mailto:h0142kdd@rz.hu-berlin.de
+   5. mailto:albert@cs.tut.fi
+   6. mailto:sta@ludens.elte.hu
+   7. mailto:doug.cotton@cmdweb.com
+   8. mailto:Mikko.Suonio@iki.fi
+   9. http://www.funet.fi/pub/cbm/crossplatform/converters/unix/
+  10. http://www.funet.fi/pub/cbm/crossplatform/converters/msdos/

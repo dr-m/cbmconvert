@@ -1,0 +1,22 @@
+Things to be done (feel free to contribute):
+
+- image.c:
+    - ReadImage(): Check the BAM
+    - 1581: changing of subdirectories
+    - specifying the disk name and ID
+    - setupSideSectors() and checkSideSectors(): 1581 support
+    - validate (Image *image, bool correct) must be written
+      (and honor the GEOS file structure as well)
+      Sample output:
+	Unallocated but used blocks:
+	18,0 18,1 18,3
+
+	Allocated but unused blocks:
+	18,4
+
+	Improper free blocks count on tracks:
+	17 (10, should be 9)
+	18 (1, should be 3)
+
+- main.c:
+    - interactive readline-based interface
