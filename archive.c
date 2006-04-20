@@ -83,7 +83,7 @@ WriteArchive (const struct Filename* name,
 
   /* check for duplicate file names */
   for (ae = archive->first; ae; ae = ae->next)
-    if (!memcmp (&ae->name, name, sizeof (struct Filename)))
+    if (!memcmp (&ae->name.name, name->name, sizeof name->name))
       return WrFileExists;
 
   if (!(ae = malloc (sizeof (*ae)))) {

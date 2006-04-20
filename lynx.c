@@ -1,11 +1,11 @@
 /**
  * @file lynx.c
  * Lynx archive extractor and archiver
- * @author Marko Mäkelä (marko.makela@nic.funet.fi)
+ * @author Marko Mäkelä (marko.makela at iki.fi)
  */
 
 /*
-** Copyright © 1993-1997,2001 Marko Mäkelä
+** Copyright © 1993-1997,2001,2006 Marko Mäkelä
 **
 **     This program is free software; you can redistribute it and/or modify
 **     it under the terms of the GNU General Public License as published by
@@ -184,7 +184,7 @@ ReadLynx (FILE* file,
       name.recordLength = 0;
 
       switch (filetype) {
-	int sidesectors;
+	unsigned sidesectors;
 
       default:
 	name.type = 0;
@@ -360,9 +360,9 @@ ArchiveLynx (const struct Archive* archive,
 
   /* Write the Lynx directory. */
   for (ae = archive->first; ae; ae = ae->next) {
-    int i;
+    unsigned i;
     /* Write the file name.  Replace CRs with periods. */
-    for (i = 0; i < sizeof(ae->name.name) && i < 16; i++)
+    for (i = 0; i < sizeof ae->name.name && i < 16; i++)
       putc (ae->name.name[i] == 13 ? '.' : ae->name.name[i], f);
 
     i = rounddiv(ae->length, 254);

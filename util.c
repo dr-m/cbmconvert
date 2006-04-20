@@ -41,7 +41,7 @@ getFilename (const struct Filename* name)
 
   /* remove trailing shifted spaces */
 
-  for (i = sizeof(name->name); name->name[--i] == 0xA0; );
+  for (i = sizeof(name->name); i-- && name->name[i] == 0xA0; );
   buf [++i] = 0;
   while (i--)
     if (name->name[i] >= 0x41 && name->name[i] <= 0x5A)

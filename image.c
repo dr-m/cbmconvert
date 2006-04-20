@@ -1,12 +1,12 @@
 /**
  * @file image.c
  * Disk image management
- * @author Marko Mäkelä (marko.makela@nic.funet.fi)
- * @author Pasi Ojala (albert@cs.tut.fi)
+ * @author Marko Mäkelä (marko.makela at iki.fi)
+ * @author Pasi Ojala (albert at cs.tut.fi)
  */
 
 /*
-** Copyright © 1993-1998,2001 Marko Mäkelä
+** Copyright © 1993-1998,2001,2006 Marko Mäkelä
 ** 1581 disk image management by Pasi Ojala
 **
 **     This program is free software; you can redistribute it and/or modify
@@ -126,7 +126,8 @@ struct CpmDirEnt
  * @return		the corresponding allocation block
  */
 #define CPMBLOCK(block,i) \
-	(au == 8 ? block[i] : block[2 * (i)] + (block[2 * (i) + 1] << 8))
+	(au == 8 ? block[i] : block[2 * (i)] + \
+	((unsigned) block[2 * (i) + 1] << 8))
 
 /** table of sectors per track on the 1541 */
 static unsigned sect1541[] =
@@ -355,14 +356,14 @@ findNextFree (const struct Image* image,
 	      byte_t* sector)
 {
   const struct DiskGeometry* geom;
-  int t, s, i;
+  unsigned t, s, i;
   t = *track;
   s = *sector;
 
   if (!image || !image->buf || !(geom = getGeometry (image->type)))
     return false;
 
-  if (t < 1 || t > geom->tracks || s < 0 || s >= geom->sectors[t])
+  if (t < 1 || t > geom->tracks || s >= geom->sectors[t])
     return false;
 
   if (t >= image->dirtrack) {
@@ -1212,7 +1213,7 @@ getDirEnt (struct Image* image,
 	   const struct Filename* name)
 {
   const struct DiskGeometry* geom;
-  struct DirEnt** directory = 0;
+  byte_t** directory = 0;
   struct DirEnt* dirent = 0;
   unsigned block, i;
   int freeslotBlock = -1, freeslotEntry = -1;
@@ -1222,8 +1223,7 @@ getDirEnt (struct Image* image,
 
   /* Read the current directory. */
 
-  if (!(block = mapInode ((byte_t***)&directory, image, image->dirtrack, 0,
-			  0, 0)))
+  if (!(block = mapInode (&directory, image, image->dirtrack, 0, 0, 0)))
     return 0;
 
   /* Check that the directory is long enough to hold the BAM blocks
@@ -1235,25 +1235,25 @@ getDirEnt (struct Image* image,
 
   /* Search for the name in the directory. */
   for (block = geom->BAMblocks; ; block++) {
-    for (i = 0; i * sizeof (struct DirEnt) < (directory[block]->nextTrack
-					      ? 256
-					      : directory[block]->nextSector);
-	 i++) {
-      dirent = &directory[block][i];
+    dirent = (struct DirEnt*) directory[block];
 
-      if (freeslotBlock == -1 && !dirent->type) {
+    for (i = 0; i * sizeof (struct DirEnt) < (dirent->nextTrack
+					      ? 256
+					      : dirent->nextSector);
+	 i++) {
+      if (freeslotBlock == -1 && !dirent[i].type) {
 	/* null file type => unused slot */
 	freeslotBlock = block;
 	freeslotEntry = i;
       }
 
-      if (!memcmp (dirent->name, name->name, 16)) {
+      if (!memcmp (dirent[i].name, name->name, 16)) {
 	free (directory);
-	return dirent;
+	return &dirent[i];
       }
     }
 
-    if (!directory[block]->nextTrack)
+    if (!dirent->nextTrack)
       break;
   }
 
@@ -1266,12 +1266,13 @@ getDirEnt (struct Image* image,
 
   if (freeslotBlock == -1) {
     /* Append a directory entry */
+    dirent = (struct DirEnt*) directory[block];
 
     if (i < 256 / sizeof *dirent) {
       /* grow the directory by growing its last sector */
 
-      directory[block]->nextSector = (sizeof *dirent) *
-	(1 + directory[block]->nextSector / sizeof *dirent);
+      dirent->nextSector = (sizeof *dirent) *
+	(1 + dirent->nextSector / sizeof *dirent);
       freeslotBlock = block;
       freeslotEntry = i;
     }
@@ -1289,12 +1290,12 @@ getDirEnt (struct Image* image,
 	return 0;
       }
 
-      t = directory[block]->nextTrack = track;
-      s = directory[block]->nextSector = sector;
+      t = dirent->nextTrack = track;
+      s = dirent->nextSector = sector;
 
       if (!allocBlock (image, &t, &s)) {
-	directory[block]->nextTrack = 0;
-	directory[block]->nextSector = 0xFF;
+	dirent->nextTrack = 0;
+	dirent->nextSector = 0xFF;
 	free (directory);
 	return 0;
       }
@@ -1311,7 +1312,7 @@ getDirEnt (struct Image* image,
 
       /* initialize the new directory block */
       memset (directory[block], 0, 256);
-      directory[block]->nextSector = 0xFF;
+      ((struct DirEnt*) directory[block])->nextSector = 0xFF;
 
       freeslotBlock = block;
       freeslotEntry = 0;
@@ -1320,7 +1321,7 @@ getDirEnt (struct Image* image,
 
   /* Clear the directory entry. */
 
-  dirent = &directory[freeslotBlock][freeslotEntry];
+  dirent = &((struct DirEnt*) directory[freeslotBlock])[freeslotEntry];
 
   if (freeslotEntry)
     memset (dirent, 0, sizeof *dirent);
@@ -1460,7 +1461,7 @@ deleteDirEnt (struct Image* image,
  * @param image		the disk image
  * @return		the total number of available blocks
  */
-static int
+static unsigned
 blocksFree (const struct Image* image)
 {
   unsigned sum = 0;
@@ -1536,7 +1537,7 @@ setupSideSectors (struct Image* image,
 		  size_t blocks,
 		  log_t log)
 {
-  int sscount;
+  size_t sscount;
 
 #ifdef DEBUG
   if (!isValidDirEnt (image, dirent) || getFiletype (image, dirent) != REL)
@@ -1666,7 +1667,7 @@ checkSideSectors (const struct Image* image,
 
   /* Check the block counts */
   if (sscount != rounddiv(i, 120) ||
-      i + sscount != dirent->blocksLow + (dirent->blocksHigh << 8) ||
+      i + sscount != dirent->blocksLow + ((unsigned) dirent->blocksHigh << 8) ||
       i != 120 * (sscount - 1) + (sidesect[sscount - 1][1] - 15) / 2) {
   Failed:
     free (datafile);
@@ -1810,7 +1811,7 @@ CpmConvertName (const struct CpmDirEnt* dirent,
 		struct Filename* name)
 {
   char cpmname[13];
-  int i, j;
+  unsigned i, j;
 
   for (i = 0; i < sizeof(dirent->basename); i++)
     cpmname[i] = dirent->basename[i] & 0x7f;
@@ -1822,7 +1823,7 @@ CpmConvertName (const struct CpmDirEnt* dirent,
 
   while (cpmname[i - 1] == ' ') i--;
   if (cpmname[i - 1] == '.') i--;
-  cpmname [i] = 0;
+  cpmname[i] = 0;
 
   /* Convert the ASCII name to PETSCII name */
   for (i = 0; cpmname[i] && i < sizeof(name->name); i++) {
@@ -1833,8 +1834,8 @@ CpmConvertName (const struct CpmDirEnt* dirent,
     else
       name->name[i] = cpmname[i];
   }
-  while (i < sizeof(name->name))
-    name->name[i++] = 0xA0; /* pad with shifted spaces */
+
+  memset (&name->name[i], 0xA0/* shifted space*/, (sizeof name->name) - i);
 
   name->type = PRG;
   name->recordLength = 0;
@@ -1883,7 +1884,7 @@ WriteCpmImage (const struct Filename* name,
 
   /* Convert the file name */
   {
-    int i;
+    unsigned i;
 
     memset (&cpmname, 0, sizeof cpmname);
     memset (cpmname.basename, ' ',
@@ -1959,7 +1960,7 @@ WriteCpmImage (const struct Filename* name,
       }
 
       if (d != slot)
-	memcpy (&dirent[slot], &dirent[d], (au * 8 - d) * sizeof(*dirent));
+	memmove (&dirent[slot], &dirent[d], (au * 8 - d) * sizeof(*dirent));
 
       d = slot++;
 
@@ -2225,7 +2226,8 @@ ReadCpmImage (FILE* file,
 
 	/* Remove trailing EOF characters (only when they are at end of the
 	   last block). */
-	while (buf[length - 1] == 0x1A) length--;
+	while (length-- && buf[length] == 0x1A);
+	length++;
 
 	switch ((*writeCallback) (&name, buf, length)) {
 	case WrOK:
@@ -2338,7 +2340,7 @@ WriteImage (const struct Filename* name,
 	      length - len);
 
     if (rounddiv(len, 254) - 1 !=
-	dirent->blocksLow + (dirent->blocksHigh << 8)) {
+	dirent->blocksLow + ((unsigned) dirent->blocksHigh << 8)) {
       unsigned blks = rounddiv(len, 254) - 1;
       dirent->blocksLow = blks & 0xFF;
       dirent->blocksHigh = blks >> 8;
@@ -2644,11 +2646,10 @@ ReadImage (FILE* file,
 
   /* Traverse through the root directory and extract the files */
   {
-    struct DirEnt** directory = 0;
+    byte_t** directory = 0;
     unsigned block;
 
-    if (!(block = mapInode ((byte_t***) &directory, &image,
-			    image.dirtrack, 0, log, 0))) {
+    if (!(block = mapInode (&directory, &image, image.dirtrack, 0, log, 0))) {
       (*log) (Errors, 0, "Could not read the directory on track %u.",
 	      image.dirtrack);
       free (image.buf);
@@ -2669,7 +2670,7 @@ ReadImage (FILE* file,
       struct Filename name;
 
       for (i = 0; i < 256 / sizeof (struct DirEnt); i++) {
-	struct DirEnt* dirent = &directory[block][i];
+	struct DirEnt* dirent = &((struct DirEnt*) directory[block])[i];
 
 	memcpy (name.name, dirent->name, 16);
 	name.type = getFiletype (&image, dirent);
@@ -2747,7 +2748,7 @@ ReadImage (FILE* file,
 		    info[0x46], dirent->isVLIR);
 
 	  if (rounddiv(length, 254) + 1 + dirent->isVLIR !=
-	      dirent->blocksLow + (dirent->blocksHigh << 8)) {
+	      dirent->blocksLow + ((unsigned) dirent->blocksHigh << 8)) {
 	    unsigned blks = rounddiv(length, 254) + 1 + dirent->isVLIR;
 	    dirent->blocksLow = blks & 0xFF;
 	    dirent->blocksHigh = blks >> 8;
@@ -2876,7 +2877,7 @@ ReadImage (FILE* file,
 	    (*log) (Errors, &name, "could not read file");
 	  else {
 	    if (name.type != REL && rounddiv(length, 254) !=
-		dirent->blocksLow + (dirent->blocksHigh << 8))
+		dirent->blocksLow + ((unsigned) dirent->blocksHigh << 8))
 	      (*log) (Warnings, &name, "invalid block count");
 
 	    switch ((*writeCallback) (&name, buf, length)) {
@@ -2915,7 +2916,7 @@ ReadImage (FILE* file,
 	}
       }
 
-      if (!directory[block]->nextTrack)
+      if (!((struct DirEnt*) directory[block])->nextTrack)
 	break;
     }
 

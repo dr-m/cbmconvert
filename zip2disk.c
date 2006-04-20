@@ -6,7 +6,7 @@
  */
 
 /*
-** Copyright © 1993-1997,2001 Marko Mäkelä
+** Copyright © 1993-1997,2001,2006 Marko Mäkelä
 ** Original version © 1993 Paul David Doherty (h0142kdd@rz.hu-berlin.de)
 **
 **     This program is free software; you can redistribute it and/or modify
@@ -34,7 +34,7 @@
 #else
 /** Directory path separator character */
 #define PATH_SEPARATOR '/'
-#endif /* check for Multiple Sklerosis Denial Of Service */
+#endif /* MSDOS */
 
 /** Suffix for output file names */
 static const char out_suffix[] = ".d64";
@@ -79,7 +79,7 @@ init_files (const char* filename)
     return 1;
 
   /* copy the base filename */
-  memcpy (inname, filename, i);
+  memcpy (inname, filename, i + 1);
 
   if (!outflag) {
     memcpy (outname, filename, i);
@@ -92,8 +92,8 @@ init_files (const char* filename)
        fname > inname && *fname != PATH_SEPARATOR; fname--);
   if (fname > inname)
     fname++;
+  memmove (fname + 2, fname, i + 1 - (fname - inname));
   fname[1] = '!';
-  memcpy (fname + 2, filename + (fname - inname), i);
 
   /* try to find the input files */
 
@@ -147,7 +147,8 @@ read_sector (void)
   trk = fgetc (infile);
   sec = fgetc (infile);
 
-  if ((trk & 0x3f) != track || sec < 0 || sec >= max_sect ||
+  if ((unsigned) (trk & 0x3f) != track || sec < 0 ||
+      (unsigned) sec >= max_sect ||
       trackbuf_decoded[sec]) {
   Error:
     fprintf (stderr, "zip2disk: Input file %s is corrupted.\n", inname);
@@ -229,8 +230,10 @@ read_track (void)
 int
 main (int argc, char** argv)
 {
+  int status;
+
   if (argc != 2 && argc != 3) {
-    fputs ("ZipCode disk image extractor v1.2.1\n"
+    fputs ("ZipCode disk image extractor v1.2.2\n"
 	   "Usage: zip2disk zip_image_name [disk_image_name]\n", stderr);
     return 1;
   }
@@ -240,13 +243,16 @@ main (int argc, char** argv)
   switch (init_files (argv[1])) {
   case 3:
     fprintf (stderr, "zip2disk: Could not create %s.\n", outname);
-    return 3;
+    status = 3;
+    goto ErrExit;
   case 2:
     fprintf (stderr, "zip2disk: File %s not found.\n", inname);
-    return 3;
+    status = 3;
+    goto ErrExit;
   case 1:
     fputs ("zip2disk: Out of memory.\n", stderr);
-    return 2;
+    status = 2;
+    goto ErrExit;
   }
 
   for (track = 1; track <= 35; track++) {
@@ -255,8 +261,12 @@ main (int argc, char** argv)
 
     switch (track) {
     case 1:
-      if (open_file ('1'))
-	goto OpenError;
+      if (open_file ('1')) {
+      OpenError:
+	fprintf (stderr, "zip2disk: Error in opening file %s.\n", inname);
+	status = 3;
+	goto ErrExit;
+      }
       break;
     case 9:
       if (open_file ('2'))
@@ -275,20 +285,24 @@ main (int argc, char** argv)
     if (read_track ()) {
       fclose (infile);
       fclose (outfile);
-      return 4;
+      status = 4;
+      goto ErrExit;
     }
 
     if (max_sect != fwrite (trackbuf, 256, max_sect, outfile)) {
       fclose (infile);
       fclose (outfile);
       fputs ("zip2disk: Error in writing the output file.\n", stderr);
-      return 3;
+      status = 3;
+      goto ErrExit;
     }
   }
 
-  return 0;
+  fclose (infile);
+  fclose (outfile);
+  status = 0;
 
-OpenError:
-  fprintf (stderr, "zip2disk: Error in opening file %s.\n", inname);
-  return 3;
+ErrExit:
+  free (inname);
+  return status;
 }

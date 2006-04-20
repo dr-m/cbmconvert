@@ -2,7 +2,7 @@
  * @file unarc.c
  * ARC/SDA (C64/C128) archive extractor
  * @author Chris Smeets
- * @author Marko Mäkelä (marko.makela@nic.funet.fi)
+ * @author Marko Mäkelä (marko.makela at iki.fi)
  */
 
 /*
@@ -103,7 +103,7 @@ static byte_t stack[512];
 /** Set to 0 to reset un-crunch */
 static int State = 0;
 /** Lempel Zev stack pointer */
-static int lzstack = 0;
+static unsigned lzstack = 0;
 /** Current code size */
 static int cdlen;
 /** Last received code */
@@ -233,12 +233,12 @@ GetBit (void)
 static byte_t
 Huffin (void)
 {
-  long hcode = 0;
-  long mask  = 1;
+  unsigned long hcode = 0;
+  unsigned long mask  = 1;
   int  size  = 1;
   int  now;
 
-  now = hcount;       /* First non=zero Huffman code */
+  now = hcount;       /* First non-zero Huffman code */
 
   do {
     if (GetBit ())
@@ -492,11 +492,11 @@ static int getcode (void)
 static byte_t
 unc (void)
 {
-  static int  oldcode, incode;
+  static unsigned oldcode, incode;
   static byte_t kay;
-  static int  omega;
+  static unsigned omega;
   static unsigned char finchar;
-  static int  ncodes;   /* Current # of codes in table */
+  static unsigned ncodes;   /* Current # of codes in table */
 
   switch (State) {
 
@@ -683,7 +683,7 @@ ReadARC (FILE* file,
 
     /* Set up the file name information */
     {
-      int i;
+      unsigned i;
       for (i = 0; i < entry.fnlen && i < sizeof name.name; i++)
 	name.name[i] = entry.name[i];
 

@@ -1,8 +1,6 @@
 ## -*- makefile -*- for 32-bit MS-Windows
-# Location of the compiler
-PATH := /usr/local/cross-tools/bin:/usr/local/cross-tools/i386-mingw32msvc/bin:$(PATH)
-CC = gcc
-CFLAGS = -Wall -O3
+CC = i586-mingw32msvc-gcc
+CFLAGS = -Wall -O3 -mno-cygwin
 LDFLAGS = -s
 
 EXE =.exe

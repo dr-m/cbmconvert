@@ -1,11 +1,11 @@
 /**
  * @file disk2zip.c
  * Convert a 1541 disk image to four Zip-Code files
- * @author Marko Mäkelä (marko.makela@nic.funet.fi)
+ * @author Marko Mäkelä (marko.makela at iki.fi)
  */
 
 /*
-** Copyright © 1993-1998,2001 Marko Mäkelä
+** Copyright © 1993-1998,2001,2006 Marko Mäkelä
 **
 **     This program is free software; you can redistribute it and/or modify
 **     it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@
 #else
 /** Directory path separator character */
 #define PATH_SEPARATOR '/'
-#endif /* check for Multiple Sklerosis Denial Of Service */
+#endif /* MSDOS */
 
 /** determine whether a character is hexadecimal
  * @param a	the ASCII character
@@ -58,9 +58,9 @@ static FILE* infile;
 static FILE* outfile;
 
 /** current track number */
-static int track;
+static unsigned track;
 /** maximum number of sectors in the current track */
-static int max_sect;
+static unsigned max_sect;
 /** interleave factors */
 static int eveninc = -10, oddinc = 11;
 /** disk identifier, two bytes */
@@ -100,8 +100,8 @@ init_files (const char* filename)
        fname > outname && *fname != PATH_SEPARATOR; fname--);
   if (fname > outname)
     fname++;
+  memmove (fname + 2, fname, i + 1 - (fname - outname));
   fname[1] = '!';
-  memcpy (fname + 2, filename + (fname - outname), i);
 
   /* try to open the input file */
 
@@ -229,6 +229,8 @@ write_track (void)
 int
 main (int argc, char** argv)
 {
+  int status;
+
 optloop:
   argv++;
 
@@ -263,7 +265,7 @@ optloop:
 
   if (argc != 2 && argc != 3) {
   Usage:
-    fputs ("ZipCode disk image compressor v1.0.1\n"
+    fputs ("ZipCode disk image compressor v1.0.2\n"
 	   "Usage: disk2zip [options] disk_image_name [zip_image_name]\n"
 	   "Options: -i nnmm: Use $nn $mm (hexadecimal) as disk identifier.\n",
 	   stderr);
@@ -275,10 +277,12 @@ optloop:
   switch (init_files (*argv ? *argv : inname)) {
   case 2:
     fprintf (stderr, "disk2zip: File %s not found.\n", inname);
-    return 3;
+    status = 3;
+    goto FuncExit;
   case 1:
     fputs ("disk2zip: Out of memory.\n", stderr);
-    return 2;
+    status = 2;
+    goto FuncExit;
   }
 
   for (track = 1; track <= 35; track++) {
@@ -288,8 +292,12 @@ optloop:
 
     switch (track) {
     case 1:
-      if (open_file ('1'))
-        goto OpenError;
+      if (open_file ('1')) {
+      OpenError:
+	fprintf (stderr, "disk2zip: Error in opening file %s.\n", outname);
+	status = 3;
+	goto FuncExit;
+      }
       break;
     case 9:
       if (open_file ('2'))
@@ -306,29 +314,24 @@ optloop:
     }
 
     if (max_sect != fread (trackbuf, 256, max_sect, infile)) {
-      if (infile != stdin)
-	fclose (infile);
-      fclose (outfile);
       fputs ("disk2zip: Error in reading the input file.\n", stderr);
-      return 4;
+      status = 4;
+      goto FuncExit;
     }
 
     if (write_track()) {
-      if (infile != stdin)
-	fclose (infile);
-      fclose (outfile);
-      return 3;
+      status = 3;
+      goto FuncExit;
     }
   }
 
-  if (infile != stdin)
-    fclose (infile);
-  fclose (outfile);
-  return 0;
+  status = 0;
 
-OpenError:
-  fprintf (stderr, "disk2zip: Error in opening file %s.\n", outname);
+FuncExit:
   if (infile != stdin)
     fclose (infile);
-  return 3;
+  if (outfile)
+    fclose (outfile);
+  free (outname);
+  return status;
 }

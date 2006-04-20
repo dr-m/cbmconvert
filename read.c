@@ -1,11 +1,11 @@
 /**
  * @file read.c
  * Reads files from native file system
- * @author Marko Mäkelä (marko.makela@nic.funet.fi)
+ * @author Marko Mäkelä (marko.makela at iki.fi)
  */
 
 /*
-** Copyright © 1993-1997,2001 Marko Mäkelä
+** Copyright © 1993-1997,2001,2006 Marko Mäkelä
 **
 **     This program is free software; you can redistribute it and/or modify
 **     it under the terms of the GNU General Public License as published by
@@ -81,6 +81,7 @@ ReadNative (FILE* file,
   i = strlen (filename);
 
   /* Determine the file type. */
+  name.recordLength = 0;
 
   if (i >= 3 && filename[i - 2] == ',') {
     switch (filename[i - 1]) {
@@ -131,27 +132,22 @@ ReadNative (FILE* file,
   UnknownType:
     (*log) (Warnings, 0, "Unknown type, defaulting to PRG");
     name.type = PRG;
-    name.recordLength = 0;
     suffix = 0;
   }
 
   /* Copy the file name */
   if (suffix) {
-    for (i = 0; i < suffix - filename && i < sizeof(name.name); i++)
+    for (i = 0;
+	 i < (unsigned) (suffix - filename) && i < sizeof(name.name);
+	 i++)
       name.name[i] = ascii2petscii(filename[i]);
-
-    /* Pad with shifted spaces */
-    while (i < sizeof(name.name))
-      name.name[i++] = 0xA0;
   }
   else {
     for (i = 0; filename[i] && i < sizeof(name.name); i++)
       name.name[i] = ascii2petscii(filename[i]);
-
-    /* Pad with shifted spaces */
-    while (i < sizeof(name.name))
-      name.name[i++] = 0xA0;
   }
+
+  memset (&name.name[i], 0xA0/* shifted space */, (sizeof name.name) - i);
 
   /* Determine file length. */
   if (fseek (file, 0, SEEK_END)) {

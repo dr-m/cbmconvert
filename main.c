@@ -1,11 +1,11 @@
 /**
  * @file main.c
  * Commodore file format converter
- * @author Marko Mäkelä (marko.makela@nic.funet.fi)
+ * @author Marko Mäkelä (marko.makela at iki.fi)
  */
 
 /*
-** Copyright © 1993-1998,2001,2003 Marko Mäkelä
+** Copyright © 1993-1998,2001,2003,2006 Marko Mäkelä
 **
 **     This program is free software; you can redistribute it and/or modify
 **     it under the terms of the GNU General Public License as published by
@@ -87,7 +87,9 @@ writeLog (enum Verbosity verbosity,
     fputs ("  ", stderr);
 
     if (name) {
-      if (memcmp(name, &oldname, sizeof oldname))
+      if (memcmp(name->name, oldname.name, sizeof name->name) ||
+	  name->type != oldname.type ||
+	  name->recordLength != oldname.recordLength)
 	fprintf (stderr, "`%s':\n    ", getFilename (name));
       else
 	fputs ("  ", stderr);
@@ -154,11 +156,13 @@ writeFile (const struct Filename* name,
 	unsigned char* c;
       case ImNoSpace:
 	writeLog (Errors, name, "out of space");
+	free (image->name);
 	free (image);
 	image = 0;
 	return WrNoSpace;
       case ImFail:
 	writeLog (Errors, name, "failed");
+	free (image->name);
 	free (image);
 	image = 0;
 	return WrFail;
@@ -185,6 +189,7 @@ writeFile (const struct Filename* name,
 	if (c < image->name) {
 	notUnique:
 	  writeLog (Errors, name, "Could not generate unique image file name");
+	  free (image->name);
 	  free (image);
 	  image = 0;
 	  return WrFail;
@@ -201,6 +206,8 @@ writeFile (const struct Filename* name,
 	  image = 0;
 
 	  status = OpenImage (filename, &image, type, direntOpts);
+
+	  free (filename);
 	}
 
 	switch (status) {
@@ -457,7 +464,7 @@ main (int argc, char** argv)
   if (argc < 2) {
   Usage:
     fprintf (stderr,
-	     "cbmconvert 2.1.2 - Commodore archive converter\n"
+	     "cbmconvert 2.1.3 - Commodore archive converter\n"
 	     "Usage: %s [options] file(s)\n", prog);
 
     fputs ("Options: -I: Create ISO 9660 compliant file names.\n"
@@ -493,6 +500,15 @@ main (int argc, char** argv)
 	   "         --: Stop processing any further options.\n",
 	   stderr);
 
+    if (image) {
+      free (image->name);
+      free (image);
+      image = 0;
+    }
+
+    if (archive) {
+      deleteArchive (archive);
+    }
     return 1;
   }
 
@@ -551,6 +567,7 @@ write:
       return 4;
     }
 
+    free (image->name);
     free (image);
     image = 0;
   }
