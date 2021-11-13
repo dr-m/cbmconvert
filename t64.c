@@ -120,7 +120,7 @@ ReadT64 (FILE* file,
       return RdFail;
     }
 
-    if (t64header.majorVersion != 1 || t64header.minorVersion != 0)
+    if (t64header.majorVersion != 1 || t64header.minorVersion > 1)
       (*log) (Errors, 0, "Unknown T64 version, trying anyway");
 
     maxEntries = ((unsigned) t64header.maxEntriesLow |
