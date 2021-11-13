@@ -9,7 +9,6 @@ all: zip
 
 include Makefile
 
-zip: COPYING ChangeLog cbmconvert.html $(MANPAGES:.1=.txt) $(TARGETS)
-	zip -l cbmconvert.zip COPYING ChangeLog cbmconvert.html \
-		$(MANPAGES:.1=.txt)
+zip: COPYING cbmconvert.html $(MANPAGES:.1=.txt) $(TARGETS)
+	zip -l cbmconvert.zip COPYING cbmconvert.html $(MANPAGES:.1=.txt)
 	zip cbmconvert.zip $(TARGETS)

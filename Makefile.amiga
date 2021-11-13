@@ -10,6 +10,6 @@ all: lha
 
 include Makefile
 
-lha: COPYING ChangeLog cbmconvert.html $(MANPAGES:.1=.txt) $(TARGETS)
-	lha cgo cbmconvert.lha COPYING ChangeLog cbmconvert.html \
+lha: COPYING cbmconvert.html $(MANPAGES:.1=.txt) $(TARGETS)
+	lha cgo cbmconvert.lha COPYING cbmconvert.html \
 		$(MANPAGES:.1=.txt) $(TARGETS)
