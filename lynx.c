@@ -5,7 +5,7 @@
  */
 
 /*
-** Copyright © 1993-1997,2001,2006 Marko Mäkelä
+** Copyright © 1993-1997,2001,2006,2021 Marko Mäkelä
 **
 **     This program is free software; you can redistribute it and/or modify
 **     it under the terms of the GNU General Public License as published by
@@ -57,8 +57,7 @@ ReadLynx (FILE* file,
 
   {
     byte_t* buf;
-    int i;
-    long length;
+    size_t i, length;
 
     if (!(buf = malloc (MAXBASICLENGTH))) {
     memError:
@@ -79,7 +78,7 @@ ReadLynx (FILE* file,
     for (i = 4; i < MAXBASICLENGTH && i < length; i++)
       if (!(memcmp (&buf[i - 4], "\0\0\0\15", 4))) {
         /* skip the BASIC header */
-        if (fseek (file, i, SEEK_SET))
+        if (fseek (file, (long) i, SEEK_SET))
           goto seekError;
         break;
       }
@@ -144,7 +143,7 @@ ReadLynx (FILE* file,
             return RdFail;
           }
 
-          name.name[i] = j;
+          name.name[i] = (unsigned char) j;
         }
 
         if (j == 13) break;
@@ -204,7 +203,7 @@ ReadLynx (FILE* file,
         break;
       case 'R':
         name.type = REL;
-        name.recordLength = length;
+        name.recordLength = (byte_t) length;
 
         /* Thanks to Peter Schepers <schepers@ist.uwaterloo.ca>
            for pointing out the error in the original formula. */
@@ -311,7 +310,7 @@ ArchiveLynx (const struct Archive* archive,
 {
   FILE* f;
   struct ArchiveEntry* ae;
-  int blockcounter;
+  unsigned blockcounter;
 
   static const byte_t basichdr[] = {
     0x01, 0x08, 0x5b, 0x08, 0x0a, 0x00, 0x97, 0x35,
@@ -349,8 +348,8 @@ ArchiveLynx (const struct Archive* archive,
     }
 
     /* This is a bit overestimating the header size. */
-    blockcounter = rounddiv(sizeof basichdr + 20 + sizeof lynxhdr +
-                            36 * filecnt, 254);
+    blockcounter = (unsigned)
+      rounddiv(sizeof basichdr + 20U + sizeof lynxhdr + 36U * filecnt, 254U);
 
     fprintf (f, " %u  %s\15 %u \15", blockcounter, lynxhdr, filecnt);
   }
@@ -365,7 +364,7 @@ ArchiveLynx (const struct Archive* archive,
     for (i = 0; i < sizeof ae->name.name && i < 16; i++)
       putc (ae->name.name[i] == 13 ? '.' : ae->name.name[i], f);
 
-    i = rounddiv(ae->length, 254);
+    i = (unsigned) rounddiv(ae->length, 254);
 
     fprintf (f, "\15 %u\15%c\15",
              ae->name.type == REL ? i + rounddiv(i, 120) : i,
@@ -384,7 +383,7 @@ ArchiveLynx (const struct Archive* archive,
   /* Write the files. */
 
   for (ae = archive->first; ae; ae = ae->next) {
-    unsigned blocks = rounddiv(ae->length, 254);
+    unsigned blocks = (unsigned) rounddiv(ae->length, 254);
 
     /* Reserve space for the side sectors. */
     if (ae->name.type == REL)

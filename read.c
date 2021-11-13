@@ -5,7 +5,7 @@
  */
 
 /*
-** Copyright © 1993-1997,2001,2006 Marko Mäkelä
+** Copyright © 1993-1997,2001,2006,2021 Marko Mäkelä
 **
 **     This program is free software; you can redistribute it and/or modify
 **     it under the terms of the GNU General Public License as published by
@@ -64,7 +64,7 @@ ReadNative (FILE* file,
 {
   struct Filename name;
   const char* suffix = 0;
-  unsigned i;
+  size_t i;
   byte_t* buf;
   enum WrStatus status;
 
@@ -116,12 +116,12 @@ ReadNative (FILE* file,
     }
     else if (*suffix == 'l') {
       char* endptr = 0;
-      unsigned int recordLength = strtoul (suffix + 1, &endptr, 16);
-      if (*endptr)
+      unsigned long recordLength = strtoul (suffix + 1, &endptr, 16);
+      if (*endptr || recordLength > 254)
         goto UnknownType;
 
       name.type = REL;
-      name.recordLength = recordLength;
+      name.recordLength = (unsigned char) recordLength;
     }
     else
       goto UnknownType;
@@ -140,11 +140,11 @@ ReadNative (FILE* file,
     for (i = 0;
          i < (unsigned) (suffix - filename) && i < sizeof(name.name);
          i++)
-      name.name[i] = ascii2petscii(filename[i]);
+      name.name[i] = ascii2petscii((unsigned char) filename[i]);
   }
   else {
     for (i = 0; filename[i] && i < sizeof(name.name); i++)
-      name.name[i] = ascii2petscii(filename[i]);
+      name.name[i] = ascii2petscii((unsigned char) filename[i]);
   }
 
   memset (&name.name[i], 0xA0/* shifted space */, (sizeof name.name) - i);
@@ -155,8 +155,12 @@ ReadNative (FILE* file,
     (*log) (Errors, 0, "fseek: %s", strerror(errno));
     return RdFail;
   }
-
-  i = ftell (file);
+  else {
+    long l = ftell (file);
+    if (l < 0)
+      goto seekError;
+    i = (size_t) l;
+  }
 
   if (fseek (file, 0, SEEK_SET))
     goto seekError;
@@ -208,13 +212,14 @@ ReadPC64 (FILE* file,
 
   /* Determine file type. */
 
-  i = strlen (filename);
-  if (i < 5) {
-    (*log) (Errors, 0, "No PC64 file name suffix");
-    return RdFail; /* no suffix */
+  {
+    size_t s = strlen (filename);
+    if (s < 5) {
+      (*log) (Errors, 0, "No PC64 file name suffix");
+      return RdFail; /* no suffix */
+    }
+    suffix = &filename[s - 4];
   }
-
-  suffix = &filename[i - 4];
 
   if (1 == sscanf (suffix, ".d%02u", &i))
     name.type = DEL;
@@ -237,8 +242,12 @@ ReadPC64 (FILE* file,
     (*log) (Errors, 0, "fseek: %s", strerror(errno));
     return RdFail;
   }
-
-  i = ftell (file);
+  else {
+    long l = ftell (file);
+    if (l < 0)
+      goto seekError;
+    i = (unsigned) l;
+  }
 
   if (fseek (file, 0, SEEK_SET))
     goto seekError;

@@ -5,7 +5,7 @@
  */
 
 /*
-** Copyright © 1997,2001,2003 Marko Mäkelä
+** Copyright © 1997,2001,2003,2021 Marko Mäkelä
 ** Based on the cbmarcs.c file of fvcbm 2.0 by Daniel Fandrich
 **
 **     This program is free software; you can redistribute it and/or modify
@@ -124,9 +124,9 @@ ReadT64 (FILE* file,
       (*log) (Errors, 0, "Unknown T64 version, trying anyway");
 
     maxEntries = ((unsigned) t64header.maxEntriesLow |
-                  (t64header.maxEntriesHigh << 8));
+                  ((unsigned) t64header.maxEntriesHigh << 8));
     numEntries = ((unsigned) t64header.numEntriesLow |
-                  (t64header.numEntriesHigh << 8));
+                  ((unsigned) t64header.numEntriesHigh << 8));
 
     if (!numEntries) {
       (*log) (Warnings, 0,
@@ -155,7 +155,7 @@ ReadT64 (FILE* file,
     name.recordLength = 0;
 
     if (fseek (file,
-               sizeof (struct t64header) + entry * sizeof t64entry,
+               (long) (entry * sizeof t64entry + sizeof (struct t64header)),
                SEEK_SET)) {
       (*log) (Errors, 0, "fseek: %s", strerror (errno));
       return RdFail;
@@ -178,8 +178,8 @@ ReadT64 (FILE* file,
       t64entry.fileOffsetHighest << 24;
 
     length =
-      (((size_t) t64entry.endAddrLow | t64entry.endAddrHigh << 8) -
-       ((size_t) t64entry.startAddrLow | t64entry.startAddrHigh << 8)) &
+      ((t64entry.endAddrLow | (size_t) t64entry.endAddrHigh << 8) -
+       (t64entry.startAddrLow | (size_t) t64entry.startAddrHigh << 8)) &
       0xFFFF;
 
     if (t64entry.entryType != 1) {

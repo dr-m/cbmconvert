@@ -5,7 +5,7 @@
  */
 
 /*
-** Copyright © 2001 Marko Mäkelä
+** Copyright © 2001,2021 Marko Mäkelä
 **
 **     This program is free software; you can redistribute it and/or modify
 **     it under the terms of the GNU General Public License as published by
@@ -132,8 +132,8 @@ ReadC2N (FILE* file,
     }
 
   nextHeader:
-    start = (unsigned) header.startAddrLow | header.startAddrHigh << 8;
-    end = (unsigned) header.endAddrLow | header.endAddrHigh << 8;
+    start = header.startAddrLow | (unsigned) header.startAddrHigh << 8;
+    end = header.endAddrLow | (unsigned) header.endAddrHigh << 8;
 
     switch (header.tag) {
     case tBasic:
@@ -277,15 +277,15 @@ ArchiveC2N (const struct Archive* archive,
     name2header (&ae->name, &header);
 
     if (ae->name.type == PRG) {
-      unsigned end = ae->length;
+      size_t end = ae->length;
       if (end < 2)
         continue; /* too short file */
 
       header.startAddrLow = ae->data[0];
       header.startAddrHigh = ae->data[1];
-      end += (unsigned) header.startAddrLow | (header.startAddrHigh << 8);
-      header.endAddrLow = end -= 2;
-      header.endAddrHigh = end >> 8;
+      end += header.startAddrLow | (unsigned) header.startAddrHigh << 8;
+      header.endAddrLow = (byte_t) (end -= 2);
+      header.endAddrHigh = (byte_t) (end >> 8);
       header.tag = header.startAddrLow == 1 ? tBasic : tML;
 
       if (1 != fwrite (&header, sizeof header, 1, f) ||

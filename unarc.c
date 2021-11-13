@@ -44,7 +44,7 @@ static unsigned char hl[256];
 /** Character associated with Huffman code */
 static unsigned char hv[256];
 /** Number of Huffman codes */
-static unsigned int  hcount;
+static int hcount;
 /** Run-Length control character */
 static unsigned int  ctrl;
 
@@ -59,7 +59,7 @@ struct entry
   /** Checksum */
   unsigned int  check;
   /** Original size. Only three bytes are stored */
-  long          size;
+  size_t        size;
   /** Compressed size in CBM disk blocks */
   unsigned int  blocks;
   /** File type. P,S,U or R */
@@ -107,7 +107,7 @@ static unsigned lzstack = 0;
 /** Current code size */
 static int cdlen;
 /** Last received code */
-static int code;
+static unsigned code;
 /** Bump cdlen when code reaches this value */
 static int wtcl;
 /** Copy of wtcl */
@@ -119,8 +119,8 @@ static int wttcl;
 static void
 ssort (void)
 {
-  int m;
-  int h,i,j,k;
+  size_t m;
+  size_t h,i,j,k;
 
   m = sizeof hl;
 
@@ -216,15 +216,15 @@ GetThree (void)
 /** Receive a bit from the input
  * @return      the received bit
  */
-static bool
+static unsigned
 GetBit (void)
 {
-  register int result = BitBuf >>= 1;
+  unsigned result = BitBuf >>= 1;
 
   if (result == 1)
-    return (bool) (1 & (BitBuf = GetByte() | 0x0100));
+    return 1 & (BitBuf = GetByte() | 0x0100U);
   else
-    return (bool) (1 & result);
+    return 1 & result;
 }
 
 /** Fetch a Huffman code and convert it to what it represents
@@ -327,13 +327,13 @@ GetHeader (void)
     hcount = 255;                                 /* Will be first code */
 
     for (w=0; w<256; w++) {                       /* Fetch Huffman codes */
-      hv[w] = w;
+      hv[w] = (unsigned char) w;
 
       hl[w]=0;
       mask = 1;
       for (i=1; i<6; i++) {
         if (GetBit())
-          hl[w] |= mask;
+          hl[w] |= (unsigned char) mask;
         mask <<= 1;
       }
 
@@ -369,8 +369,8 @@ GetStartPos (void)
 {
   int c;                      /* Temp */
   int cpu;                    /* C64 or C128 if SDA */
-  int linenum;                /* Sys line number */
-  int skip;                   /* Size of SDA header in bytes */
+  word_t linenum;             /* Sys line number */
+  word_t skip;                /* Size of SDA header in bytes */
 
   fseek(fp, 0, SEEK_SET);     /* Goto start of file */
   Status = 0;
@@ -442,7 +442,7 @@ pop (void)
 /** Fetch LZ code
  * @return      the fetched code
  */
-static int getcode (void)
+static unsigned int getcode (void)
 {
   register int i;
   long blocks;
@@ -468,7 +468,7 @@ static int getcode (void)
     while (i--)                     /* This was never implemented */
       GetBit ();
     blocks = ftell(fp)-FilePos;
-    entry.blocks = blocks/254;
+    entry.blocks = (unsigned) (blocks / 254);
     if (blocks % 254)
       entry.blocks++;
   }
@@ -512,7 +512,7 @@ unc (void)
       Status = EOF;        /* (ie. a zero length file) */
       return 0;
     }
-    kay = oldcode & 0xff;
+    kay = (byte_t) oldcode;
     finchar = kay;
     State = 1;
     return kay;
@@ -537,8 +537,7 @@ unc (void)
       push(lztab[code].ext);
       code = lztab[code].prefix;
     }
-    kay = code;
-    finchar = code;
+    finchar = kay = (byte_t) code;
     State = 2;
     return kay;
 
@@ -566,7 +565,7 @@ unc (void)
  * @param c     the data to be added to the checksum
  */
 static void
-UpdateChecksum (int c)
+UpdateChecksum (byte_t c)
 {
   c &= 0xff;
 
@@ -646,7 +645,7 @@ ReadARC (FILE* file,
     byte_t* buf;
     struct Filename name;
 
-    long length = entry.size;
+    size_t length = entry.size;
 
     if (entry.mode == 5) /* If 1 pass crunch size is unknown */
       length = 65536; /* 64kB should be enough for everyone */
@@ -717,7 +716,7 @@ ReadARC (FILE* file,
     if ((crc ^ entry.check) & 0xffff)
       (*log) (Errors, &name, "Checksum error!");
 
-    switch ((*writeCallback) (&name, buffer, buf - buffer)) {
+    switch ((*writeCallback) (&name, buffer, (size_t) (buf - buffer))) {
     case WrOK:
       break;
     case WrNoSpace:

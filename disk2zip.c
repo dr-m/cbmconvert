@@ -45,7 +45,7 @@
  * @param a     the ASCII character
  * @return      the numeric interpretation of the character
  */
-#define ASC2HEX(a) (int)                                                \
+#define ASC2HEX(a)                                                      \
 ((a < '0' || a > '9') ? (((a & ~32) < 'A' || (a & ~32) > 'F') ? -1 :    \
                          ((a & ~32) - 'A' + 10)) : (a - '0'))
 
@@ -58,7 +58,7 @@ static FILE* infile;
 static FILE* outfile;
 
 /** current track number */
-static unsigned track;
+static int track;
 /** maximum number of sectors in the current track */
 static unsigned max_sect;
 /** interleave factors */
@@ -83,7 +83,7 @@ static char* fname;
 static int
 init_files (const char* filename)
 {
-  int i = strlen (filename);
+  size_t i = strlen (filename);
 
   /* allocate memory for the output filenames */
 
@@ -100,7 +100,7 @@ init_files (const char* filename)
        fname > outname && *fname != PATH_SEPARATOR; fname--);
   if (fname > outname)
     fname++;
-  memmove (fname + 2, fname, i + 1 - (fname - outname));
+  memmove (fname + 2, fname, i + 1 - (size_t) (fname - outname));
   fname[1] = '!';
 
   /* try to open the input file */
@@ -138,7 +138,7 @@ open_file (char number)
  * @return      0 on success; 1 on failure
  */
 static int
-write_sector (unsigned sect)
+write_sector (int sect)
 {
   /* a histogram: number of occurrences of different bytes */
   static int histogram[256];
@@ -190,7 +190,7 @@ Uncompressed:
             EOF == fputc (sectbuf[j], outfile))
           return 1;
       }
-      else if (1 != fwrite (&sectbuf[j], i - j, 1, outfile))
+      else if (1 != fwrite (&sectbuf[j], (size_t) (i - j), 1, outfile))
         return 1;
 
       if (i > 255)
@@ -208,9 +208,10 @@ Uncompressed:
 static int
 write_track (void)
 {
-  unsigned i, sect;
+  unsigned i = 0;
+  int sect = 0;
 
-  for (sect = i = 0; i++ < max_sect; sect += i & 1 ? oddinc : eveninc)
+  for (; i++ < max_sect; sect += i & 1 ? oddinc : eveninc)
     if (write_sector (sect))
       return 1;
 
@@ -252,8 +253,10 @@ optloop:
         if (ISHEX ((*argv)[0]) && ISHEX ((*argv)[1]) &&
             ISHEX ((*argv)[2]) && ISHEX ((*argv)[3]) &&
             !(*argv)[4]) {
-          id[0] = ASC2HEX((*argv)[1]) | (ASC2HEX((*argv)[0]) << 4);
-          id[1] = ASC2HEX((*argv)[3]) | (ASC2HEX((*argv)[2]) << 4);
+          id[0] = (unsigned char)
+            (ASC2HEX((*argv)[1]) | ASC2HEX((*argv)[0]) << 4);
+          id[1] = (unsigned char)
+            (ASC2HEX((*argv)[3]) | ASC2HEX((*argv)[2]) << 4);
           goto optloop;
         }
       }
@@ -286,7 +289,7 @@ optloop:
   }
 
   for (track = 1; track <= 35; track++) {
-    max_sect = 17 + (track < 31) + (track < 25) + ((track < 18) << 1);
+    max_sect = 17U + (track < 31) + (track < 25) + (track < 18) * 2U;
 
     if (track == 18 || track == 25) eveninc++, oddinc--;
 

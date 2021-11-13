@@ -5,7 +5,7 @@
  */
 
 /*
-** Copyright © 1993-1997,2001 Marko Mäkelä
+** Copyright © 1993-1997,2001,2021 Marko Mäkelä
 **
 **     This program is free software; you can redistribute it and/or modify
 **     it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@
 static bool
 filename2char (const struct Filename* name, char** newname)
 {
-  int i = sizeof(name->name);
+  size_t i = sizeof(name->name);
   unsigned char* c;
 
   if (!newname)
@@ -92,11 +92,11 @@ isWovel (unsigned char c)
  * @return      the length of the truncated string,
  *              excluding the terminating NUL character
  */
-static int
+static size_t
 TruncateName (unsigned char* name)
 {
   unsigned char* c;
-  int len, efflen;
+  size_t len, efflen;
 
   for (c = name; *c; c++) {
     if (*c >= 'a' && *c <= 'z')     /* Lower case chars are OK */
@@ -111,7 +111,7 @@ TruncateName (unsigned char* name)
       *c = '_';                     /* Convert anything else to underscore */
   }
 
-  efflen = len = c - name;
+  efflen = len = (size_t) (c - name);
 
   if (efflen > 8) {
     /* Remove underscores from the end */
@@ -125,7 +125,7 @@ TruncateName (unsigned char* name)
 
   if (efflen > 8) {
     /* remove wovels from the end */
-    int i;
+    size_t i;
 
     /* Search for the first non-wovel */
     for (i = 0; i < len && isWovel (name[i]); i++);

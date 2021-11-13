@@ -5,7 +5,7 @@
  */
 
 /*
-** Copyright © 1993-1997,2001 Marko Mäkelä
+** Copyright © 1993-1997,2001,2021 Marko Mäkelä
 **
 **     This program is free software; you can redistribute it and/or modify
 **     it under the terms of the GNU General Public License as published by
@@ -45,13 +45,13 @@ getFilename (const struct Filename* name)
   buf [++i] = 0;
   while (i--)
     if (name->name[i] >= 0x41 && name->name[i] <= 0x5A)
-      buf[i] = name->name[i] - 0x41 + 'a';
+      buf[i] = (char) (name->name[i] - 0x41 + 'a');
     else if (name->name[i] >= 0xC1 && name->name[i] <= 0xDA)
-      buf[i] = name->name[i] - 0xC1 + 'A';
+      buf[i] = (char) (name->name[i] - 0xC1 + 'A');
     else if (name->name[i] >= 0x61 && name->name[i] <= 0x7A)
-      buf[i] = name->name[i] - 0x61 + 'A';
+      buf[i] = (char) (name->name[i] - 0x61 + 'A');
     else if (name->name[i] >= 0x20 && name->name[i] <= 0x5F)
-      buf[i] = name->name[i];
+      buf[i] = (char) name->name[i];
     else
       buf[i] = '_'; /* non-ASCII character */
 

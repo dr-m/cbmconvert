@@ -5,7 +5,7 @@
  */
 
 /*
-** Copyright © 1993-1997,2001 Marko Mäkelä
+** Copyright © 1993-1997,2001,2021 Marko Mäkelä
 **
 **     This program is free software; you can redistribute it and/or modify
 **     it under the terms of the GNU General Public License as published by
@@ -70,17 +70,23 @@ ReadArkive (FILE* file,
   int f, fcount;
 
   /* File positions */
-  long headerPos; /* current header position */
-  long archivePos; /* current archive position */
+  size_t headerPos; /* current header position */
+  size_t archivePos; /* current archive position */
 
   if (EOF == (fcount = fgetc (file))) {
   hdrError:
     (*log) (Errors, 0, "File header read failed: %s", strerror(errno));
     return RdFail;
   }
+  else {
+    long l = ftell (file);
+    if (l < 0)
+      goto hdrError;
+    headerPos = (size_t) l;
+  }
 
-  headerPos = ftell (file);
-  archivePos = 254 * rounddiv (headerPos + fcount * sizeof entry, 254);
+  archivePos =
+    254 * rounddiv (headerPos + (size_t) fcount * sizeof entry, 254);
 
   /* start extracting files */
 
@@ -88,7 +94,7 @@ ReadArkive (FILE* file,
     size_t length;
     unsigned blocks;
 
-    if (fseek (file, headerPos, SEEK_SET) ||
+    if (fseek (file, (long) headerPos, SEEK_SET) ||
         1 != fread (&entry, sizeof entry, 1, file))
       goto hdrError;
 
@@ -101,7 +107,7 @@ ReadArkive (FILE* file,
     name.recordLength = entry.recordLength;
 
     /* determine file length */
-    blocks = entry.blocksLow + (entry.blocksHigh << 8);
+    blocks = (unsigned) (entry.blocksLow | ((unsigned) entry.blocksHigh << 8));
     length = 254 * blocks + entry.lastSectorLength - 255;
 
     /* determine file type */
@@ -149,7 +155,7 @@ ReadArkive (FILE* file,
     {
       byte_t* buf;
 
-      if (fseek (file, archivePos, SEEK_SET)) {
+      if (fseek (file, (long) archivePos, SEEK_SET)) {
         (*log) (Errors, &name, "fseek: %s", strerror(errno));
         return RdFail;
       }
@@ -171,7 +177,7 @@ ReadArkive (FILE* file,
         /* Arkive stores the last side sector, */
         /* wasting 254 bytes */
         /* for each relative file. */
-        archivePos -= 254 * (entry.sidesectCount - 1);
+        archivePos -= 254U * (entry.sidesectCount - 1);
 
       switch ((*writeCallback) (&name, buf, length)) {
       case WrOK:

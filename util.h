@@ -5,7 +5,7 @@
  */
 
 /*
-** Copyright © 1993-1997,2001 Marko Mäkelä
+** Copyright © 1993-1997,2001,2021 Marko Mäkelä
 **
 **     This program is free software; you can redistribute it and/or modify
 **     it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@
  * @param b     the denominator
  * @return      a divided by b, rounded up to the next integer value
  */
-#  define rounddiv(a,b) ((a + b - 1) / b)
+#  define rounddiv(a,b) ((a + b - 1U) / b)
 /**
  * Determine the number of elements in an array
  * @param a     an array

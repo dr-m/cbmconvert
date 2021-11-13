@@ -5,7 +5,7 @@
  */
 
 /*
-** Copyright © 1993-1998,2001,2003,2006 Marko Mäkelä
+** Copyright © 1993-1998,2001,2003,2006,2021 Marko Mäkelä
 **
 **     This program is free software; you can redistribute it and/or modify
 **     it under the terms of the GNU General Public License as published by
@@ -201,36 +201,39 @@ writeFile (const struct Filename* name,
           char* filename = (char*) image->name;
           enum ImageType type = image->type;
           enum DirEntOpts direntOpts = image->direntOpts;
+          enum ImStatus imstatus;
 
           free (image);
           image = 0;
 
-          status = OpenImage (filename, &image, type, direntOpts);
+          imstatus = OpenImage (filename, &image, type, direntOpts);
 
           free (filename);
-        }
 
-        switch (status) {
-        case ImOK:
-          status = (*writeImageFunc) (name, data, length, image, writeLog);
+          switch (imstatus) {
+          case ImOK:
+            status = (*writeImageFunc) (name, data, length, image, writeLog);
 
-          if (status == WrOK)
-            writeLog (Everything, name, "OK, wrote %u bytes to image \"%s\"",
-                      length, image->name);
-          else
-            writeLog (Errors, name, "%s while writing to \"%s\", giving up.",
-                      status == WrNoSpace ? "out of space" :
-                      status == WrFileExists ? "duplicate file name" :
-                      "failed",
+            if (status == WrOK)
+              writeLog (Everything, name, "OK, wrote %u bytes to image \"%s\"",
+                        length, image->name);
+            else
+              writeLog (Errors, name, "%s while writing to \"%s\", giving up.",
+                        status == WrNoSpace ? "out of space" :
+                        status == WrFileExists ? "duplicate file name" :
+                        "failed",
+                        image->name);
+            return status;
+
+          case ImNoSpace:
+            writeLog (Errors, name,
+                      "out of space while creating image \"%s\"", image->name);
+            return WrNoSpace;
+          default:
+            writeLog (Errors, name, "failed while creating image \"%s\"",
                       image->name);
-
-          return status;
-
-        default:
-          writeLog (Errors, name, "%s while creating image \"%s\"",
-                    status == ImNoSpace ? "out of space" : "failed",
-                    image->name);
-          return status;
+            return WrFail;
+          }
         }
       }
     }
@@ -263,7 +266,7 @@ writeFile (const struct Filename* name,
                 length, newname);
     else
       writeLog (Errors, name, "%s while writing to \"%s\"",
-                status == ImNoSpace ? "out of space" : "failed",
+                status == WrNoSpace ? "out of space" : "failed",
                 newname);
 
     free (newname);

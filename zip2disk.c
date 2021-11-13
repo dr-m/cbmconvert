@@ -72,7 +72,7 @@ init_files (const char* filename)
 {
   /* flag: was an output file name already specified? */
   int outflag = !!outname;
-  int i = strlen (filename);
+  size_t i = strlen (filename);
 
   if (!(inname = malloc (i + 3)) ||
       (!outname && !(outname = malloc (i + sizeof out_suffix))))
@@ -92,7 +92,7 @@ init_files (const char* filename)
        fname > inname && *fname != PATH_SEPARATOR; fname--);
   if (fname > inname)
     fname++;
-  memmove (fname + 2, fname, i + 1 - (fname - inname));
+  memmove (fname + 2, fname, i + 1 - (size_t) (fname - inname));
   fname[1] = '!';
 
   /* try to find the input files */
@@ -164,10 +164,15 @@ read_sector (void)
     /* length of the compressed stream, and the escape character */
     int len = fgetc (infile), esc = fgetc (infile);
 
+    if (len == EOF || esc == EOF)
+      goto Error;
+
     while (len--) {
       ch = fgetc (infile);
+      if (ch == EOF)
+        goto Error;
       if (ch != esc) {
-        trackbuf[sec][count++] = ch;
+        trackbuf[sec][count++] = (unsigned char) ch;
         if (count > 256)
           goto Error;
       }
@@ -178,7 +183,7 @@ read_sector (void)
         ch = fgetc (infile);
         if (repnum < 0 || repnum + count > 256 || ch == EOF)
           goto Error;
-        memset (trackbuf[sec] + count, ch, repnum);
+        memset (trackbuf[sec] + count, ch, (unsigned) repnum);
         count += repnum;
         len -= 2;
       }
@@ -256,8 +261,8 @@ main (int argc, char** argv)
   }
 
   for (track = 1; track <= 35; track++) {
-    max_sect = 17 + ((track < 31) ? 1 : 0) + ((track < 25) ? 1 : 0) +
-      ((track < 18) ? 2 : 0);
+    max_sect = 17U + ((track < 31) ? 1U : 0U) + ((track < 25) ? 1U : 0U) +
+      ((track < 18) ? 2U : 0U);
 
     switch (track) {
     case 1:
