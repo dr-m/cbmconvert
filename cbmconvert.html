@@ -34,7 +34,7 @@ td.c { text-align: center; }
  <dd>create, extract and convert different Commodore binary archives</dd>
 </dl>
 
-<p>Copyright © 1993&ndash;2006 <a class="ext"
+<p>Copyright © 1993&ndash;2006,2021 <a class="ext"
 href="http://www.iki.fi/~msmakela/">Marko Mäkelä</a>.</p>
 
 <blockquote>
@@ -106,27 +106,19 @@ images and ZipCoded files can be made with the two supplied utilities
 
 <h2><a name="start" href="#toc-start">2</a> Getting Started</h2>
 
-<p>Compile <code>cbmconvert</code> by typing <code>make -f
-Makefile.<var>system</var></code> where <code><var>system</var></code>
-is one of the following:</p>
-
-<dl>
- <dt><code>amiga</code></dt>
- <dd>Commodore AmigaOS for Motorola 68000 series; a cross-compiler running
- on Linux is assumed</dd>
- <dt><code>unix</code></dt>
- <dd>POSIX compliant systems</dd>
- <dt><code>win32</code></dt>
- <dd>Microsoft Windows 95 or later; a cross-compiler running on a POSIX
- compliant system is assumed</dd>
-</dl>
+<p>Compile <code>cbmconvert</code> as follows:
+<pre>
+mkdir build
+cd build
+cmake ..
+cmake --build .
+cmake --install .
+</pre>
 
 <p>The compilation should leave you with three executables:
 <code>cbmconvert</code>, <code>zip2disk</code> and
-<code>disk2zip</code>.  Install these to your binaries directory, and
-you are ready to go.  Ask your system administrator and/or a local
-guru if you do not know where to install the binaries.  Or just use
-them from the current directory.</p>
+<code>disk2zip</code>.  The installation step is optional;
+you may also invoke the executables from the build directory.</p>
 
 <p>16-bit compilers will probably have trouble with
 <code>cbmconvert</code>.  For instance, the standard file I/O library

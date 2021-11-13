@@ -1,9 +1,0 @@
-## -*- makefile -*- for Unix-like systems
-CC = cc
-CFLAGS =
-LDFLAGS =
-
-EXE =# no suffix for executable file names
-
-all: real-all
-include Makefile
