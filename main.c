@@ -120,10 +120,8 @@ writeFile (const struct Filename* name,
   if (!image && !writeFunc)
     return status;
 
-  if (!length) {
-    writeLog (Errors, name, "Not writing zero length file");
-    return WrFail;
-  }
+  if (!length)
+    writeLog (Warnings, name, "Zero length file");
 
   if (image) {
     status = (*writeImageFunc) (name, data, length, image, writeLog);

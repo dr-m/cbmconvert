@@ -66,6 +66,7 @@ ReadNative (FILE* file,
   const char* suffix = 0;
   size_t i;
   byte_t* buf;
+  static byte_t dummy;
   enum WrStatus status;
 
   /* Get the file base name */
@@ -165,12 +166,13 @@ ReadNative (FILE* file,
   if (fseek (file, 0, SEEK_SET))
     goto seekError;
 
-  if (!(buf = malloc (i))) {
+  if (i == 0)
+    buf = &dummy;
+  else if (!(buf = malloc (i))) {
     (*log) (Errors, 0, "Out of memory.");
     return RdFail;
   }
-
-  if (1 != fread (buf, i, 1, file)) {
+  else if (1 != fread (buf, i, 1, file)) {
     (*log) (Errors, 0, "fread: %s", strerror(errno));
     free (buf);
     return RdFail;
@@ -178,7 +180,8 @@ ReadNative (FILE* file,
 
   status = (*writeCallback) (&name, buf, i);
 
-  free (buf);
+  if (i)
+    free (buf);
 
   switch (status) {
   case WrOK:
