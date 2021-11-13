@@ -1,12 +1,12 @@
 /**
  * @file image.c
  * Disk image management
- * @author Marko Mäkelä (marko.makela at iki.fi)
+ * @author Marko MÃ¤kelÃ¤ (marko.makela at iki.fi)
  * @author Pasi Ojala (albert at cs.tut.fi)
  */
 
 /*
-** Copyright © 1993-1998,2001,2006 Marko Mäkelä
+** Copyright Â© 1993-1998,2001,2006 Marko MÃ¤kelÃ¤
 ** 1581 disk image management by Pasi Ojala
 **
 **     This program is free software; you can redistribute it and/or modify

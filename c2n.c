@@ -1,11 +1,11 @@
 /**
  * @file c2n.c
  * Commodore C2N archive extractor and archiver
- * @author Marko Mäkelä (marko.makela@nic.funet.fi)
+ * @author Marko MÃ¤kelÃ¤ (marko.makela at iki.fi)
  */
 
 /*
-** Copyright © 2001 Marko Mäkelä
+** Copyright Â© 2001 Marko MÃ¤kelÃ¤
 **
 **     This program is free software; you can redistribute it and/or modify
 **     it under the terms of the GNU General Public License as published by

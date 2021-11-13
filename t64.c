@@ -1,11 +1,11 @@
 /**
  * @file t64.c
  * T64 archive extractor
- * @author Marko Mäkelä (marko.makela@nic.funet.fi)
+ * @author Marko MÃ¤kelÃ¤ (marko.makela at iki.fi)
  */
 
 /*
-** Copyright © 1997,2001,2003 Marko Mäkelä
+** Copyright Â© 1997,2001,2003 Marko MÃ¤kelÃ¤
 ** Based on the cbmarcs.c file of fvcbm 2.0 by Daniel Fandrich
 **
 **     This program is free software; you can redistribute it and/or modify

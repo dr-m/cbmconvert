@@ -1,11 +1,11 @@
 /**
  * @file util.c
  * Utility functions
- * @author Marko Mäkelä (marko.makela@nic.funet.fi)
+ * @author Marko MÃ¤kelÃ¤ (marko.makela at iki.fi)
  */
 
 /*
-** Copyright © 1993-1997,2001 Marko Mäkelä
+** Copyright Â© 1993-1997,2001 Marko MÃ¤kelÃ¤
 **
 **     This program is free software; you can redistribute it and/or modify
 **     it under the terms of the GNU General Public License as published by

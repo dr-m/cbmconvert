@@ -1,11 +1,11 @@
 /**
  * @file disk2zip.c
  * Convert a 1541 disk image to four Zip-Code files
- * @author Marko Mäkelä (marko.makela at iki.fi)
+ * @author Marko MÃ¤kelÃ¤ (marko.makela at iki.fi)
  */
 
 /*
-** Copyright © 1993-1998,2001,2006 Marko Mäkelä
+** Copyright Â© 1993-1998,2001,2006 Marko MÃ¤kelÃ¤
 **
 **     This program is free software; you can redistribute it and/or modify
 **     it under the terms of the GNU General Public License as published by

@@ -1,13 +1,13 @@
 /**
  * @file zip2disk.c
  * Convert four Zip-Code files to a 1541 disk image
- * @author Marko Mäkelä (marko.makela@nic.funet.fi)
+ * @author Marko MÃ¤kelÃ¤ (marko.makela at iki.fi)
  * @author Paul David Doherty (h0142kdd@rz.hu-berlin.de)
  */
 
 /*
-** Copyright © 1993-1997,2001,2006 Marko Mäkelä
-** Original version © 1993 Paul David Doherty (h0142kdd@rz.hu-berlin.de)
+** Copyright Â© 1993-1997,2001,2006 Marko MÃ¤kelÃ¤
+** Original version Â© 1993 Paul David Doherty (h0142kdd@rz.hu-berlin.de)
 **
 **     This program is free software; you can redistribute it and/or modify
 **     it under the terms of the GNU General Public License as published by

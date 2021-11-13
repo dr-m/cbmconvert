@@ -2,18 +2,18 @@
  * @file unarc.c
  * ARC/SDA (C64/C128) archive extractor
  * @author Chris Smeets
- * @author Marko M‰kel‰ (marko.makela at iki.fi)
+ * @author Marko M√§kel√§ (marko.makela at iki.fi)
  */
 
 /*
 **  Derived from Chris Smeets' MS-DOS utility a2l that converts Commodore
 **  ARK, ARC and SDA files to LZH using LHARC 1.12. Optimized for speed,
 **  converted to standard C and adapted to the cbmconvert package by
-**  Marko M‰kel‰.
+**  Marko M√§kel√§.
 **
 **  Original version: a2l.c       March   1st, 1990   Chris Smeets
-**  Unix port:        unarc.c     August 28th, 1993   Marko M‰kel‰
-**  Restructured for cbmconvert 2.0 and 2.1 by Marko M‰kel‰
+**  Unix port:        unarc.c     August 28th, 1993   Marko M√§kel√§
+**  Restructured for cbmconvert 2.0 and 2.1 by Marko M√§kel√§
 */
 
 #include <stdio.h>

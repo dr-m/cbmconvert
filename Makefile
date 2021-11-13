@@ -70,6 +70,6 @@ zip2disk$(EXE): zip2disk.c
 .dvi.pdf:
 	dvipdfm $<
 .1.txt:
-	groff -man -Tlatin1 $< | sed -e 's/.//g;' > $@
+	groff -man -Tutf8 $< | sed -e 's/.//g;' > $@
 
 include depend
