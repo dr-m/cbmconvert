@@ -6,7 +6,7 @@
  */
 
 /*
-** Copyright © 1993-1997,2001,2006 Marko Mäkelä
+** Copyright © 1993-1997,2001,2006,2021 Marko Mäkelä
 ** Original version © 1993 Paul David Doherty (h0142kdd@rz.hu-berlin.de)
 **
 **     This program is free software; you can redistribute it and/or modify
@@ -62,10 +62,10 @@ static char* outname;
 
 /** Initialize the files
  * @param filename      the base file name
- * @return              0 on success;<br>
- *                      1 on out of memory;<br>
- *                      2 if not all input files could be opened;<br>
- *                      3 if no output could be created<br>
+ * @retval 0 on success
+ * @retval 1 on out of memory
+ * @retval 2 if not all input files could be opened
+ * @retval 3 if no output could be created
  */
 static int
 init_files (const char* filename)
@@ -221,11 +221,11 @@ read_track (void)
 /** Main program
  * @param argc  number of command-line arguments
  * @param argv  contents of command-line arguments
- * @return      0 on success;<br>
- *              1 on usage error;<br>
- *              2 on out of memory;<br>
- *              3 on input or output error;<br>
- *              4 on ZipCode format error
+ * @retval 0 on success
+ * @retval 1 on usage error
+ * @retval 2 on out of memory
+ * @retval 3 on input or output error
+ * @retval 4 on ZipCode format error
  */
 int
 main (int argc, char** argv)

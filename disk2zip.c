@@ -5,7 +5,7 @@
  */
 
 /*
-** Copyright © 1993-1998,2001,2006 Marko Mäkelä
+** Copyright © 1993-1998,2001,2006,2021 Marko Mäkelä
 **
 **     This program is free software; you can redistribute it and/or modify
 **     it under the terms of the GNU General Public License as published by
@@ -76,9 +76,9 @@ static char* fname;
 
 /** Initialize the files
  * @param filename      base name for the output file
- * @return              0 on success;<br>
- *                      1 on out of memory;<br>
- *                      2 if the input file could not be opened
+ * @retval 0 on success
+ * @retval 1 on out of memory
+ * @retval 2 if the input file could not be opened
  */
 static int
 init_files (const char* filename)
@@ -220,11 +220,11 @@ write_track (void)
 /** Main program
  * @param argc  number of command-line arguments
  * @param argv  contents of command-line arguments
- * @return      0 on success;<br>
- *              1 on usage error;<br>
- *              2 on out of memory;<br>
- *              3 on input or output error;<br>
- *              4 on error in the disk image
+ * @retval 0 on success
+ * @retval 1 on usage error
+ * @retval 2 on out of memory
+ * @retval 3 on input or output error
+ * @retval 4 on error in the disk image
  */
 int
 main (int argc, char** argv)
