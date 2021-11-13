@@ -61,11 +61,11 @@ static char* fname;
 static char* outname;
 
 /** Initialize the files
- * @param filename	the base file name
- * @return		0 on success;<br>
- *			1 on out of memory;<br>
- *			2 if not all input files could be opened;<br>
- *			3 if no output could be created<br>
+ * @param filename      the base file name
+ * @return              0 on success;<br>
+ *                      1 on out of memory;<br>
+ *                      2 if not all input files could be opened;<br>
+ *                      3 if no output could be created<br>
  */
 static int
 init_files (const char* filename)
@@ -118,8 +118,8 @@ init_files (const char* filename)
 }
 
 /** Open an input file
- * @param number	ASCII number of the input file
- * @return		0 on success; 1 on error
+ * @param number        ASCII number of the input file
+ * @return              0 on success; 1 on error
  */
 static int
 open_file (char number)
@@ -137,7 +137,7 @@ open_file (char number)
 }
 
 /** Decode a sector
- * @return	0 on success; 1 on failure
+ * @return      0 on success; 1 on failure
  */
 static int
 read_sector (void)
@@ -167,23 +167,23 @@ read_sector (void)
     while (len--) {
       ch = fgetc (infile);
       if (ch != esc) {
-	trackbuf[sec][count++] = ch;
-	if (count > 256)
-	  goto Error;
+        trackbuf[sec][count++] = ch;
+        if (count > 256)
+          goto Error;
       }
       else if (len >= 2) {
-	/* escape character: get the number of repetitions */
-	int repnum = fgetc (infile);
-	/* get the repeated character */
-	ch = fgetc (infile);
-	if (repnum < 0 || repnum + count > 256 || ch == EOF)
-	  goto Error;
-	memset (trackbuf[sec] + count, ch, repnum);
-	count += repnum;
-	len -= 2;
+        /* escape character: get the number of repetitions */
+        int repnum = fgetc (infile);
+        /* get the repeated character */
+        ch = fgetc (infile);
+        if (repnum < 0 || repnum + count > 256 || ch == EOF)
+          goto Error;
+        memset (trackbuf[sec] + count, ch, repnum);
+        count += repnum;
+        len -= 2;
       }
       else
-	goto Error;
+        goto Error;
     }
 
     if (count != 256)
@@ -203,7 +203,7 @@ read_sector (void)
 }
 
 /** Decode a track
- * @return	0 on success; 1 on failure
+ * @return      0 on success; 1 on failure
  */
 static int
 read_track (void)
@@ -219,13 +219,13 @@ read_track (void)
 }
 
 /** Main program
- * @param argc	number of command-line arguments
- * @param argv	contents of command-line arguments
- * @return	0 on success;<br>
- *		1 on usage error;<br>
- *		2 on out of memory;<br>
- *		3 on input or output error;<br>
- *		4 on ZipCode format error
+ * @param argc  number of command-line arguments
+ * @param argv  contents of command-line arguments
+ * @return      0 on success;<br>
+ *              1 on usage error;<br>
+ *              2 on out of memory;<br>
+ *              3 on input or output error;<br>
+ *              4 on ZipCode format error
  */
 int
 main (int argc, char** argv)
@@ -234,7 +234,7 @@ main (int argc, char** argv)
 
   if (argc != 2 && argc != 3) {
     fputs ("ZipCode disk image extractor v1.2.2\n"
-	   "Usage: zip2disk zip_image_name [disk_image_name]\n", stderr);
+           "Usage: zip2disk zip_image_name [disk_image_name]\n", stderr);
     return 1;
   }
 
@@ -263,22 +263,22 @@ main (int argc, char** argv)
     case 1:
       if (open_file ('1')) {
       OpenError:
-	fprintf (stderr, "zip2disk: Error in opening file %s.\n", inname);
-	status = 3;
-	goto ErrExit;
+        fprintf (stderr, "zip2disk: Error in opening file %s.\n", inname);
+        status = 3;
+        goto ErrExit;
       }
       break;
     case 9:
       if (open_file ('2'))
-	goto OpenError;
+        goto OpenError;
       break;
     case 17:
       if (open_file ('3'))
-	goto OpenError;
+        goto OpenError;
       break;
     case 26:
       if (open_file ('4'))
-	goto OpenError;
+        goto OpenError;
       break;
     }
 

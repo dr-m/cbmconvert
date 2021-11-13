@@ -1,6 +1,6 @@
-Things to be done (feel free to contribute):
+# Things to be done (feel free to contribute):
 
-- image.c:
+## image.c
     - ReadImage(): Check the BAM
     - 1581: changing of subdirectories
     - specifying the disk name and ID
@@ -8,23 +8,24 @@ Things to be done (feel free to contribute):
     - validate (Image *image, bool correct) must be written
       (and honor the GEOS file structure as well)
       Sample output:
-	Unallocated but used blocks:
-	18,0 18,1 18,3
+```
+Unallocated but used blocks:
+18,0 18,1 18,3
 
-	Allocated but unused blocks:
-	18,4
+Allocated but unused blocks:
+18,4
 
-	Improper free blocks count on tracks:
-	17 (10, should be 9)
-	18 (1, should be 3)
+Improper free blocks count on tracks:
+17 (10, should be 9)
+18 (1, should be 3)
+```
     - use memory-mapped files or sector-level file access (with seeks)
 
-- main.c:
+## main.c:
     - interactive GNU Readline based interface
 
-- integrate cbmconvert with cbmlink
+## integrate `cbmconvert` with `cbmlink`
     - writing files to Commodore memory
     - reading files from Commodore memory?
     - writing and reading files on Commodore mass storage devices
     - disk image access?  maybe not; arbitrary seeks would be slow
-

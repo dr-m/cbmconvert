@@ -61,12 +61,12 @@ enum c2n_tag
 
 /** copy a file name from tape header
  * and convert trailing spaces to trailing shifted spaces
- * @param header	the tape header
- * @param name		the file name
+ * @param header        the tape header
+ * @param name          the file name
  */
 static void
 header2name (const struct c2n_header* header,
-	     struct Filename* name)
+             struct Filename* name)
 {
   unsigned char* c;
   memcpy (name->name, header->filename, sizeof header->filename);
@@ -77,12 +77,12 @@ header2name (const struct c2n_header* header,
 
 /** copy a file name to tape header
  * and convert trailing shifted spaces to trailing spaces
- * @param name		the file name
- * @param header	the tape header
+ * @param name          the file name
+ * @param header        the tape header
  */
 static void
 name2header (const struct Filename* name,
-	     struct c2n_header* header)
+             struct c2n_header* header)
 {
   register byte_t* c;
   /* fill the header with spaces */
@@ -97,17 +97,17 @@ name2header (const struct Filename* name,
 }
 
 /** Read and convert a Commodore C2N tape archive
- * @param file		the file input stream
- * @param filename	host system name of the file
- * @param writeCallback	function for writing the contained files
- * @param log		Call-back function for diagnostic output
- * @return		status of the operation
+ * @param file          the file input stream
+ * @param filename      host system name of the file
+ * @param writeCallback function for writing the contained files
+ * @param log           Call-back function for diagnostic output
+ * @return              status of the operation
  */
 enum RdStatus
 ReadC2N (FILE* file,
-	 const char* filename,
-	 write_file_t writeCallback,
-	 log_t log)
+         const char* filename,
+         write_file_t writeCallback,
+         log_t log)
 {
   /** name of the file being processed */
   struct Filename name;
@@ -126,7 +126,7 @@ ReadC2N (FILE* file,
 
     if (1 != fread (&header, sizeof header, 1, file)) {
       if (feof (file))
-	break;
+        break;
       (*log) (Errors, name.type ? &name : 0, "fread: %s", strerror (errno));
       return RdFail;
     }
@@ -141,20 +141,20 @@ ReadC2N (FILE* file,
       header2name (&header, &name);
       name.type = PRG;
       if ((header.tag == tBasic && header.startAddrLow != 1) ||
-	  start >= end)
-	(*log) (Warnings, &name, "Suspicious addresses 0x%04x..0x%04x",
-		start, end);
+          start >= end)
+        (*log) (Warnings, &name, "Suspicious addresses 0x%04x..0x%04x",
+                start, end);
       break;
     case tDataHeader:
       header2name (&header, &name);
       name.type = SEQ;
       if (start != 0x33c || end != 0x3fc)
-	(*log) (Warnings, &name,
-		"Suspicious addresses 0x%04x..0x%04x (expected 0x33c..0x3fc)",
-		start, end);
+        (*log) (Warnings, &name,
+                "Suspicious addresses 0x%04x..0x%04x (expected 0x33c..0x3fc)",
+                start, end);
       if ((byte_t) (end - start) != 192)
-	(*log) (Warnings, name.type ? &name : 0,
-		"Block length differs from 192");
+        (*log) (Warnings, name.type ? &name : 0,
+                "Block length differs from 192");
       break;
     case tEnd:
       header2name (&header, &name);
@@ -163,7 +163,7 @@ ReadC2N (FILE* file,
       continue;
     default:
       (*log) (Errors, name.type ? &name : 0,
-	      "Unknown C2N header code 0x%02x", header.tag);
+              "Unknown C2N header code 0x%02x", header.tag);
       return RdFail;
     }
 
@@ -175,44 +175,44 @@ ReadC2N (FILE* file,
 
     nextBlock:
       if (1 != fread (&header, sizeof header, 1, file)) {
-	if (feof (file))
-	  goto writeData;
-	(*log) (Errors, &name, "fread: %s", strerror (errno));
-	free (buf);
-	return RdFail;
+        if (feof (file))
+          goto writeData;
+        (*log) (Errors, &name, "fread: %s", strerror (errno));
+        free (buf);
+        return RdFail;
       }
 
       if (header.tag == tDataBlock) {
-	byte_t* b = realloc (buf, length + (sizeof header) - 1);
-	if (!b) {
-	  (*log) (Errors, &name, "Out of memory.");
-	  free (buf);
-	  return RdFail;
-	}
-	buf = b;
-	memcpy (buf + length, ((byte_t*) &header) + 1, (sizeof header) - 1);
-	length += (sizeof header) - 1;
-	goto nextBlock;
+        byte_t* b = realloc (buf, length + (sizeof header) - 1);
+        if (!b) {
+          (*log) (Errors, &name, "Out of memory.");
+          free (buf);
+          return RdFail;
+        }
+        buf = b;
+        memcpy (buf + length, ((byte_t*) &header) + 1, (sizeof header) - 1);
+        length += (sizeof header) - 1;
+        goto nextBlock;
       }
       else {
-	enum WrStatus status;
+        enum WrStatus status;
       writeData:
-	if (!length)
-	  (*log) (Warnings, &name, "no data");
-	status = (*writeCallback) (&name, buf, length);
-	free (buf);
-	switch (status) {
-	case WrOK:
-	  break;
-	case WrNoSpace:
-	  return RdNoSpace;
-	case WrFail:
-	default:
-	  return RdFail;
-	}
+        if (!length)
+          (*log) (Warnings, &name, "no data");
+        status = (*writeCallback) (&name, buf, length);
+        free (buf);
+        switch (status) {
+        case WrOK:
+          break;
+        case WrNoSpace:
+          return RdNoSpace;
+        case WrFail:
+        default:
+          return RdFail;
+        }
 
-	if (!feof (file))
-	  goto nextHeader;
+        if (!feof (file))
+          goto nextHeader;
       }
     }
     else {
@@ -221,21 +221,21 @@ ReadC2N (FILE* file,
       size_t readlength, length = (end - start) & 0xffff;
 
       if (!(buf = malloc (length + 2))) {
-	(*log) (Errors, &name, "Out of memory.");
-	return RdFail;
+        (*log) (Errors, &name, "Out of memory.");
+        return RdFail;
       }
 
       buf[0] = header.startAddrLow;
       buf[1] = header.startAddrHigh;
 
       if (length != (readlength = fread (&buf[2], 1, length, file))) {
-	if (feof (file))
-	  (*log) (Warnings, &name, "Truncated file, proceeding anyway");
-	if (ferror (file)) {
-	  (*log) (Errors, &name, "fread: %s", strerror (errno));
-	  free (buf);
-	  return RdFail;
-	}
+        if (feof (file))
+          (*log) (Warnings, &name, "Truncated file, proceeding anyway");
+        if (ferror (file)) {
+          (*log) (Errors, &name, "fread: %s", strerror (errno));
+          free (buf);
+          return RdFail;
+        }
       }
 
       status = (*writeCallback) (&name, buf, readlength + 2);
@@ -243,12 +243,12 @@ ReadC2N (FILE* file,
 
       switch (status) {
       case WrOK:
-	break;
+        break;
       case WrNoSpace:
-	return RdNoSpace;
+        return RdNoSpace;
       case WrFail:
       default:
-	return RdFail;
+        return RdFail;
       }
     }
   }
@@ -257,13 +257,13 @@ ReadC2N (FILE* file,
 }
 
 /** Write an archive in Commodore C2N tape format
- * @param archive	the archive to be written
- * @param filename	host file name of the archive file
- * @return		status of the operation
+ * @param archive       the archive to be written
+ * @param filename      host file name of the archive file
+ * @return              status of the operation
  */
 enum ArStatus
 ArchiveC2N (const struct Archive* archive,
-	    const char* filename)
+            const char* filename)
 {
   FILE* f;
   struct ArchiveEntry* ae;
@@ -279,7 +279,7 @@ ArchiveC2N (const struct Archive* archive,
     if (ae->name.type == PRG) {
       unsigned end = ae->length;
       if (end < 2)
-	continue; /* too short file */
+        continue; /* too short file */
 
       header.startAddrLow = ae->data[0];
       header.startAddrHigh = ae->data[1];
@@ -289,10 +289,10 @@ ArchiveC2N (const struct Archive* archive,
       header.tag = header.startAddrLow == 1 ? tBasic : tML;
 
       if (1 != fwrite (&header, sizeof header, 1, f) ||
-	  ae->length - 2 != fwrite (ae->data + 2, 1, ae->length - 2, f)) {
+          ae->length - 2 != fwrite (ae->data + 2, 1, ae->length - 2, f)) {
       fail:
-	fclose (f);
-	return ArFail;
+        fclose (f);
+        return ArFail;
       }
     }
     else {
@@ -303,19 +303,19 @@ ArchiveC2N (const struct Archive* archive,
       unsigned cnt = 0;
       memcpy (&header, dataheader, sizeof dataheader);
       if (1 != fwrite (&header, sizeof header, 1, f))
-	goto fail;
+        goto fail;
       do {
-	unsigned next = cnt + (sizeof header) - 1;
-	header.tag = tDataBlock;
-	if (next > ae->length) {
-	  memcpy (&header.startAddrLow, ae->data + cnt, ae->length - cnt);
-	  (&header.startAddrLow)[ae->length - cnt] = 0;
-	}
-	else
-	  memcpy (&header.startAddrLow, ae->data + cnt, (sizeof header) - 1);
-	if (1 != fwrite (&header, sizeof header, 1, f))
-	  goto fail;
-	cnt = next;
+        unsigned next = cnt + (sizeof header) - 1;
+        header.tag = tDataBlock;
+        if (next > ae->length) {
+          memcpy (&header.startAddrLow, ae->data + cnt, ae->length - cnt);
+          (&header.startAddrLow)[ae->length - cnt] = 0;
+        }
+        else
+          memcpy (&header.startAddrLow, ae->data + cnt, (sizeof header) - 1);
+        if (1 != fwrite (&header, sizeof header, 1, f))
+          goto fail;
+        cnt = next;
       } while (cnt < ae->length);
     }
   }

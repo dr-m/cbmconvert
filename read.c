@@ -30,8 +30,8 @@
 #include "input.h"
 
 /** Convert an ASCII character to PETSCII
- * @param c	the ASCII character to be converted
- * @return	a corresponding PETSCII character, or '+' if no conversion
+ * @param c     the ASCII character to be converted
+ * @return      a corresponding PETSCII character, or '+' if no conversion
  */
 static unsigned char
 ascii2petscii (unsigned char c)
@@ -50,17 +50,17 @@ ascii2petscii (unsigned char c)
 }
 
 /** Read a file in the native format of the host system
- * @param file		the file input stream
- * @param filename	host system name of the file
- * @param writeCallback	function for writing the contained files
- * @param log		Call-back function for diagnostic output
- * @return		status of the operation
+ * @param file          the file input stream
+ * @param filename      host system name of the file
+ * @param writeCallback function for writing the contained files
+ * @param log           Call-back function for diagnostic output
+ * @return              status of the operation
  */
 enum RdStatus
 ReadNative (FILE* file,
-	    const char* filename,
-	    write_file_t writeCallback,
-	    log_t log)
+            const char* filename,
+            write_file_t writeCallback,
+            log_t log)
 {
   struct Filename name;
   const char* suffix = 0;
@@ -106,7 +106,7 @@ ReadNative (FILE* file,
     else if (!strcmp (suffix, "seq") || !strcmp (suffix, "SEQ"))
       name.type = SEQ;
     else if (!strcmp (suffix, "prg") || !strcmp (suffix, "PRG") ||
-	     !strcmp (suffix, "cvt") || !strcmp (suffix, "CVT"))
+             !strcmp (suffix, "cvt") || !strcmp (suffix, "CVT"))
       name.type = PRG; /* CVT for GEOS Convert files */
     else if (!strcmp (suffix, "usr"))
       name.type = USR;
@@ -118,7 +118,7 @@ ReadNative (FILE* file,
       char* endptr = 0;
       unsigned int recordLength = strtoul (suffix + 1, &endptr, 16);
       if (*endptr)
-	goto UnknownType;
+        goto UnknownType;
 
       name.type = REL;
       name.recordLength = recordLength;
@@ -138,8 +138,8 @@ ReadNative (FILE* file,
   /* Copy the file name */
   if (suffix) {
     for (i = 0;
-	 i < (unsigned) (suffix - filename) && i < sizeof(name.name);
-	 i++)
+         i < (unsigned) (suffix - filename) && i < sizeof(name.name);
+         i++)
       name.name[i] = ascii2petscii(filename[i]);
   }
   else {
@@ -188,17 +188,17 @@ ReadNative (FILE* file,
 }
 
 /** Read a PC64 file (.P00, .S00 etc.)
- * @param file		the file input stream
- * @param filename	host system name of the file
- * @param writeCallback	function for writing the contained files
- * @param log		Call-back function for diagnostic output
- * @return		status of the operation
+ * @param file          the file input stream
+ * @param filename      host system name of the file
+ * @param writeCallback function for writing the contained files
+ * @param log           Call-back function for diagnostic output
+ * @return              status of the operation
  */
 enum RdStatus
 ReadPC64 (FILE* file,
-	  const char* filename,
-	  write_file_t writeCallback,
-	  log_t log)
+          const char* filename,
+          write_file_t writeCallback,
+          log_t log)
 {
   struct Filename name;
   const char* suffix = 0;

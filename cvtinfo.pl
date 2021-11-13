@@ -14,12 +14,12 @@ while ($#ARGV >= 0)
     $name .= ".cvt";
 
     ($type, $class, $author, $needsclass, $desc) =
-	unpack ("x67Cx7A20A20A20x23a*", $info);
+        unpack ("x67Cx7A20A20A20x23a*", $info);
 
     if ($type == 8)
     {
-	$author = "";
-	$needsclass = "";
+        $author = "";
+        $needsclass = "";
     }
 
     $class =~ s/\0.*$//;
@@ -38,14 +38,14 @@ while ($#ARGV >= 0)
     $desc =~ tr/\0-\11\14-\37//d;
 
     if ($id =~ /^(PRG|SEQ) formatted GEOS file/) {
-	print $name, "\n";
-	if ($needsclass ne "") {
-	    print "  $needsclass document.";
-	}
-	elsif ($class ne "") {
-	    print "  ", $class, $author ne "" ? " by $author." : ".";
-	}
-	print "\n  $desc" unless $desc eq "";
-	print "\n\n";
+        print $name, "\n";
+        if ($needsclass ne "") {
+            print "  $needsclass document.";
+        }
+        elsif ($class ne "") {
+            print "  ", $class, $author ne "" ? " by $author." : ".";
+        }
+        print "\n  $desc" unless $desc eq "";
+        print "\n\n";
     }
 }

@@ -35,19 +35,19 @@
 #endif /* MSDOS */
 
 /** determine whether a character is hexadecimal
- * @param a	the ASCII character
- * @return	nonzero if it is hexadecimal
+ * @param a     the ASCII character
+ * @return      nonzero if it is hexadecimal
  */
-#define ISHEX(a)							\
+#define ISHEX(a)                                                        \
 ((a >= '0' && a <= '9') || ((a & ~32) >= 'A' && (a & ~32) <= 'F'))
 
 /** convert a hexadecimal ASCII character to a number
- * @param a	the ASCII character
- * @return	the numeric interpretation of the character
+ * @param a     the ASCII character
+ * @return      the numeric interpretation of the character
  */
-#define ASC2HEX(a) (int)						\
-((a < '0' || a > '9') ? (((a & ~32) < 'A' || (a & ~32) > 'F') ? -1 :	\
-			 ((a & ~32) - 'A' + 10)) : (a - '0'))
+#define ASC2HEX(a) (int)                                                \
+((a < '0' || a > '9') ? (((a & ~32) < 'A' || (a & ~32) > 'F') ? -1 :    \
+                         ((a & ~32) - 'A' + 10)) : (a - '0'))
 
 /** basic start address of ZipCoded files */
 #define ZCADDR 0x400
@@ -75,10 +75,10 @@ static char* outname;
 static char* fname;
 
 /** Initialize the files
- * @param filename	base name for the output file
- * @return		0 on success;<br>
- *			1 on out of memory;<br>
- *			2 if the input file could not be opened
+ * @param filename      base name for the output file
+ * @return              0 on success;<br>
+ *                      1 on out of memory;<br>
+ *                      2 if the input file could not be opened
  */
 static int
 init_files (const char* filename)
@@ -109,8 +109,8 @@ init_files (const char* filename)
 }
 
 /** Open an output file
- * @param number	number of the output file ('1' to '4')
- * @return		0 on success; 1 on error
+ * @param number        number of the output file ('1' to '4')
+ * @return              0 on success; 1 on error
  */
 static int
 open_file (char number)
@@ -134,8 +134,8 @@ open_file (char number)
 }
 
 /** Encode a sector
- * @param sect	the sector number
- * @return	0 on success; 1 on failure
+ * @param sect  the sector number
+ * @return      0 on success; 1 on failure
  */
 static int
 write_sector (unsigned sect)
@@ -168,7 +168,7 @@ Uncompressed:
     int rep = i, j, count;
     for (i = 1, j = count = 0; i < 256; i++) {
       if (sectbuf[i] == sectbuf[j])
-	continue;
+        continue;
       count += (i < j + 3) ? i - j : 3;
       j = i;
     }
@@ -179,22 +179,22 @@ Uncompressed:
 
     /* apply run-length encoding */
     if (EOF == fputc (track | 0x80, outfile) || EOF == fputc (sect, outfile) ||
-	EOF == fputc (count, outfile) || EOF == fputc (rep, outfile))
+        EOF == fputc (count, outfile) || EOF == fputc (rep, outfile))
       return 1;
 
     for (i = 1, j = 0;; i++) {
       if (i < 256 && sectbuf[i] == sectbuf[j])
-	continue;
+        continue;
       if (i > j + 3) {
-	if (EOF == fputc (rep, outfile) || EOF == fputc (i - j, outfile) ||
-	    EOF == fputc (sectbuf[j], outfile))
-	  return 1;
+        if (EOF == fputc (rep, outfile) || EOF == fputc (i - j, outfile) ||
+            EOF == fputc (sectbuf[j], outfile))
+          return 1;
       }
       else if (1 != fwrite (&sectbuf[j], i - j, 1, outfile))
         return 1;
 
       if (i > 255)
-	break;
+        break;
       j = i;
     }
 
@@ -203,7 +203,7 @@ Uncompressed:
 }
 
 /** Encode a track
- * @return	0 on success; 1 on failure
+ * @return      0 on success; 1 on failure
  */
 static int
 write_track (void)
@@ -218,13 +218,13 @@ write_track (void)
 }
 
 /** Main program
- * @param argc	number of command-line arguments
- * @param argv	contents of command-line arguments
- * @return	0 on success;<br>
- *		1 on usage error;<br>
- *		2 on out of memory;<br>
- *		3 on input or output error;<br>
- *		4 on error in the disk image
+ * @param argc  number of command-line arguments
+ * @param argv  contents of command-line arguments
+ * @return      0 on success;<br>
+ *              1 on usage error;<br>
+ *              2 on out of memory;<br>
+ *              3 on input or output error;<br>
+ *              4 on error in the disk image
  */
 int
 main (int argc, char** argv)
@@ -249,13 +249,13 @@ optloop:
       if (!(*argv)[2] && argv[1]) { /* "-i" specifies disk identifier */
         argv++;
         argc-=2;
-	if (ISHEX ((*argv)[0]) && ISHEX ((*argv)[1]) &&
-	    ISHEX ((*argv)[2]) && ISHEX ((*argv)[3]) &&
-	    !(*argv)[4]) {
-	  id[0] = ASC2HEX((*argv)[1]) | (ASC2HEX((*argv)[0]) << 4);
-	  id[1] = ASC2HEX((*argv)[3]) | (ASC2HEX((*argv)[2]) << 4);
-	  goto optloop;
-	}
+        if (ISHEX ((*argv)[0]) && ISHEX ((*argv)[1]) &&
+            ISHEX ((*argv)[2]) && ISHEX ((*argv)[3]) &&
+            !(*argv)[4]) {
+          id[0] = ASC2HEX((*argv)[1]) | (ASC2HEX((*argv)[0]) << 4);
+          id[1] = ASC2HEX((*argv)[3]) | (ASC2HEX((*argv)[2]) << 4);
+          goto optloop;
+        }
       }
       /* fall through */
     default: /* unknown option */
@@ -266,9 +266,9 @@ optloop:
   if (argc != 2 && argc != 3) {
   Usage:
     fputs ("ZipCode disk image compressor v1.0.2\n"
-	   "Usage: disk2zip [options] disk_image_name [zip_image_name]\n"
-	   "Options: -i nnmm: Use $nn $mm (hexadecimal) as disk identifier.\n",
-	   stderr);
+           "Usage: disk2zip [options] disk_image_name [zip_image_name]\n"
+           "Options: -i nnmm: Use $nn $mm (hexadecimal) as disk identifier.\n",
+           stderr);
     return 1;
   }
 
@@ -294,9 +294,9 @@ optloop:
     case 1:
       if (open_file ('1')) {
       OpenError:
-	fprintf (stderr, "disk2zip: Error in opening file %s.\n", outname);
-	status = 3;
-	goto FuncExit;
+        fprintf (stderr, "disk2zip: Error in opening file %s.\n", outname);
+        status = 3;
+        goto FuncExit;
       }
       break;
     case 9:

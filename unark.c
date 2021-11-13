@@ -53,17 +53,17 @@ struct ArkiveEntry
 };
 
 /** Read and convert an Arkive archive
- * @param file		the file input stream
- * @param filename	host system name of the file
- * @param writeCallback	function for writing the contained files
- * @param log		Call-back function for diagnostic output
- * @return		status of the operation
+ * @param file          the file input stream
+ * @param filename      host system name of the file
+ * @param writeCallback function for writing the contained files
+ * @param log           Call-back function for diagnostic output
+ * @return              status of the operation
  */
 enum RdStatus
 ReadArkive (FILE* file,
-	    const char* filename,
-	    write_file_t writeCallback,
-	    log_t log)
+            const char* filename,
+            write_file_t writeCallback,
+            log_t log)
 {
   struct Filename name;
   struct ArkiveEntry entry;
@@ -89,7 +89,7 @@ ReadArkive (FILE* file,
     unsigned blocks;
 
     if (fseek (file, headerPos, SEEK_SET) ||
-	1 != fread (&entry, sizeof entry, 1, file))
+        1 != fread (&entry, sizeof entry, 1, file))
       goto hdrError;
 
     headerPos += sizeof entry;
@@ -117,22 +117,22 @@ ReadArkive (FILE* file,
       name.type = REL;
 
       if (!name.recordLength)
-	(*log) (Warnings, &name, "zero record length");
+        (*log) (Warnings, &name, "zero record length");
 
       {
-	unsigned sidesectCount, sidesectLastLength;
+        unsigned sidesectCount, sidesectLastLength;
 
-	sidesectCount = (blocks + 119) / 121;
-	sidesectLastLength = 15 + 2 * ((blocks - sidesectCount) % 120);
+        sidesectCount = (blocks + 119) / 121;
+        sidesectLastLength = 15 + 2 * ((blocks - sidesectCount) % 120);
 
-	if (entry.sidesectCount != sidesectCount ||
-	    entry.sidesectLastLength != sidesectLastLength) {
-	  (*log) (Errors, &name, "improper side sector length");
-	  (*log) (Errors, &name, "Following files may be totally wrong!");
-	}
+        if (entry.sidesectCount != sidesectCount ||
+            entry.sidesectLastLength != sidesectLastLength) {
+          (*log) (Errors, &name, "improper side sector length");
+          (*log) (Errors, &name, "Following files may be totally wrong!");
+        }
 
-	length = (blocks - sidesectCount) * 254 - 255 +
-	  entry.lastSectorLength;
+        length = (blocks - sidesectCount) * 254 - 255 +
+          entry.lastSectorLength;
       }
 
       break;
@@ -150,39 +150,39 @@ ReadArkive (FILE* file,
       byte_t* buf;
 
       if (fseek (file, archivePos, SEEK_SET)) {
-	(*log) (Errors, &name, "fseek: %s", strerror(errno));
-	return RdFail;
+        (*log) (Errors, &name, "fseek: %s", strerror(errno));
+        return RdFail;
       }
 
       if (!(buf = malloc (length))) {
-	(*log) (Errors, &name, "Out of memory.");
-	return RdFail;
+        (*log) (Errors, &name, "Out of memory.");
+        return RdFail;
       }
 
       if (length != fread (buf, 1, length, file)) {
-	free (buf);
-	(*log) (Errors, &name, "fread: %s", strerror(errno));
-	return RdFail;
+        free (buf);
+        (*log) (Errors, &name, "fread: %s", strerror(errno));
+        return RdFail;
       }
 
       archivePos += 254 * blocks;
 
       if (name.type == REL)
-	/* Arkive stores the last side sector, */
-	/* wasting 254 bytes */
-	/* for each relative file. */
-	archivePos -= 254 * (entry.sidesectCount - 1);
+        /* Arkive stores the last side sector, */
+        /* wasting 254 bytes */
+        /* for each relative file. */
+        archivePos -= 254 * (entry.sidesectCount - 1);
 
       switch ((*writeCallback) (&name, buf, length)) {
       case WrOK:
-	break;
+        break;
       case WrNoSpace:
-	free (buf);
-	return RdNoSpace;
+        free (buf);
+        return RdNoSpace;
       case WrFail:
       default:
-	free (buf);
-	return RdFail;
+        free (buf);
+        return RdFail;
       }
 
       free (buf);

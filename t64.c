@@ -83,17 +83,17 @@ struct t64entry
 };
 
 /** Read and convert a tape archive of the C64S emulator
- * @param file		the file input stream
- * @param filename	host system name of the file
- * @param writeCallback	function for writing the contained files
- * @param log		Call-back function for diagnostic output
- * @return		status of the operation
+ * @param file          the file input stream
+ * @param filename      host system name of the file
+ * @param writeCallback function for writing the contained files
+ * @param log           Call-back function for diagnostic output
+ * @return              status of the operation
  */
 enum RdStatus
 ReadT64 (FILE* file,
-	 const char* filename,
-	 write_file_t writeCallback,
-	 log_t log)
+         const char* filename,
+         write_file_t writeCallback,
+         log_t log)
 {
   unsigned numEntries, entry;
 
@@ -114,8 +114,8 @@ ReadT64 (FILE* file,
     }
 
     if (memcmp (t64header.headerblock, T64Header1, sizeof T64Header1 - 1) &&
-	memcmp (t64header.headerblock, T64Header2, sizeof T64Header2 - 1) &&
-	memcmp (t64header.headerblock, T64Header3, sizeof T64Header3 - 1)) {
+        memcmp (t64header.headerblock, T64Header2, sizeof T64Header2 - 1) &&
+        memcmp (t64header.headerblock, T64Header3, sizeof T64Header3 - 1)) {
       (*log) (Errors, 0, "Unknown T64 header");
       return RdFail;
     }
@@ -124,13 +124,13 @@ ReadT64 (FILE* file,
       (*log) (Errors, 0, "Unknown T64 version, trying anyway");
 
     maxEntries = ((unsigned) t64header.maxEntriesLow |
-		  (t64header.maxEntriesHigh << 8));
+                  (t64header.maxEntriesHigh << 8));
     numEntries = ((unsigned) t64header.numEntriesLow |
-		  (t64header.numEntriesHigh << 8));
+                  (t64header.numEntriesHigh << 8));
 
     if (!numEntries) {
       (*log) (Warnings, 0,
-	      "Number of entries set to zero; trying to read the first entry");
+              "Number of entries set to zero; trying to read the first entry");
       numEntries = 1;
     }
     else if (numEntries > maxEntries) {
@@ -139,8 +139,8 @@ ReadT64 (FILE* file,
     }
 
     (*log) (Everything, 0, "T64 version %u.%u, %u/%u files",
-	    t64header.majorVersion, t64header.minorVersion,
-	    numEntries, maxEntries);
+            t64header.majorVersion, t64header.minorVersion,
+            numEntries, maxEntries);
   }
 
   /* Process the files */
@@ -155,8 +155,8 @@ ReadT64 (FILE* file,
     name.recordLength = 0;
 
     if (fseek (file,
-	       sizeof (struct t64header) + entry * sizeof t64entry,
-	       SEEK_SET)) {
+               sizeof (struct t64header) + entry * sizeof t64entry,
+               SEEK_SET)) {
       (*log) (Errors, 0, "fseek: %s", strerror (errno));
       return RdFail;
     }
@@ -185,15 +185,15 @@ ReadT64 (FILE* file,
     if (t64entry.entryType != 1) {
     unknown:
       (*log) (Errors, &name,
-	      "Unknown entry type 0x%02x 0x%02x, assuming PRG",
-	      t64entry.entryType, t64entry.fileType);
+              "Unknown entry type 0x%02x 0x%02x, assuming PRG",
+              t64entry.entryType, t64entry.fileType);
     }
     else if (t64entry.fileType != 1) {
       unsigned filetype = t64entry.fileType & 0x8F;
       if (filetype >= DEL && filetype <= USR)
-	name.type = filetype;
+        name.type = filetype;
       else
-	goto unknown;
+        goto unknown;
     }
 
     /* Read the file */
@@ -203,27 +203,27 @@ ReadT64 (FILE* file,
       size_t readlength;
 
       if (!(buf = malloc (length + 2))) {
-	(*log) (Errors, &name, "Out of memory.");
-	return RdFail;
+        (*log) (Errors, &name, "Out of memory.");
+        return RdFail;
       }
 
       buf[0] = t64entry.startAddrLow;
       buf[1] = t64entry.startAddrHigh;
 
       if (fseek (file, fileoffset, SEEK_SET)) {
-	(*log) (Errors, &name, "fseek: %s", strerror(errno));
-	free (buf);
-	return RdFail;
+        (*log) (Errors, &name, "fseek: %s", strerror(errno));
+        free (buf);
+        return RdFail;
       }
 
       if (length != (readlength = fread (&buf[2], 1, length, file))) {
-	if (feof (file))
-	  (*log) (Warnings, &name, "Truncated file, proceeding anyway");
-	if (ferror (file)) {
-	  (*log) (Errors, &name, "fread: %s", strerror(errno));
-	  free (buf);
-	  return RdFail;
-	}
+        if (feof (file))
+          (*log) (Warnings, &name, "Truncated file, proceeding anyway");
+        if (ferror (file)) {
+          (*log) (Errors, &name, "fread: %s", strerror(errno));
+          free (buf);
+          return RdFail;
+        }
       }
 
       status = (*writeCallback) (&name, buf, readlength + 2);
@@ -231,12 +231,12 @@ ReadT64 (FILE* file,
 
       switch (status) {
       case WrOK:
-	break;
+        break;
       case WrNoSpace:
-	return RdNoSpace;
+        return RdNoSpace;
       case WrFail:
       default:
-	return RdFail;
+        return RdFail;
       }
     }
   }

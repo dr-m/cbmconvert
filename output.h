@@ -32,25 +32,25 @@
 /** Writing status */
 enum WrStatus
 {
-  WrOK,		/**<Success */
-  WrNoSpace,	/**<Out of space */
-  WrFileExists,	/**<Duplicate file name */
-  WrFail	/**<Generic failure */
+  WrOK,         /**<Success */
+  WrNoSpace,    /**<Out of space */
+  WrFileExists, /**<Duplicate file name */
+  WrFail        /**<Generic failure */
 };
 
 /** Write a file in some format
- * @param name		native (PETSCII) name of the file
- * @param data		the contents of the file
- * @param length	length of the file contents
- * @param newname	(output) the converted file name
- * @param log		Call-back function for diagnostic output
- * @return		status of the operation
+ * @param name          native (PETSCII) name of the file
+ * @param data          the contents of the file
+ * @param length        length of the file contents
+ * @param newname       (output) the converted file name
+ * @param log           Call-back function for diagnostic output
+ * @return              status of the operation
  */
 typedef enum WrStatus write_t (const struct Filename* name,
-			       const byte_t* data,
-			       size_t length,
-			       char** newname,
-			       log_t log);
+                               const byte_t* data,
+                               size_t length,
+                               char** newname,
+                               log_t log);
 
 /** Write a file in raw format */
 write_t WriteNative;
@@ -60,18 +60,18 @@ write_t WritePC64;
 write_t Write9660;
 
 /** Write a file to a disk image
- * @param name		native (PETSCII) name of the file
- * @param data		the contents of the file
- * @param length	length of the file contents
- * @param image		the disk image
- * @param log		Call-back function for diagnostic output
- * @return		status of the operation
+ * @param name          native (PETSCII) name of the file
+ * @param data          the contents of the file
+ * @param length        length of the file contents
+ * @param image         the disk image
+ * @param log           Call-back function for diagnostic output
+ * @return              status of the operation
  */
 typedef enum WrStatus write_img_t (const struct Filename* name,
-				   const byte_t* data,
-				   size_t length,
-				   struct Image* image,
-				   log_t log);
+                                   const byte_t* data,
+                                   size_t length,
+                                   struct Image* image,
+                                   log_t log);
 
 /** Write to an image in CBM DOS format */
 write_img_t WriteImage;
@@ -83,29 +83,29 @@ write_img_t WriteCpmImage;
 /** Disk image management status */
 enum ImStatus
 {
-  ImOK,		/**< No errors */
-  ImNoSpace,	/**< Out of space on the host system */
-  ImFail	/**< Generic failure */
+  ImOK,         /**< No errors */
+  ImNoSpace,    /**< Out of space on the host system */
+  ImFail        /**< Generic failure */
 };
 
 /** Open an existing disk image or create a new one.
- * @param filename	name of 1541 disk image on the host system
- * @param image		address of the disk image buffer pointer
- *			(will be allocated by this function)
- * @param type		type of the disk image
- * @param direntOpts	directory entry handling options
- * @return		Status of the operation
+ * @param filename      name of 1541 disk image on the host system
+ * @param image         address of the disk image buffer pointer
+ *                      (will be allocated by this function)
+ * @param type          type of the disk image
+ * @param direntOpts    directory entry handling options
+ * @return              Status of the operation
  */
 enum ImStatus
 OpenImage (const char* filename,
-	   struct Image** image,
-	   enum ImageType type,
-	   enum DirEntOpts direntOpts);
+           struct Image** image,
+           enum ImageType type,
+           enum DirEntOpts direntOpts);
 
 /** Write back a disk image.
- * @param image		address of the disk image buffer
- *			(will be deallocated by this function)
- * @return		Status of the operation
+ * @param image         address of the disk image buffer
+ *                      (will be deallocated by this function)
+ * @return              Status of the operation
  */
 enum ImStatus
 CloseImage (struct Image* image);
@@ -115,45 +115,45 @@ CloseImage (struct Image* image);
 /** Archive management status */
 enum ArStatus
 {
-  ArOK,		/**< Successful operation */
-  ArNoSpace,	/**< Out of space */
-  ArFail	/**< Generic failure */
+  ArOK,         /**< Successful operation */
+  ArNoSpace,    /**< Out of space */
+  ArFail        /**< Generic failure */
 };
 
 /** Allocate an archive data structure.
- * @return	a newly allocated empty archive structure
+ * @return      a newly allocated empty archive structure
  */
 struct Archive*
 newArchive (void);
 
 /** Deallocate an archive data structure.
- * @param archive	the archive to be deallocated
+ * @param archive       the archive to be deallocated
  */
 void
 deleteArchive (struct Archive* archive);
 
 /** Write a file to an archive.
- * @param name		native (PETSCII) name of the file
- * @param data		the contents of the file
- * @param length	length of the file contents
- * @param archive	the archive the file is written to
- * @param log		Call-back function for diagnostic output
- * @return		status of the operation
+ * @param name          native (PETSCII) name of the file
+ * @param data          the contents of the file
+ * @param length        length of the file contents
+ * @param archive       the archive the file is written to
+ * @param log           Call-back function for diagnostic output
+ * @return              status of the operation
  */
 enum WrStatus
 WriteArchive (const struct Filename* name,
-	      const byte_t* data,
-	      size_t length,
-	      struct Archive* archive,
-	      log_t log);
+              const byte_t* data,
+              size_t length,
+              struct Archive* archive,
+              log_t log);
 
 /** Write an archive to a file.
- * @param archive	the archive to be written
- * @param filename	host file name of the archive file
- * @return		status of the operation
+ * @param archive       the archive to be written
+ * @param filename      host file name of the archive file
+ * @return              status of the operation
  */
 typedef enum ArStatus write_ar_t (const struct Archive* archive,
-				  const char* filename);
+                                  const char* filename);
 
 /** Write an archive in Lynx format */
 write_ar_t ArchiveLynx;

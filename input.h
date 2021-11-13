@@ -31,34 +31,34 @@
 /* File management */
 
 /** Call-back function for writing files
- * @param name		native (PETSCII) name of the file
- * @param data		the contents of the file
- * @param length	length of the file contents
- * @return		status of the operation
+ * @param name          native (PETSCII) name of the file
+ * @param data          the contents of the file
+ * @param length        length of the file contents
+ * @return              status of the operation
  */
 typedef enum WrStatus write_file_t (const struct Filename* name,
-				    const byte_t* data,
-				    size_t length);
+                                    const byte_t* data,
+                                    size_t length);
 
 /** Status of a conversion operation */
 enum RdStatus
 {
-  RdOK,		/**< Success */
-  RdFail,	/**< Generic input or output failure */
-  RdNoSpace	/**< Not enough space for the converted output */
+  RdOK,         /**< Success */
+  RdFail,       /**< Generic input or output failure */
+  RdNoSpace     /**< Not enough space for the converted output */
 };
 
 /** Read and convert a file
- * @param file		the file input stream
- * @param filename	host system name of the file
- * @param writeCallback	function for writing the contained files
- * @param log		Call-back function for diagnostic output
- * @return		status of the operation
+ * @param file          the file input stream
+ * @param filename      host system name of the file
+ * @param writeCallback function for writing the contained files
+ * @param log           Call-back function for diagnostic output
+ * @return              status of the operation
  */
 typedef enum RdStatus read_file_t (FILE* file,
-				   const char* filename,
-				   write_file_t writeCallback,
-				   log_t log);
+                                   const char* filename,
+                                   write_file_t writeCallback,
+                                   log_t log);
 
 /** Read and convert a raw file */
 read_file_t ReadNative;

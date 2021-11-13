@@ -56,23 +56,23 @@ static const char* currentFilename = 0;
 /** Disk image changing policy */
 enum ChangeDisks
 {
-  Never,	/**< Never change disk images */
-  Sometimes,	/**< Change images when out of space */
-  Always	/**< Change images when out of space or duplicate file name */
+  Never,        /**< Never change disk images */
+  Sometimes,    /**< Change images when out of space */
+  Always        /**< Change images when out of space or duplicate file name */
 };
 
 /** The default disk image changing policy */
 enum ChangeDisks changeDisks = Sometimes;
 
 /** Call-back function for diagnostic output
- * @param verbosity	the verbosity level
- * @param name		the file name associated with the message (or NULL)
- * @param format	printf-like format string followed by arguments
+ * @param verbosity     the verbosity level
+ * @param name          the file name associated with the message (or NULL)
+ * @param format        printf-like format string followed by arguments
  */
 static void
 writeLog (enum Verbosity verbosity,
-	  const struct Filename* name,
-	  const char* format, ...)
+          const struct Filename* name,
+          const char* format, ...)
 {
   static struct Filename oldname;
 
@@ -88,11 +88,11 @@ writeLog (enum Verbosity verbosity,
 
     if (name) {
       if (memcmp(name->name, oldname.name, sizeof name->name) ||
-	  name->type != oldname.type ||
-	  name->recordLength != oldname.recordLength)
-	fprintf (stderr, "`%s':\n    ", getFilename (name));
+          name->type != oldname.type ||
+          name->recordLength != oldname.recordLength)
+        fprintf (stderr, "`%s':\n    ", getFilename (name));
       else
-	fputs ("  ", stderr);
+        fputs ("  ", stderr);
       memcpy(&oldname, name, sizeof oldname);
     }
 
@@ -105,15 +105,15 @@ writeLog (enum Verbosity verbosity,
 }
 
 /** Write a file
- * @param name		native (PETSCII) name of the file
- * @param data		the contents of the file
- * @param length	length of the file contents
- * @return		status of the operation
+ * @param name          native (PETSCII) name of the file
+ * @param data          the contents of the file
+ * @param length        length of the file contents
+ * @return              status of the operation
  */
 static enum WrStatus
 writeFile (const struct Filename* name,
-	   const byte_t* data,
-	   size_t length)
+           const byte_t* data,
+           size_t length)
 {
   enum WrStatus status = WrFail;
 
@@ -130,108 +130,108 @@ writeFile (const struct Filename* name,
     switch (status) {
     case WrOK:
       writeLog (Everything, name, "Wrote %u bytes to image \"%s\"",
-	      length, image->name);
+              length, image->name);
       return WrOK;
     case WrFail:
       writeLog (Errors, name, "Write failed!");
       return WrFail;
     case WrFileExists:
       if (changeDisks < Always) {
-	writeLog (Errors, name, "non-unique file name!");
-	return WrFileExists;
+        writeLog (Errors, name, "non-unique file name!");
+        return WrFileExists;
       }
       /* non-unique file name, fall through */
     case WrNoSpace:
       if (changeDisks < Sometimes) {
-	writeLog (Errors, name, "out of space!");
-	return WrNoSpace;
+        writeLog (Errors, name, "out of space!");
+        return WrNoSpace;
       }
 
       /* try to open a new disk image */
       writeLog (Warnings, name,
-		status == WrFileExists
-		? "non-unique file name, changing disk images..."
-		: "out of space, changing disk images...");
+                status == WrFileExists
+                ? "non-unique file name, changing disk images..."
+                : "out of space, changing disk images...");
       switch (CloseImage (image)) {
-	unsigned char* c;
+        unsigned char* c;
       case ImNoSpace:
-	writeLog (Errors, name, "out of space");
-	free (image->name);
-	free (image);
-	image = 0;
-	return WrNoSpace;
+        writeLog (Errors, name, "out of space");
+        free (image->name);
+        free (image);
+        image = 0;
+        return WrNoSpace;
       case ImFail:
-	writeLog (Errors, name, "failed");
-	free (image->name);
-	free (image);
-	image = 0;
-	return WrFail;
+        writeLog (Errors, name, "failed");
+        free (image->name);
+        free (image);
+        image = 0;
+        return WrFail;
       case ImOK:
-	writeLog (Everything, name, "wrote old image \"%s\"", image->name);
-	/*
-	** Update the file name.  If there is a number in the first
-	** component of the file name (excluding any directory component),
-	** increment it.
-	*/
-	for (c = image->name; *c; c++);
-	for (; c >= image->name && *c != PATH_SEPARATOR; c--);
-	for (c++; *c && *c != '.'; c++);
-	while (--c >= image->name)
-	  if (*c >= '0' && *c < '9') {
-	    (*c)++;
-	    break;
-	  }
-	  else if (*c == '9')
-	    *c = '0';
-	  else
-	    goto notUnique;
+        writeLog (Everything, name, "wrote old image \"%s\"", image->name);
+        /*
+        ** Update the file name.  If there is a number in the first
+        ** component of the file name (excluding any directory component),
+        ** increment it.
+        */
+        for (c = image->name; *c; c++);
+        for (; c >= image->name && *c != PATH_SEPARATOR; c--);
+        for (c++; *c && *c != '.'; c++);
+        while (--c >= image->name)
+          if (*c >= '0' && *c < '9') {
+            (*c)++;
+            break;
+          }
+          else if (*c == '9')
+            *c = '0';
+          else
+            goto notUnique;
 
-	if (c < image->name) {
-	notUnique:
-	  writeLog (Errors, name, "Could not generate unique image file name");
-	  free (image->name);
-	  free (image);
-	  image = 0;
-	  return WrFail;
-	}
+        if (c < image->name) {
+        notUnique:
+          writeLog (Errors, name, "Could not generate unique image file name");
+          free (image->name);
+          free (image);
+          image = 0;
+          return WrFail;
+        }
 
-	writeLog (Everything, name, "Continuing to image \"%s\"...",
-		  image->name);
-	{
-	  char* filename = (char*) image->name;
-	  enum ImageType type = image->type;
-	  enum DirEntOpts direntOpts = image->direntOpts;
+        writeLog (Everything, name, "Continuing to image \"%s\"...",
+                  image->name);
+        {
+          char* filename = (char*) image->name;
+          enum ImageType type = image->type;
+          enum DirEntOpts direntOpts = image->direntOpts;
 
-	  free (image);
-	  image = 0;
+          free (image);
+          image = 0;
 
-	  status = OpenImage (filename, &image, type, direntOpts);
+          status = OpenImage (filename, &image, type, direntOpts);
 
-	  free (filename);
-	}
+          free (filename);
+        }
 
-	switch (status) {
-	case ImOK:
-	  status = (*writeImageFunc) (name, data, length, image, writeLog);
+        switch (status) {
+        case ImOK:
+          status = (*writeImageFunc) (name, data, length, image, writeLog);
 
-	  if (status == WrOK)
-	    writeLog (Everything, name, "OK, wrote %u bytes to image \"%s\"",
-		      length, image->name);
-	  else
-	    writeLog (Errors, name, "%s while writing to \"%s\", giving up.",
-		      status == WrNoSpace ? "out of space" :
-		      status == WrFileExists ? "duplicate file name" :
-		      "failed",
-		      image->name);
+          if (status == WrOK)
+            writeLog (Everything, name, "OK, wrote %u bytes to image \"%s\"",
+                      length, image->name);
+          else
+            writeLog (Errors, name, "%s while writing to \"%s\", giving up.",
+                      status == WrNoSpace ? "out of space" :
+                      status == WrFileExists ? "duplicate file name" :
+                      "failed",
+                      image->name);
 
-	  return status;
+          return status;
 
-	default:
-	  writeLog (Errors, name, "%s while creating image \"%s\"",
-		    status == ImNoSpace ? "out of space" : "failed",
-		    image->name);
-	  return status;
-	}
+        default:
+          writeLog (Errors, name, "%s while creating image \"%s\"",
+                    status == ImNoSpace ? "out of space" : "failed",
+                    image->name);
+          return status;
+        }
       }
     }
   }
@@ -240,7 +240,7 @@ writeFile (const struct Filename* name,
     switch (status) {
     case WrOK:
       writeLog (Everything, name, "Wrote %u bytes to archive \"%s\"",
-	      length, archiveFilename);
+              length, archiveFilename);
       return WrOK;
     case WrFail:
       writeLog (Errors, name, "Write failed!");
@@ -260,11 +260,11 @@ writeFile (const struct Filename* name,
 
     if (status == WrOK)
       writeLog (Everything, name, "Writing %u bytes to \"%s\"",
-		length, newname);
+                length, newname);
     else
       writeLog (Errors, name, "%s while writing to \"%s\"",
-		status == ImNoSpace ? "out of space" : "failed",
-		newname);
+                status == ImNoSpace ? "out of space" : "failed",
+                newname);
 
     free (newname);
     return status;
@@ -274,8 +274,8 @@ writeFile (const struct Filename* name,
 }
 
 /** Convert a disk image type code to a printable string
- * @param im	the disk image type code
- * @return	a corresponding printable character string
+ * @param im    the disk image type code
+ * @return      a corresponding printable character string
  */
 static const char*
 imageType (enum ImageType im)
@@ -295,9 +295,9 @@ imageType (enum ImageType im)
 }
 
 /** The main program
- * @param argc	number of command-line arguments
- * @param argv	contents of the command-line arguments
- * @return	0 on success, nonzero on error
+ * @param argc  number of command-line arguments
+ * @param argv  contents of the command-line arguments
+ * @return      0 on success, nonzero on error
  */
 int
 main (int argc, char** argv)
@@ -320,185 +320,185 @@ main (int argc, char** argv)
     while (*++opts) /* process all flags */
       switch (*opts) {
       case 'v':
-	switch (opts[1]) {
-	case 'v':
-	case '2':
-	  verbosityLevel = Everything;
-	  break;
-	case 'w':
-	case '1':
-	  verbosityLevel = Warnings;
-	  break;
-	case '0':
-	  verbosityLevel = Errors;
-	  break;
-	default:
-	  goto Usage;
-	}
-	opts++;
-	break;
+        switch (opts[1]) {
+        case 'v':
+        case '2':
+          verbosityLevel = Everything;
+          break;
+        case 'w':
+        case '1':
+          verbosityLevel = Warnings;
+          break;
+        case '0':
+          verbosityLevel = Errors;
+          break;
+        default:
+          goto Usage;
+        }
+        opts++;
+        break;
 
       case 'i':
-	switch (opts[1]) {
-	case '0':
-	  changeDisks = Never;
-	  break;
-	case '1':
-	  changeDisks = Sometimes;
-	  break;
-	case '2':
-	  changeDisks = Always;
-	  break;
-	default:
-	  goto Usage;
-	}
-	opts++;
-	break;
+        switch (opts[1]) {
+        case '0':
+          changeDisks = Never;
+          break;
+        case '1':
+          changeDisks = Sometimes;
+          break;
+        case '2':
+          changeDisks = Always;
+          break;
+        default:
+          goto Usage;
+        }
+        opts++;
+        break;
 
       case 'n':
-	readFunc = ReadNative;
-	break;
+        readFunc = ReadNative;
+        break;
       case 'p':
-	readFunc = ReadPC64;
-	break;
+        readFunc = ReadPC64;
+        break;
       case 'a':
-	readFunc = ReadARC;
-	break;
+        readFunc = ReadARC;
+        break;
       case 'k':
-	readFunc = ReadArkive;
-	break;
+        readFunc = ReadArkive;
+        break;
       case 'l':
-	readFunc = ReadLynx;
-	break;
+        readFunc = ReadLynx;
+        break;
       case 't':
-	readFunc = ReadT64;
-	break;
+        readFunc = ReadT64;
+        break;
       case 'c':
-	readFunc = ReadC2N;
-	break;
+        readFunc = ReadC2N;
+        break;
       case 'd':
-	readFunc = ReadImage;
-	break;
+        readFunc = ReadImage;
+        break;
       case 'm':
-	readFunc = ReadCpmImage;
-	break;
+        readFunc = ReadCpmImage;
+        break;
       case 'I':
-	writeFunc = Write9660;
-	break;
+        writeFunc = Write9660;
+        break;
       case 'P':
-	writeFunc = WritePC64;
-	break;
+        writeFunc = WritePC64;
+        break;
       case 'N':
-	writeFunc = WriteNative;
-	break;
+        writeFunc = WriteNative;
+        break;
       case 'L':
-	if (image || archive || argc <= 2)
-	  goto Usage;
+        if (image || archive || argc <= 2)
+          goto Usage;
 
-	archive = newArchive();
-	writeArchiveFunc = ArchiveLynx;
-	archiveFilename = *++argv;argc--;
-	break;
+        archive = newArchive();
+        writeArchiveFunc = ArchiveLynx;
+        archiveFilename = *++argv;argc--;
+        break;
       case 'C':
-	if (image || archive || argc <= 2)
-	  goto Usage;
+        if (image || archive || argc <= 2)
+          goto Usage;
 
-	archive = newArchive();
-	writeArchiveFunc = ArchiveC2N;
-	archiveFilename = *++argv;argc--;
-	break;
+        archive = newArchive();
+        writeArchiveFunc = ArchiveC2N;
+        archiveFilename = *++argv;argc--;
+        break;
       case 'M':
       case 'D':
-	if (archive)
-	  goto Usage;
+        if (archive)
+          goto Usage;
 
-	if (argc > 2) {
-	  enum ImageType im = Im1541;
+        if (argc > 2) {
+          enum ImageType im = Im1541;
 
-	  switch (opts[1]) {
-	  case '4':
-	    im = Im1541;
-	    break;
-	  case '7':
-	    im = Im1571;
-	    break;
-	  case '8':
-	    im = Im1581;
-	    break;
-	  default:
-	    goto Usage;
-	  }
+          switch (opts[1]) {
+          case '4':
+            im = Im1541;
+            break;
+          case '7':
+            im = Im1571;
+            break;
+          case '8':
+            im = Im1581;
+            break;
+          default:
+            goto Usage;
+          }
 
-	  writeFunc = 0;
-	  writeImageFunc = *opts == 'M' ? WriteCpmImage : WriteImage;
+          writeFunc = 0;
+          writeImageFunc = *opts == 'M' ? WriteCpmImage : WriteImage;
 
-	  opts++;
-	  argc--;
-	  argv++;
+          opts++;
+          argc--;
+          argv++;
 
-	  {
-	    enum DirEntOpts dopts = DirEntOnlyCreate;
-	    if (opts[1] == 'o') {
-	      dopts = DirEntFindOrCreate;
-	      opts++;
-	    }
+          {
+            enum DirEntOpts dopts = DirEntOnlyCreate;
+            if (opts[1] == 'o') {
+              dopts = DirEntFindOrCreate;
+              opts++;
+            }
 
-	    if (OpenImage (*argv, &image, im, dopts) != ImOK) {
-	      fprintf (stderr, "Could not open the %s%s image '%s'.\n",
-		       writeImageFunc == WriteCpmImage ? "CP/M " : "",
-		       imageType (im), *argv);
-	      return 2;
-	    }
-	  }
-	}
-	else
-	  goto Usage;
+            if (OpenImage (*argv, &image, im, dopts) != ImOK) {
+              fprintf (stderr, "Could not open the %s%s image '%s'.\n",
+                       writeImageFunc == WriteCpmImage ? "CP/M " : "",
+                       imageType (im), *argv);
+              return 2;
+            }
+          }
+        }
+        else
+          goto Usage;
 
-	break;
+        break;
 
       default:
-	goto Usage;
+        goto Usage;
       }
   }
 
   if (argc < 2) {
   Usage:
     fprintf (stderr,
-	     "cbmconvert 2.1.3 - Commodore archive converter\n"
-	     "Usage: %s [options] file(s)\n", prog);
+             "cbmconvert 2.1.3 - Commodore archive converter\n"
+             "Usage: %s [options] file(s)\n", prog);
 
     fputs ("Options: -I: Create ISO 9660 compliant file names.\n"
-	   "         -P: Output files in PC64 format.\n"
-	   "         -N: Output files in native format.\n"
-	   "         -L archive.lnx: Output files in Lynx format.\n"
-	   "         -C archive.c2n: Output files in Commodore C2N format.\n"
-	   "         -D4 imagefile: Write to a 1541 disk image.\n"
-	   "         -D4o imagefile: Ditto, overwriting existing files.\n"
-	   "         -D7[o] imagefile: Write to a 1571 disk image.\n"
-	   "         -D8[o] imagefile: Write to a 1581 disk image.\n"
-	   "         -M4[o] imagefile: Write to a 1541 CP/M disk image.\n"
-	   "         -M7[o] imagefile: Write to a 1571 CP/M disk image.\n"
-	   "         -M8[o] imagefile: Write to a 1581 CP/M disk image.\n"
-	   "\n"
-	   "         -i2: Switch disk images on out of space or duplicate file name.\n"
-	   "         -i1: Switch disk images on out of space.\n"
-	   "         -i0: Never switch disk images.\n"
-	   "\n"
-	   "         -n: input files in native format.\n"
-	   "         -p: input files in PC64 format.\n"
-	   "         -a: input files in ARC/SDA format.\n"
-	   "         -k: input files in Arkive format.\n"
-	   "         -l: input files in Lynx format.\n"
-	   "         -t: input files in T64 format.\n"
-	   "         -c: input files in Commodore C2N format.\n"
-	   "         -d: input files in disk image format.\n"
-	   "         -m: input files in C128 CP/M disk image format.\n"
-	   "\n"
-	   "         -v2: Verbose mode.  Display all messages.\n"
-	   "         -v1: Display warnings in addition to errors.\n"
-	   "         -v0: Display error messages only.\n"
-	   "         --: Stop processing any further options.\n",
-	   stderr);
+           "         -P: Output files in PC64 format.\n"
+           "         -N: Output files in native format.\n"
+           "         -L archive.lnx: Output files in Lynx format.\n"
+           "         -C archive.c2n: Output files in Commodore C2N format.\n"
+           "         -D4 imagefile: Write to a 1541 disk image.\n"
+           "         -D4o imagefile: Ditto, overwriting existing files.\n"
+           "         -D7[o] imagefile: Write to a 1571 disk image.\n"
+           "         -D8[o] imagefile: Write to a 1581 disk image.\n"
+           "         -M4[o] imagefile: Write to a 1541 CP/M disk image.\n"
+           "         -M7[o] imagefile: Write to a 1571 CP/M disk image.\n"
+           "         -M8[o] imagefile: Write to a 1581 CP/M disk image.\n"
+           "\n"
+           "         -i2: Switch disk images on out of space or duplicate file name.\n"
+           "         -i1: Switch disk images on out of space.\n"
+           "         -i0: Never switch disk images.\n"
+           "\n"
+           "         -n: input files in native format.\n"
+           "         -p: input files in PC64 format.\n"
+           "         -a: input files in ARC/SDA format.\n"
+           "         -k: input files in Arkive format.\n"
+           "         -l: input files in Lynx format.\n"
+           "         -t: input files in T64 format.\n"
+           "         -c: input files in Commodore C2N format.\n"
+           "         -d: input files in disk image format.\n"
+           "         -m: input files in C128 CP/M disk image format.\n"
+           "\n"
+           "         -v2: Verbose mode.  Display all messages.\n"
+           "         -v1: Display warnings in addition to errors.\n"
+           "         -v0: Display error messages only.\n"
+           "         --: Stop processing any further options.\n",
+           stderr);
 
     if (image) {
       free (image->name);
@@ -535,17 +535,17 @@ main (int argc, char** argv)
     case RdNoSpace:
       writeLog (Errors, 0, "out of space.");
       if (image || archive)
-	goto write;
+        goto write;
       else
-	return 3;
+        return 3;
 
     default:
       writeLog (Errors, 0, "unexpected error.");
       retval = 4;
       if (image || archive)
-	goto write;
+        goto write;
       else
-	return retval;
+        return retval;
     }
   }
 
@@ -558,12 +558,12 @@ write:
 
     case ImNoSpace:
       writeLog (Errors, 0, "Out of space while writing image file \"%s\"!",
-		image->name);
+                image->name);
       return 3;
 
     default:
       writeLog (Errors, 0, "Unexpected error while writing image \"%s\"!",
-		image->name);
+                image->name);
       return 4;
     }
 
@@ -576,19 +576,19 @@ write:
     switch ((*writeArchiveFunc) (archive, archiveFilename)) {
     case ArOK:
       writeLog (Everything, 0, "Wrote archive file \"%s\"",
-		archiveFilename);
+                archiveFilename);
       break;
 
     case ArNoSpace:
       writeLog (Everything, 0,
-		"Out of space while writing archive file \"%s\"!",
-		archiveFilename);
+                "Out of space while writing archive file \"%s\"!",
+                archiveFilename);
       return 3;
 
     default:
       writeLog (Everything, 0,
-		"Unexpected error while writing image \"%s\"!",
-		archiveFilename);
+                "Unexpected error while writing image \"%s\"!",
+                archiveFilename);
       return 4;
     }
 

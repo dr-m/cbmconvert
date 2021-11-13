@@ -31,9 +31,9 @@
 #include "output.h"
 
 /** Convert a PETSCII file name to a printable null-terminated ASCII string.
- * @param name		the PETSCII file name
- * @param newname	(output) the converted file name
- * @return		false on out of memory
+ * @param name          the PETSCII file name
+ * @param newname       (output) the converted file name
+ * @return              false on out of memory
  */
 static bool
 filename2char (const struct Filename* name, char** newname)
@@ -74,8 +74,8 @@ filename2char (const struct Filename* name, char** newname)
 }
 
 /** Determine whether a character is a wovel in English
- * @param c	the character
- * @return	true if c is a wovel
+ * @param c     the character
+ * @return      true if c is a wovel
  */
 static bool
 isWovel (unsigned char c)
@@ -87,10 +87,10 @@ isWovel (unsigned char c)
 #define REMOVED '-'
 
 /** Truncate the file name in-place to ISO9660 compliant format.
- * @param name	a null-terminated string that is at least 1 character long
- *		(excluding the terminating NUL character)
- * @return	the length of the truncated string,
- *		excluding the terminating NUL character
+ * @param name  a null-terminated string that is at least 1 character long
+ *              (excluding the terminating NUL character)
+ * @return      the length of the truncated string,
+ *              excluding the terminating NUL character
  */
 static int
 TruncateName (unsigned char* name)
@@ -117,8 +117,8 @@ TruncateName (unsigned char* name)
     /* Remove underscores from the end */
     for (c = &name[len]; c > name; c--) {
       if (*c == '_') {
-	*c = REMOVED;
-	if (--efflen <= 8) break;
+        *c = REMOVED;
+        if (--efflen <= 8) break;
       }
     }
   }
@@ -132,10 +132,10 @@ TruncateName (unsigned char* name)
 
     if (i < len) {
       for (c = &name[len]; c > &name[i]; c--)
-	if (isWovel (*c)) {
-	  *c = REMOVED;
-	  if (--efflen <= 8) break;
-	}
+        if (isWovel (*c)) {
+          *c = REMOVED;
+          if (--efflen <= 8) break;
+        }
     }
   }
 
@@ -143,8 +143,8 @@ TruncateName (unsigned char* name)
     /* remove letters from the end */
     for (c = &name[len]; c > name; c--)
       if (*c >= 'A' && *c <= 'Z') {
-	*c = REMOVED;
-	if (--efflen <= 8) break;
+        *c = REMOVED;
+        if (--efflen <= 8) break;
       }
   }
 
@@ -153,8 +153,8 @@ TruncateName (unsigned char* name)
 
     for (c = &name[len]; c > name; c--)
       if (*c && *c != REMOVED) {
-	*c = REMOVED;
-	if (--efflen <= 8) break;
+        *c = REMOVED;
+        if (--efflen <= 8) break;
       }
   }
 
@@ -169,7 +169,7 @@ TruncateName (unsigned char* name)
 
     for (c = t = name; *c; c++)
       if (*c != REMOVED)
-	*t++ = *c;
+        *t++ = *c;
 
     *t = 0;
   }
@@ -178,8 +178,8 @@ TruncateName (unsigned char* name)
 }
 
 /** Return a file name suffix corresponding to a Commodore file type
- * @param filename	the Commodore file name
- * @return		a corresponding file name suffix
+ * @param filename      the Commodore file name
+ * @return              a corresponding file name suffix
  */
 static const char*
 filesuffix (const struct Filename* filename)
@@ -207,12 +207,12 @@ filesuffix (const struct Filename* filename)
 }
 
 /** Write data to a file
- * @param data		the contents of the file
- * @param length	length of the file contents
- * @param newname	(output) the converted file name
- * @param name		native (PETSCII) name of the file
- * @param log		Call-back function for diagnostic output
- * @return		status of the operation
+ * @param data          the contents of the file
+ * @param length        length of the file contents
+ * @param newname       (output) the converted file name
+ * @param name          native (PETSCII) name of the file
+ * @param log           Call-back function for diagnostic output
+ * @return              status of the operation
  */
 static enum WrStatus
 do_it (const byte_t* data,
@@ -240,19 +240,19 @@ do_it (const byte_t* data,
 }
 
 /** Write a file in raw format
- * @param name		native (PETSCII) name of the file
- * @param data		the contents of the file
- * @param length	length of the file contents
- * @param newname	(output) the converted file name
- * @param log		Call-back function for diagnostic output
- * @return		status of the operation
+ * @param name          native (PETSCII) name of the file
+ * @param data          the contents of the file
+ * @param length        length of the file contents
+ * @param newname       (output) the converted file name
+ * @param log           Call-back function for diagnostic output
+ * @return              status of the operation
  */
 enum WrStatus
 WriteNative (const struct Filename* name,
-	     const byte_t* data,
-	     size_t length,
-	     char** newname,
-	     log_t log)
+             const byte_t* data,
+             size_t length,
+             char** newname,
+             log_t log)
 {
   struct stat statbuf;
   char* filename;
@@ -289,19 +289,19 @@ WriteNative (const struct Filename* name,
 }
 
 /** Write a file in PC64 format (.P00, .S00 etc.)
- * @param name		native (PETSCII) name of the file
- * @param data		the contents of the file
- * @param length	length of the file contents
- * @param newname	(output) the converted file name
- * @param log		Call-back function for diagnostic output
- * @return		status of the operation
+ * @param name          native (PETSCII) name of the file
+ * @param data          the contents of the file
+ * @param length        length of the file contents
+ * @param newname       (output) the converted file name
+ * @param log           Call-back function for diagnostic output
+ * @return              status of the operation
  */
 enum WrStatus
 WritePC64 (const struct Filename* name,
-	   const byte_t* data,
-	   size_t length,
-	   char** newname,
-	   log_t log)
+           const byte_t* data,
+           size_t length,
+           char** newname,
+           log_t log)
 {
   char* filename,* c;
   int i;
@@ -329,18 +329,18 @@ WritePC64 (const struct Filename* name,
       *newname = filename;
 
       if (!(f = fopen (*newname, "wb"))) {
-	(*log) (Errors, name, "fopen: %s", strerror (errno));
-	return errno == ENOSPC ? WrNoSpace : WrFail;
+        (*log) (Errors, name, "fopen: %s", strerror (errno));
+        return errno == ENOSPC ? WrNoSpace : WrFail;
       }
 
       if (1 != fwrite ("C64File", 8, 1, f) ||
-	  1 != fwrite (name->name, 16, 1, f) ||
-	  EOF == fputc (0, f) ||
-	  EOF == fputc (name->recordLength, f) ||
-	  length != fwrite (data, 1, length, f)) {
-	(*log) (Errors, name, "fwrite: %s", strerror (errno));
-	fclose (f);
-	return errno == ENOSPC ? WrNoSpace : WrFail;
+          1 != fwrite (name->name, 16, 1, f) ||
+          EOF == fputc (0, f) ||
+          EOF == fputc (name->recordLength, f) ||
+          length != fwrite (data, 1, length, f)) {
+        (*log) (Errors, name, "fwrite: %s", strerror (errno));
+        fclose (f);
+        return errno == ENOSPC ? WrNoSpace : WrFail;
       }
 
       fclose (f);
@@ -354,19 +354,19 @@ WritePC64 (const struct Filename* name,
 }
 
 /** Write a file in raw format, using ISO 9660 compliant filenames
- * @param name		native (PETSCII) name of the file
- * @param data		the contents of the file
- * @param length	length of the file contents
- * @param newname	(output) the converted file name
- * @param log		Call-back function for diagnostic output
- * @return		status of the operation
+ * @param name          native (PETSCII) name of the file
+ * @param data          the contents of the file
+ * @param length        length of the file contents
+ * @param newname       (output) the converted file name
+ * @param log           Call-back function for diagnostic output
+ * @return              status of the operation
  */
 enum WrStatus
 Write9660 (const struct Filename* name,
-	   const byte_t* data,
-	   size_t length,
-	   char** newname,
-	   log_t log)
+           const byte_t* data,
+           size_t length,
+           char** newname,
+           log_t log)
 {
   char* filename;
   int i;

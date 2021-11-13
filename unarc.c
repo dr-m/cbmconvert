@@ -80,8 +80,8 @@ struct entry entry;
 /** Lempel Zev compression string table entry */
 struct lz
 {
-  unsigned int prefix;	/**< Prefix code */
-  byte_t ext;		/**< Extension character */
+  unsigned int prefix;  /**< Prefix code */
+  byte_t ext;           /**< Extension character */
 };
 
 /** Lempel Zev compression string table */
@@ -90,8 +90,8 @@ struct lz lztab[4096];
 /** Lempel Zev stack handling error codes */
 enum LZStackErrorType
 {
-  PushError = 1,	/**< Stack overflow */
-  PopError		/**< Stack underflow (out of data) */
+  PushError = 1,        /**< Stack overflow */
+  PopError              /**< Stack underflow (out of data) */
 };
 
 /** Lempel Zev exception handling structure */
@@ -130,17 +130,17 @@ ssort (void)
     do {
       i = j;
       do {
-	h = i + m;
-	if (hl[h - 1] > hl[i - 1]) {
-	  unsigned long t;
-	  unsigned char u;
-	  t = hc[i - 1], hc[i - 1] = hc[h - 1], hc[h - 1] = t;
-	  u = hv[i - 1], hv[i - 1] = hv[h - 1], hv[h - 1] = u;
-	  u = hl[i - 1], hl[i - 1] = hl[h - 1], hl[h - 1] = u;
-	  i -= m;
-	}
-	else
-	  break;
+        h = i + m;
+        if (hl[h - 1] > hl[i - 1]) {
+          unsigned long t;
+          unsigned char u;
+          t = hc[i - 1], hc[i - 1] = hc[h - 1], hc[h - 1] = t;
+          u = hv[i - 1], hv[i - 1] = hv[h - 1], hv[h - 1] = u;
+          u = hl[i - 1], hl[i - 1] = hl[h - 1], hl[h - 1] = u;
+          i -= m;
+        }
+        else
+          break;
       } while (i >= 1);
       j += 1;
     } while(j <= k);
@@ -148,7 +148,7 @@ ssort (void)
 }
 
 /** Receive a byte (eight bits) from the input
- * @return	the received byte
+ * @return      the received byte
  */
 static byte_t
 GetByte (void)
@@ -167,7 +167,7 @@ GetByte (void)
 }
 
 /** Receive a word (sixteen bits) from the input
- * @return	the received word
+ * @return      the received word
  */
 static word_t
 GetWord (void)
@@ -192,7 +192,7 @@ GetWord (void)
 }
 
 /** Receive a three-byte integer (twenty-four bits) from the input
- * @return	the received integer
+ * @return      the received integer
  */
 static tbyte_t
 GetThree (void)
@@ -214,7 +214,7 @@ GetThree (void)
 }
 
 /** Receive a bit from the input
- * @return	the received bit
+ * @return      the received bit
  */
 static bool
 GetBit (void)
@@ -228,7 +228,7 @@ GetBit (void)
 }
 
 /** Fetch a Huffman code and convert it to what it represents
- * @return	the converted code
+ * @return      the converted code
  */
 static byte_t
 Huffin (void)
@@ -247,11 +247,11 @@ Huffin (void)
     while( hl[now] == size) {
 
       if (hc[now] == hcode)
-	return hv[now];
+        return hv[now];
 
       if (--now < 0) {         /* Error in decode table */
-	Status = EOF;
-	return 0;
+        Status = EOF;
+        return 0;
       }
     }
     size++;
@@ -263,7 +263,7 @@ Huffin (void)
 }
 
 /** Fetch ARC64 header.
- * @return	true if header is ok.
+ * @return      true if header is ok.
  */
 static bool
 GetHeader (void)
@@ -332,27 +332,27 @@ GetHeader (void)
       hl[w]=0;
       mask = 1;
       for (i=1; i<6; i++) {
-	if (GetBit())
-	  hl[w] |= mask;
-	mask <<= 1;
+        if (GetBit())
+          hl[w] |= mask;
+        mask <<= 1;
       }
 
       if (hl[w] > 24)
-	return false;                             /* Code too big */
+        return false;                             /* Code too big */
 
       hc[w] = 0;
       if (hl[w]) {
-	i = 0;
-	mask = 1;
-	while (i<hl[w]) {
-	  if (GetBit())
-	    hc[w] |= mask;
-	  i++;
-	  mask <<= 1;
-	}
+        i = 0;
+        mask = 1;
+        while (i<hl[w]) {
+          if (GetBit())
+            hc[w] |= mask;
+          i++;
+          mask <<= 1;
+        }
       }
       else
-	hcount--;
+        hcount--;
     }
     ssort ();
   }
@@ -361,8 +361,8 @@ GetHeader (void)
 }
 
 /** Get start of data.  Ignores SDA header.
- * @return	the starting position of useful data within the file
- *		(normally 0), or -1 if not an archive
+ * @return      the starting position of useful data within the file
+ *              (normally 0), or -1 if not an archive
  */
 static long
 GetStartPos (void)
@@ -416,7 +416,7 @@ GetStartPos (void)
  */
 
 /** Push a byte to the Lempel Zev stack
- * @param c	the byte to be pushed
+ * @param c     the byte to be pushed
  */
 static void
 push (byte_t c)
@@ -428,7 +428,7 @@ push (byte_t c)
 }
 
 /** Pop a byte from the Lempel Zev stack
- * @return	the popped byte
+ * @return      the popped byte
  */
 static byte_t
 pop (void)
@@ -440,7 +440,7 @@ pop (void)
 }
 
 /** Fetch LZ code
- * @return	the fetched code
+ * @return      the fetched code
  */
 static int getcode (void)
 {
@@ -487,7 +487,7 @@ static int getcode (void)
 }
 
 /** Un-crunch a byte
- * @return	the uncrunched byte
+ * @return      the uncrunched byte
  */
 static byte_t
 unc (void)
@@ -546,9 +546,9 @@ unc (void)
     if (!lzstack) {             /* Empty stack */
       omega = oldcode;
       if (ncodes < sizeof lztab / sizeof *lztab) {
-	lztab[ncodes].prefix = omega;
-	lztab[ncodes].ext = kay;
-	ncodes++;
+        lztab[ncodes].prefix = omega;
+        lztab[ncodes].ext = kay;
+        ncodes++;
       }
       oldcode = incode;
       State = 1;
@@ -563,7 +563,7 @@ unc (void)
 }
 
 /** Update the checksum
- * @param c	the data to be added to the checksum
+ * @param c     the data to be added to the checksum
  */
 static void
 UpdateChecksum (int c)
@@ -577,7 +577,7 @@ UpdateChecksum (int c)
 }
 
 /** Unpack a byte
- * @return	the unpacked byte
+ * @return      the unpacked byte
  */
 static byte_t
 UnPack (void)
@@ -603,17 +603,17 @@ UnPack (void)
 }
 
 /** Read and convert an ARC/SDA archive
- * @param file		the file input stream
- * @param filename	host system name of the file
- * @param writeCallback	function for writing the contained files
- * @param log		Call-back function for diagnostic output
- * @return		status of the operation
+ * @param file          the file input stream
+ * @param filename      host system name of the file
+ * @param writeCallback function for writing the contained files
+ * @param log           Call-back function for diagnostic output
+ * @return              status of the operation
  */
 enum RdStatus
 ReadARC (FILE* file,
-	 const char* filename,
-	 write_file_t writeCallback,
-	 log_t log)
+         const char* filename,
+         write_file_t writeCallback,
+         log_t log)
 {
   fp = file;
 
@@ -660,22 +660,22 @@ ReadARC (FILE* file,
       byte_t c = UnPack ();
 
       if (Status == EOF)
-	break;
+        break;
 
       /* If Run Length is needed */
 
       if (entry.mode != 0 && entry.mode != 2 && c == ctrl) {
-	int count = UnPack ();
-	c = UnPack ();
+        int count = UnPack ();
+        c = UnPack ();
 
-	if (Status == EOF)
-	  break;
+        if (Status == EOF)
+          break;
 
-	if (count == 0)
-	  count = entry.version == 1 ? 255 : 256;
+        if (count == 0)
+          count = entry.version == 1 ? 255 : 256;
 
-	while (--count)
-	  UpdateChecksum (*buf++ = c);
+        while (--count)
+          UpdateChecksum (*buf++ = c);
       }
 
       UpdateChecksum (*buf++ = c);
@@ -685,32 +685,32 @@ ReadARC (FILE* file,
     {
       unsigned i;
       for (i = 0; i < entry.fnlen && i < sizeof name.name; i++)
-	name.name[i] = entry.name[i];
+        name.name[i] = entry.name[i];
 
       /* pad the file name with shifted spaces */
 
       while (i < sizeof name.name)
-	name.name[i++] = 0xA0;
+        name.name[i++] = 0xA0;
 
       switch (entry.type) {
       case 'S':
-	name.type = SEQ;
-	break;
+        name.type = SEQ;
+        break;
       case 'P':
-	name.type = PRG;
-	break;
+        name.type = PRG;
+        break;
       case 'U':
-	name.type = USR;
-	break;
+        name.type = USR;
+        break;
       case 'R':
-	name.type = REL;
-	name.recordLength = entry.rl;
-	break;
+        name.type = REL;
+        name.recordLength = entry.rl;
+        break;
       default:
-	name.type = 0;
-	(*log) (Errors, &name, "Unknown type, defaulting to DEL");
-	name.type = DEL;
-	break;
+        name.type = 0;
+        (*log) (Errors, &name, "Unknown type, defaulting to DEL");
+        name.type = DEL;
+        break;
       }
     }
 

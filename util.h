@@ -27,15 +27,15 @@
 
 /**
  * Rounded integer division
- * @param a	the numerator
- * @param b	the denominator
- * @return	a divided by b, rounded up to the next integer value
+ * @param a     the numerator
+ * @param b     the denominator
+ * @return      a divided by b, rounded up to the next integer value
  */
 #  define rounddiv(a,b) ((a + b - 1) / b)
 /**
  * Determine the number of elements in an array
- * @param a	an array
- * @return	number of elements in the array
+ * @param a     an array
+ * @return      number of elements in the array
  */
 #  define elementsof(a) ((sizeof a) / (sizeof *a))
 
@@ -75,19 +75,19 @@ typedef unsigned long int tbyte_t;
 /** Truth value */
 typedef enum
 {
-  false = 0,	/**< false, binary digit '0' */
-  true		/**< true, binary digit '1' */
+  false = 0,    /**< false, binary digit '0' */
+  true          /**< true, binary digit '1' */
 } bool;
 
 /** Commodore file types */
 enum Filetype
 {
-  DEL = 0x80,	/**< Deleted (sequential) file */
-  SEQ,		/**< Sequential data file */
-  PRG,		/**< Sequential program file */
-  USR,		/**< Sequential data file with user-defined structure */
-  REL,		/**< Random-access data file */
-  CBM		/**< 1581 partition */
+  DEL = 0x80,   /**< Deleted (sequential) file */
+  SEQ,          /**< Sequential data file */
+  PRG,          /**< Sequential program file */
+  USR,          /**< Sequential data file with user-defined structure */
+  REL,          /**< Random-access data file */
+  CBM           /**< 1581 partition */
 };
 
 /** Commodore file name */
@@ -104,10 +104,10 @@ struct Filename
 /** Disk image types */
 enum ImageType
 {
-  ImUnknown,	/**< Unknown or unrecognized image */
-  Im1541,	/**< 35-track 1541, 3040 or 4040 disk image */
-  Im1571,	/**< 70-track 1571 disk image */
-  Im1581	/**< 80-track 1581 disk image */
+  ImUnknown,    /**< Unknown or unrecognized image */
+  Im1541,       /**< 35-track 1541, 3040 or 4040 disk image */
+  Im1571,       /**< 70-track 1571 disk image */
+  Im1581        /**< 80-track 1581 disk image */
 };
 
 /** Options for getDirEnt () */
@@ -164,8 +164,8 @@ struct Archive
 /* Utility functions */
 
 /** Convert a file name to a printable null-terminated string.
- * @param name	the PETSCII file name to be converted
- * @return	the corresponding ASCII file name
+ * @param name  the PETSCII file name to be converted
+ * @return      the corresponding ASCII file name
  */
 const char*
 getFilename (const struct Filename* name);
@@ -173,18 +173,18 @@ getFilename (const struct Filename* name);
 /** Verbosity level of diagnostic output */
 enum Verbosity
 {
-  Errors,	/**< Display only errors; report an error */
-  Warnings,	/**< Display errors and warnings; report a warning */
-  Everything	/**< Display everything; report an informational message */
+  Errors,       /**< Display only errors; report an error */
+  Warnings,     /**< Display errors and warnings; report a warning */
+  Everything    /**< Display everything; report an informational message */
 };
 
 /** Call-back function for diagnostic output
- * @param verbosity	the verbosity level
- * @param name		the file name associated with the message (or NULL)
- * @param format	printf-like format string followed by arguments
+ * @param verbosity     the verbosity level
+ * @param name          the file name associated with the message (or NULL)
+ * @param format        printf-like format string followed by arguments
  */
 typedef void log_t (enum Verbosity verbosity,
-		    const struct Filename* name,
-		    const char* format, ...);
+                    const struct Filename* name,
+                    const char* format, ...);
 
 #endif /* UTIL_H */

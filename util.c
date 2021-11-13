@@ -27,8 +27,8 @@
 #include "util.h"
 
 /** Convert a file name to a printable null-terminated string.
- * @param name	the PETSCII file name to be converted
- * @return	the corresponding ASCII file name
+ * @param name  the PETSCII file name to be converted
+ * @return      the corresponding ASCII file name
  */
 const char*
 getFilename (const struct Filename* name)

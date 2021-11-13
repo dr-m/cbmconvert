@@ -33,17 +33,17 @@
 #define MAXBASICLENGTH 1024
 
 /** Read and convert a Lynx archive
- * @param file		the file input stream
- * @param filename	host system name of the file
- * @param writeCallback	function for writing the contained files
- * @param log		Call-back function for diagnostic output
- * @return		status of the operation
+ * @param file          the file input stream
+ * @param filename      host system name of the file
+ * @param writeCallback function for writing the contained files
+ * @param log           Call-back function for diagnostic output
+ * @return              status of the operation
  */
 enum RdStatus
 ReadLynx (FILE* file,
-	  const char* filename,
-	  write_file_t writeCallback,
-	  log_t log)
+          const char* filename,
+          write_file_t writeCallback,
+          log_t log)
 {
   struct Filename name;
   unsigned f, fcount;
@@ -78,10 +78,10 @@ ReadLynx (FILE* file,
     /* skip the BASIC header, if any */
     for (i = 4; i < MAXBASICLENGTH && i < length; i++)
       if (!(memcmp (&buf[i - 4], "\0\0\0\15", 4))) {
-	/* skip the BASIC header */
-	if (fseek (file, i, SEEK_SET))
-	  goto seekError;
-	break;
+        /* skip the BASIC header */
+        if (fseek (file, i, SEEK_SET))
+          goto seekError;
+        break;
       }
 
     free (buf);
@@ -93,10 +93,10 @@ ReadLynx (FILE* file,
     unsigned blkcount;
 
     if (3 != fscanf (file, " %u  %24c\15 %u%*2[ \15]",
-		     &blkcount, lynxhdr, &fcount) ||
-	!blkcount ||
-	!strstr (lynxhdr, "LYNX") ||
-	!fcount) {
+                     &blkcount, lynxhdr, &fcount) ||
+        !blkcount ||
+        !strstr (lynxhdr, "LYNX") ||
+        !fcount) {
       (*log) (Errors, 0, "Not a Lynx archive.");
       return RdFail;
     }
@@ -129,34 +129,34 @@ ReadLynx (FILE* file,
 
       /* read the file name */
       for (i = 0; i < 17; i++) {
-	j = fgetc(file);
+        j = fgetc(file);
 
-	switch (j) {
-	case EOF:
-	  goto hdrError;
+        switch (j) {
+        case EOF:
+          goto hdrError;
 
-	case 13: /* file name terminator */
-	  break;
+        case 13: /* file name terminator */
+          break;
 
-	default: /* file name character */
-	  if (i > 15) {
-	    (*log) (Errors, 0, "Too long file name");
-	    return RdFail;
-	  }
+        default: /* file name character */
+          if (i > 15) {
+            (*log) (Errors, 0, "Too long file name");
+            return RdFail;
+          }
 
-	  name.name[i] = j;
-	}
+          name.name[i] = j;
+        }
 
-	if (j == 13) break;
+        if (j == 13) break;
       }
 
       if (!i) {
-	(*log) (Warnings, 0, "blank file name");
+        (*log) (Warnings, 0, "blank file name");
       }
 
       /* pad the rest of the file name with shifted spaces */
       for (; i < 16; i++)
-	name.name[i] = 0xA0;
+        name.name[i] = 0xA0;
     }
 
     {
@@ -166,17 +166,17 @@ ReadLynx (FILE* file,
 
       /* set the file type */
       if (2 != fscanf (file, " %u \015%c\015", &blocks, &filetype))
-	goto hdrError;
+        goto hdrError;
 
       if (!fscanf (file, " %u%*2[ \015]", &len)) {
-	/* Unspecified file length */
-	if (filetype == 'R' || !notLastFile)
-	  /* The length must be known for relative files */
-	  /* and for all but the last file. */
-	  goto hdrError;
+        /* Unspecified file length */
+        if (filetype == 'R' || !notLastFile)
+          /* The length must be known for relative files */
+          /* and for all but the last file. */
+          goto hdrError;
 
-	errNoLength = true;
-	len = 255;
+        errNoLength = true;
+        len = 255;
       }
 
       length = len;
@@ -184,69 +184,69 @@ ReadLynx (FILE* file,
       name.recordLength = 0;
 
       switch (filetype) {
-	unsigned sidesectors;
+        unsigned sidesectors;
 
       default:
-	name.type = 0;
-	(*log) (Errors, &name, "Unknown type, defaulting to DEL");
-	/* fall through */
+        name.type = 0;
+        (*log) (Errors, &name, "Unknown type, defaulting to DEL");
+        /* fall through */
       case 'D':
-	name.type = DEL;
-	break;
+        name.type = DEL;
+        break;
       case 'S':
-	name.type = SEQ;
-	break;
+        name.type = SEQ;
+        break;
       case 'P':
-	name.type = PRG;
-	break;
+        name.type = PRG;
+        break;
       case 'U':
-	name.type = USR;
-	break;
+        name.type = USR;
+        break;
       case 'R':
-	name.type = REL;
-	name.recordLength = length;
+        name.type = REL;
+        name.recordLength = length;
 
-	/* Thanks to Peter Schepers <schepers@ist.uwaterloo.ca>
-	   for pointing out the error in the original formula. */
-	sidesectors = (blocks + 119) / 121;
+        /* Thanks to Peter Schepers <schepers@ist.uwaterloo.ca>
+           for pointing out the error in the original formula. */
+        sidesectors = (blocks + 119) / 121;
 
-	if (!sidesectors ||
-	    blocks < 121 * sidesectors - 119 ||
-	    blocks > 121 * sidesectors)
-	  goto hdrError; /* negative length file */
+        if (!sidesectors ||
+            blocks < 121 * sidesectors - 119 ||
+            blocks > 121 * sidesectors)
+          goto hdrError; /* negative length file */
 
-	blocks -= sidesectors;
-	/* Lynx is stupid enough to store the side sectors in the file. */
-	archivePos += 254 * sidesectors;
+        blocks -= sidesectors;
+        /* Lynx is stupid enough to store the side sectors in the file. */
+        archivePos += 254 * sidesectors;
 
-	if (!(fscanf (file, " %u \015", &length))) {
-	  if (notLastFile)
-	    goto hdrError;
+        if (!(fscanf (file, " %u \015", &length))) {
+          if (notLastFile)
+            goto hdrError;
 
-	  errNoLength = true;
-	  length = 255;
-	}
+          errNoLength = true;
+          length = 255;
+        }
 
-	if (!name.recordLength)
-	  (*log) (Warnings, &name, "zero record length");
+        if (!name.recordLength)
+          (*log) (Warnings, &name, "zero record length");
 
-	break;
+        break;
       }
 
       if ((blocks && length < 2) || (length == 1) || (!blocks && length)) {
-	(*log) (Errors, &name, "illegal length, skipping file");
-	(*log) (Errors, &name,
-		"FATAL: the archive may be corrupted from this point on!");
-	continue;
+        (*log) (Errors, &name, "illegal length, skipping file");
+        (*log) (Errors, &name,
+                "FATAL: the archive may be corrupted from this point on!");
+        continue;
       }
 
       if (blocks)
-	length += (unsigned)blocks * 254 - 255;
+        length += (unsigned)blocks * 254 - 255;
       else
-	length = 0;
+        length = 0;
 
       if (name.type == REL && name.recordLength && length % name.recordLength)
-	(*log) (Warnings, &name, "non-integer record count");
+        (*log) (Warnings, &name, "non-integer record count");
     }
 
     headerPos = ftell (file);
@@ -258,36 +258,36 @@ ReadLynx (FILE* file,
       size_t readlength;
 
       if (fseek (file, archivePos, SEEK_SET)) {
-	(*log) (Errors, &name, "fseek: %s", strerror(errno));
-	return RdFail;
+        (*log) (Errors, &name, "fseek: %s", strerror(errno));
+        return RdFail;
       }
 
       if (!(buf = malloc (length)))
-	goto memError;
+        goto memError;
 
       if (length != (readlength = fread (buf, 1, length, file))) {
-	if (feof (file)) {
-	  (*log) (Warnings, &name, "Truncated file, proceeding anyway");
-	}
-	if (ferror (file)) {
-	  free (buf);
-	  (*log) (Errors, &name, "fread: %s", strerror(errno));
-	  return RdFail;
-	}
+        if (feof (file)) {
+          (*log) (Warnings, &name, "Truncated file, proceeding anyway");
+        }
+        if (ferror (file)) {
+          free (buf);
+          (*log) (Errors, &name, "fread: %s", strerror(errno));
+          return RdFail;
+        }
       }
 
       archivePos += 254 * blocks;
 
       switch ((*writeCallback) (&name, buf, readlength)) {
       case WrOK:
-	break;
+        break;
       case WrNoSpace:
-	free (buf);
-	return RdNoSpace;
+        free (buf);
+        return RdNoSpace;
       case WrFail:
       default:
-	free (buf);
-	return RdFail;
+        free (buf);
+        return RdFail;
       }
 
       free (buf);
@@ -301,13 +301,13 @@ ReadLynx (FILE* file,
 }
 
 /** Write an archive in Lynx format
- * @param archive	the archive to be written
- * @param filename	host file name of the archive file
- * @return		status of the operation
+ * @param archive       the archive to be written
+ * @param filename      host file name of the archive file
+ * @return              status of the operation
  */
 enum ArStatus
 ArchiveLynx (const struct Archive* archive,
-	     const char* filename)
+             const char* filename)
 {
   FILE* f;
   struct ArchiveEntry* ae;
@@ -350,7 +350,7 @@ ArchiveLynx (const struct Archive* archive,
 
     /* This is a bit overestimating the header size. */
     blockcounter = rounddiv(sizeof basichdr + 20 + sizeof lynxhdr +
-			    36 * filecnt, 254);
+                            36 * filecnt, 254);
 
     fprintf (f, " %u  %s\15 %u \15", blockcounter, lynxhdr, filecnt);
   }
@@ -368,14 +368,14 @@ ArchiveLynx (const struct Archive* archive,
     i = rounddiv(ae->length, 254);
 
     fprintf (f, "\15 %u\15%c\15",
-	     ae->name.type == REL ? i + rounddiv(i, 120) : i,
-	     "DSPUR"[ae->name.type & 7]);
+             ae->name.type == REL ? i + rounddiv(i, 120) : i,
+             "DSPUR"[ae->name.type & 7]);
     if (ae->name.type == REL)
       fprintf (f, " %u \15", ae->name.recordLength);
 
     fprintf (f, " %u \15",
-	     (unsigned)(ae->length % 254 ?
-			(ae->length - 254 * (i - 1) + 1) : 255));
+             (unsigned)(ae->length % 254 ?
+                        (ae->length - 254 * (i - 1) + 1) : 255));
   }
 
   if (ferror (f))
@@ -392,7 +392,7 @@ ArchiveLynx (const struct Archive* archive,
 
     /* Write the file. */
     if (fseek (f, blockcounter * 254, SEEK_SET) ||
-	ae->length != fwrite (ae->data, 1, ae->length, f)) {
+        ae->length != fwrite (ae->data, 1, ae->length, f)) {
       fclose (f);
       return ArFail;
     }

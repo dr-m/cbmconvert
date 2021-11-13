@@ -30,7 +30,7 @@
 #include "output.h"
 
 /** Allocate an archive data structure.
- * @return	a newly allocated empty archive structure
+ * @return      a newly allocated empty archive structure
  */
 struct Archive*
 newArchive (void)
@@ -38,7 +38,7 @@ newArchive (void)
   return calloc (sizeof (struct Archive), 1);
 }
 /** Deallocate an archive data structure.
- * @param archive	the archive to be deallocated
+ * @param archive       the archive to be deallocated
  */
 void deleteArchive (struct Archive* archive)
 {
@@ -53,19 +53,19 @@ void deleteArchive (struct Archive* archive)
 }
 
 /** Write a file to an archive.
- * @param name		native (PETSCII) name of the file
- * @param data		the contents of the file
- * @param length	length of the file contents
- * @param archive	the archive the file is written to
- * @param log		Call-back function for diagnostic output
- * @return		status of the operation
+ * @param name          native (PETSCII) name of the file
+ * @param data          the contents of the file
+ * @param length        length of the file contents
+ * @param archive       the archive the file is written to
+ * @param log           Call-back function for diagnostic output
+ * @return              status of the operation
  */
 enum WrStatus
 WriteArchive (const struct Filename* name,
-	      const byte_t* data,
-	      size_t length,
-	      struct Archive* archive,
-	      log_t log)
+              const byte_t* data,
+              size_t length,
+              struct Archive* archive,
+              log_t log)
 {
   struct ArchiveEntry* ae;
 

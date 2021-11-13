@@ -83,12 +83,12 @@ struct DirEnt
 #define isVLIR recordLength
   /** GEOS time stamp (otherwise unused bytes) */
   struct {
-    byte_t type;	/**< GEOS file type */
-    byte_t year;	/**< GEOS file time stamp: year */
-    byte_t month;	/**< GEOS file time stamp: month */
-    byte_t day;		/**< GEOS file time stamp: day */
-    byte_t hour;	/**< GEOS file time stamp: hour */
-    byte_t minute;	/**< GEOS file time stamp: minute */
+    byte_t type;        /**< GEOS file type */
+    byte_t year;        /**< GEOS file time stamp: year */
+    byte_t month;       /**< GEOS file time stamp: month */
+    byte_t day;         /**< GEOS file time stamp: day */
+    byte_t hour;        /**< GEOS file time stamp: hour */
+    byte_t minute;      /**< GEOS file time stamp: minute */
   } geos;
   /** file's total block count, least significant byte */
   byte_t blocksLow;
@@ -121,13 +121,13 @@ struct CpmDirEnt
 };
 
 /** Calculate the allocation blocks of a CP/M file
- * @param block		the file block pointers
- * @param i		index to the file block pointers
- * @return		the corresponding allocation block
+ * @param block         the file block pointers
+ * @param i             index to the file block pointers
+ * @return              the corresponding allocation block
  */
 #define CPMBLOCK(block,i) \
-	(au == 8 ? block[i] : block[2 * (i)] + \
-	((unsigned) block[2 * (i) + 1] << 8))
+        (au == 8 ? block[i] : block[2 * (i)] + \
+        ((unsigned) block[2 * (i) + 1] << 8))
 
 /** table of sectors per track on the 1541 */
 static unsigned sect1541[] =
@@ -232,7 +232,7 @@ static struct DiskGeometry diskGeometry[] =
     Im1581,
     3200,
     'D',
-    1,		/* BAM blocks are in a separate chain */
+    1,          /* BAM blocks are in a separate chain */
     40,
     elementsof(sect1581),
     sect1581 - 1,
@@ -241,8 +241,8 @@ static struct DiskGeometry diskGeometry[] =
 };
 
 /** Determine disk image geometry.
- * @param type	the disk image type
- * @return	the corresponding geometry, or NULL if none found
+ * @param type  the disk image type
+ * @return      the corresponding geometry, or NULL if none found
  */
 static const struct DiskGeometry*
 getGeometry (enum ImageType type)
@@ -257,15 +257,15 @@ getGeometry (enum ImageType type)
 }
 
 /** Get a pointer to the block in the specified track and sector.
- * @param image		the disk image
- * @param track		the track number
- * @param sector	the sector number
- * @return		pointer to the first byte in the sector, or NULL
+ * @param image         the disk image
+ * @param track         the track number
+ * @param sector        the sector number
+ * @return              pointer to the first byte in the sector, or NULL
  */
 static byte_t*
 getBlock (struct Image* image,
-	  byte_t track,
-	  byte_t sector)
+          byte_t track,
+          byte_t sector)
 {
   const struct DiskGeometry* geom;
   int t, b;
@@ -285,10 +285,10 @@ getBlock (struct Image* image,
 }
 
 /** Determine if the block at the specified track and sector is free.
- * @param image		the disk image
- * @param track		the track number
- * @param sector	the sector number
- * @return		true if the block is available
+ * @param image         the disk image
+ * @param track         the track number
+ * @param sector        the sector number
+ * @return              true if the block is available
  */
 static bool
 isFreeBlock (const struct Image* image, byte_t track, byte_t sector)
@@ -311,7 +311,7 @@ isFreeBlock (const struct Image* image, byte_t track, byte_t sector)
       track -= 36;
 
       if (!(BAM = getBlock ((struct Image*) image, image->dirtrack + 35, 0)))
-	return false;
+        return false;
 
       return true && BAM[(track * 3) + (sector >> 3)] & (1 << (sector & 7));
     }
@@ -332,28 +332,28 @@ isFreeBlock (const struct Image* image, byte_t track, byte_t sector)
 
     if(track > 40) {
       if (!(BAM = getBlock ((struct Image*) image, BAM[0], BAM[1])))
-	return false;
+        return false;
 
       track -= 40;
     }
 
     return true && (BAM[16 + (track - 1) * 6 + (sector >> 3) + 1] &
-		    (1 << (sector & 7)));
+                    (1 << (sector & 7)));
   }
 
   return false;
 }
 
 /** Find the next free block that is closest to the specified track and sector.
- * @param image		the disk image
- * @param track		(input/output) the track number
- * @param sector	(input/output) the sector number
- * @return		true if a block was found
+ * @param image         the disk image
+ * @param track         (input/output) the track number
+ * @param sector        (input/output) the sector number
+ * @return              true if a block was found
  */
 static bool
 findNextFree (const struct Image* image,
-	      byte_t* track,
-	      byte_t* sector)
+              byte_t* track,
+              byte_t* sector)
 {
   const struct DiskGeometry* geom;
   unsigned t, s, i;
@@ -371,27 +371,27 @@ findNextFree (const struct Image* image,
 
     for (; t <= image->partTops[image->dirtrack - 1]; t++)
       for (i = geom->sectors[t]; i; i--) {
-	if (isFreeBlock (image, t, s)) {
-	  *track = t;
-	  *sector = s;
-	  return true;
-	}
-	s += geom->interleave[t];
-	s %= geom->sectors[t];
+        if (isFreeBlock (image, t, s)) {
+          *track = t;
+          *sector = s;
+          return true;
+        }
+        s += geom->interleave[t];
+        s %= geom->sectors[t];
       }
 
     /* search from lower tracks (from the directory track downwards) */
 
     for (t = image->dirtrack - 1;
-	 t >= image->partBots[image->dirtrack - 1]; t--)
+         t >= image->partBots[image->dirtrack - 1]; t--)
       for (i = geom->sectors[t]; i; i--) {
-	if (isFreeBlock (image, t, s)) {
-	  *track = t;
-	  *sector = s;
-	  return true;
-	}
-	s += geom->interleave[t];
-	s %= geom->sectors[t];
+        if (isFreeBlock (image, t, s)) {
+          *track = t;
+          *sector = s;
+          return true;
+        }
+        s += geom->interleave[t];
+        s %= geom->sectors[t];
       }
   }
   else {
@@ -399,27 +399,27 @@ findNextFree (const struct Image* image,
 
     for (; t >= image->partBots[image->dirtrack - 1]; t--)
       for (i = geom->sectors[t]; i; i--) {
-	if (isFreeBlock (image, t, s)) {
-	  *track = t;
-	  *sector = s;
-	  return true;
-	}
-	s += geom->interleave[t];
-	s %= geom->sectors[t];
+        if (isFreeBlock (image, t, s)) {
+          *track = t;
+          *sector = s;
+          return true;
+        }
+        s += geom->interleave[t];
+        s %= geom->sectors[t];
       }
 
     /* search from upper tracks (from the directory track upwards) */
 
     for (t = image->dirtrack + 1;
-	 t <= image->partTops[image->dirtrack - 1]; t++)
+         t <= image->partTops[image->dirtrack - 1]; t++)
       for (i = geom->sectors[t]; i; i--) {
-	if (isFreeBlock (image, t, s)) {
-	  *track = t;
-	  *sector = s;
-	  return true;
-	}
-	s += geom->interleave[t];
-	s %= geom->sectors[t];
+        if (isFreeBlock (image, t, s)) {
+          *track = t;
+          *sector = s;
+          return true;
+        }
+        s += geom->interleave[t];
+        s %= geom->sectors[t];
       }
 
     /* last resort: search from the directory track */
@@ -427,9 +427,9 @@ findNextFree (const struct Image* image,
 
     for (i = geom->sectors[t]; i; i--) {
       if (isFreeBlock (image, t, s)) {
-	*track = t;
-	*sector = s;
-	return true;
+        *track = t;
+        *sector = s;
+        return true;
       }
       s += geom->interleave[t];
       s %= geom->sectors[t];
@@ -441,17 +441,17 @@ findNextFree (const struct Image* image,
 
 /** Get a block pointer table to all blocks in the file
  * starting at the specified track and sector.
- * @param buf		the block pointer table
- * @param image		the disk image
- * @param track		track number of the file's first block
- * @param sector	sector number of the file's first block
- * @param log		Call-back function for diagnostic output
- * @param dirent	directory entry for diagnostic output (optional)
- * @return		the number of blocks mapped (0 on failure)
+ * @param buf           the block pointer table
+ * @param image         the disk image
+ * @param track         track number of the file's first block
+ * @param sector        sector number of the file's first block
+ * @param log           Call-back function for diagnostic output
+ * @param dirent        directory entry for diagnostic output (optional)
+ * @return              the number of blocks mapped (0 on failure)
  */
 static size_t
 mapInode (byte_t*** buf, struct Image* image, byte_t track, byte_t sector,
-	  log_t log, const struct DirEnt* dirent)
+          log_t log, const struct DirEnt* dirent)
 {
   const struct DiskGeometry* geom;
   int t, s;
@@ -472,17 +472,17 @@ mapInode (byte_t*** buf, struct Image* image, byte_t track, byte_t sector,
 
     if (isFreeBlock (image, t, s)) {
       if (!log)
-	return 0;
+        return 0;
       else {
-	struct Filename name;
-	if (dirent) {
-	  memcpy (name.name, dirent->name, sizeof name.name);
-	  name.type = dirent->type;
-	  name.recordLength = dirent->recordLength;
-	}
-	(*log) (Warnings, dirent ? &name : 0,
-		"Unallocated block %u,%u reachable from %u,%u",
-		t, s, track, sector);
+        struct Filename name;
+        if (dirent) {
+          memcpy (name.name, dirent->name, sizeof name.name);
+          name.type = dirent->type;
+          name.recordLength = dirent->recordLength;
+        }
+        (*log) (Warnings, dirent ? &name : 0,
+                "Unallocated block %u,%u reachable from %u,%u",
+                t, s, track, sector);
       }
     }
 
@@ -511,15 +511,15 @@ mapInode (byte_t*** buf, struct Image* image, byte_t track, byte_t sector,
 
 /** Allocate the block at the specified track and sector.
  * Set the track and sector to the next block candidate.
- * @param image		the disk image
- * @param track		(input/output) the track number
- * @param sector	(input/output) the sector number
- * @return		true if a block was allocated
+ * @param image         the disk image
+ * @param track         (input/output) the track number
+ * @param sector        (input/output) the sector number
+ * @return              true if a block was allocated
  */
 static bool
 allocBlock (struct Image* image,
-	    byte_t* track,
-	    byte_t* sector)
+            byte_t* track,
+            byte_t* sector)
 {
   const struct DiskGeometry* geom;
 
@@ -541,11 +541,11 @@ allocBlock (struct Image* image,
       byte_t* BAM2;
 
       if (!(BAM = getBlock ((struct Image*) image, image->dirtrack, 0)) ||
-	  !(BAM2 = getBlock ((struct Image*) image, 35 + image->dirtrack, 0)))
-	return false;
+          !(BAM2 = getBlock ((struct Image*) image, 35 + image->dirtrack, 0)))
+        return false;
 
       if (!(BAM2[((tr - 1) * 3) + (*sector >> 3)] & (1 << (*sector & 7))))
-	return false; /* already allocated */
+        return false; /* already allocated */
 
       /* decrement the count of free sectors per track */
       BAM[0xDC + tr]--;
@@ -580,27 +580,27 @@ allocBlock (struct Image* image,
       byte_t offset;
 
       if(*track > image->partTops[image->dirtrack - 1] ||
-	 *track < image->partBots[image->dirtrack - 1])
-	return false;
+         *track < image->partBots[image->dirtrack - 1])
+        return false;
 
       if (2 != mapInode (&BAMblocks, image, image->dirtrack, 1, 0, 0)) {
-	if (BAMblocks) free (BAMblocks);
-	return false;
+        if (BAMblocks) free (BAMblocks);
+        return false;
       }
 
       offset = *track;
       if(offset > 40) {
-	BAM = BAMblocks[1];
-	offset -= 40;
+        BAM = BAMblocks[1];
+        offset -= 40;
       }
       else
-	BAM = BAMblocks[0];
+        BAM = BAMblocks[0];
 
       free (BAMblocks);
 
       if (!(BAM[16 + (offset - 1) * 6 + (*sector >> 3) + 1] &
-	    (1 << (*sector & 7))))
-	return false; /* already allocated */
+            (1 << (*sector & 7))))
+        return false; /* already allocated */
 
       BAM[16 + (offset - 1) * 6] -= 1;
       BAM[16 + (offset - 1) * 6 + (*sector >> 3) + 1] &= ~(1 << (*sector & 7));
@@ -616,7 +616,7 @@ allocBlock (struct Image* image,
 }
 
 /** Format disk image.
- * @param image		the image to be formatted
+ * @param image         the image to be formatted
  */
 static void
 FormatImage (struct Image* image)
@@ -668,7 +668,7 @@ FormatImage (struct Image* image)
       BAM[track << 2] = sector = geom->sectors[track];
       /* allocate non-existent blocks */
       for (; sector < 24; sector++)
-	BAM[(track << 2) + 1 + (sector >> 3)] &= ~(1 << (sector & 7));
+        BAM[(track << 2) + 1 + (sector >> 3)] &= ~(1 << (sector & 7));
     }
 
     /* Allocate the BAM and directory entries. */
@@ -711,7 +711,7 @@ FormatImage (struct Image* image)
       BAM[track << 2] = sector = geom->sectors[track];
       /* allocate non-existent blocks */
       for (; sector < 24; sector++)
-	BAM[(track << 2) + 1 + (sector >> 3)] &= ~(1 << (sector & 7));
+        BAM[(track << 2) + 1 + (sector >> 3)] &= ~(1 << (sector & 7));
     }
     /* second side */
     for (track = 0; track < 35; track++) {
@@ -719,7 +719,7 @@ FormatImage (struct Image* image)
       BAM[0xDC + track + 1] = sector = geom->sectors[track + 1];
       /* allocate non-existent blocks */
       for (; sector < 24; sector++)
-	BAM[(track * 3) + (sector >> 3)] &= ~(1 << (sector & 7));
+        BAM[(track * 3) + (sector >> 3)] &= ~(1 << (sector & 7));
     }
 
     /* Allocate the BAM and directory entries. */
@@ -779,8 +779,8 @@ FormatImage (struct Image* image)
     BAM[7] = 0;   /* Auto loader flag */
 
     for (track = image->partBots[image->dirtrack - 1];
-	 track <= image->partTops[image->dirtrack - 1] && track <= 40;
-	 track++) {
+         track <= image->partTops[image->dirtrack - 1] && track <= 40;
+         track++) {
       byte_t* tmp = BAM + 16 + (track - 1) * 6;
 
       /* set amount of free blocks on each track */
@@ -803,8 +803,8 @@ FormatImage (struct Image* image)
     BAM[7] = 0;   /* Auto loader flag (copy) */
 
     for (track = image->partTops[image->dirtrack - 1];
-	 track >= image->partBots[image->dirtrack - 1] && track > 40;
-	 track--) {
+         track >= image->partBots[image->dirtrack - 1] && track > 40;
+         track--) {
       byte_t* tmp = BAM + 16 + (track - 41) * 6;
 
       /* set amount of free blocks on each track */
@@ -818,16 +818,16 @@ FormatImage (struct Image* image)
 }
 
 /** Read a file starting at the specified track and sector to a buffer
- * @param buf		the buffer
- * @param image		the disk image
- * @param track		track number of the file's first block
- * @param sector	sector number of the file's first block
- * @return		the file length, or 0 on error
+ * @param buf           the buffer
+ * @param image         the disk image
+ * @param track         track number of the file's first block
+ * @param sector        sector number of the file's first block
+ * @return              the file length, or 0 on error
  */
 static size_t
 readInode (byte_t** buf,
-	   const struct Image* image,
-	   byte_t track, byte_t sector)
+           const struct Image* image,
+           byte_t track, byte_t sector)
 {
   const struct DiskGeometry* geom;
   int t, s;
@@ -873,9 +873,9 @@ readInode (byte_t** buf,
 }
 
 /** Make a back-up copy of the disk image's Block Availability Map.
- * @param image		the disk image
- * @param BAM		(output) the BAM backup
- * @return		true on success
+ * @param image         the disk image
+ * @param BAM           (output) the BAM backup
+ * @return              true on success
  */
 static bool
 backupBAM (const struct Image* image, byte_t** BAM)
@@ -913,7 +913,7 @@ backupBAM (const struct Image* image, byte_t** BAM)
     memcpy (BAM[35 << 2], &bamblock[0xDD], 35);
 
     if (!(bamblock = getBlock ((struct Image*) image,
-			       35 + image->dirtrack, 0))) {
+                               35 + image->dirtrack, 0))) {
       free (*BAM);
       *BAM = 0;
       return false;
@@ -927,13 +927,13 @@ backupBAM (const struct Image* image, byte_t** BAM)
       byte_t** bamblocks = 0;
 
       if (2 != mapInode (&bamblocks, (struct Image*) image,
-			 image->dirtrack, 1, 0, 0)) {
-	if (bamblocks) free (bamblocks);
-	return false;
+                         image->dirtrack, 1, 0, 0)) {
+        if (bamblocks) free (bamblocks);
+        return false;
       }
 
       if (!(*BAM = malloc (2 << 8)))
-	return false;
+        return false;
 
       memcpy (*BAM, bamblocks[0], 256);
       memcpy (*BAM + 256, bamblocks[1], 256);
@@ -947,9 +947,9 @@ backupBAM (const struct Image* image, byte_t** BAM)
 
 
 /** Restore a back-up copy of the disk image's Block Availability Map.
- * @param image		the disk image
- * @param BAM		the BAM backup
- * @return		true on success
+ * @param image         the disk image
+ * @param BAM           the BAM backup
+ * @return              true on success
  */
 static bool
 restoreBAM (struct Image* image, byte_t** BAM)
@@ -968,7 +968,7 @@ restoreBAM (struct Image* image, byte_t** BAM)
       byte_t* bamblock;
 
       if (!(bamblock = getBlock (image, image->dirtrack, 0)))
-	return false;
+        return false;
 
       memcpy (&bamblock[4], *BAM, geom->tracks << 2);
       free (*BAM);
@@ -981,13 +981,13 @@ restoreBAM (struct Image* image, byte_t** BAM)
       byte_t* bamblock;
 
       if (!(bamblock = getBlock (image, image->dirtrack, 0)))
-	return false;
+        return false;
 
       memcpy (&bamblock[4], *BAM, 35 << 2);
       memcpy (&bamblock[0xDD], BAM[35 << 2], 35);
 
       if (!(bamblock = getBlock (image, 35 + image->dirtrack, 0)))
-	return false;
+        return false;
 
       memcpy (bamblock, BAM[35 * 5], 35 * 3);
       free (*BAM);
@@ -1000,8 +1000,8 @@ restoreBAM (struct Image* image, byte_t** BAM)
       byte_t** bamblocks = 0;
 
       if (2 != mapInode (&bamblocks, image, image->dirtrack, 1, 0, 0)) {
-	if (bamblocks) free (bamblocks);
-	return false;
+        if (bamblocks) free (bamblocks);
+        return false;
       }
 
       memcpy (bamblocks[0], *BAM, 256);
@@ -1019,17 +1019,17 @@ restoreBAM (struct Image* image, byte_t** BAM)
 }
 
 /** Write a file to the disk, starting from the specified track and sector.
- * @param image		the disk image
- * @param track		track number of the first file block
- * @param sector	sector number of the first file block
- * @param buf		the file contents
- * @param size		length of the file contnets
- * @return		status of the operation
+ * @param image         the disk image
+ * @param track         track number of the first file block
+ * @param sector        sector number of the first file block
+ * @param buf           the file contents
+ * @param size          length of the file contnets
+ * @return              status of the operation
  */
 static enum WrStatus
 writeInode (struct Image* image,
-	    byte_t track, byte_t sector,
-	    const byte_t* buf, size_t size)
+            byte_t track, byte_t sector,
+            const byte_t* buf, size_t size)
 {
   byte_t t, s;
   size_t count;
@@ -1074,10 +1074,10 @@ writeInode (struct Image* image,
 }
 
 /** Free the block at the specified track and sector.
- * @param image		the disk image
- * @param track		track number of the block
- * @param sector	sector number of the block
- * @return		true on success
+ * @param image         the disk image
+ * @param track         track number of the block
+ * @param sector        sector number of the block
+ * @return              true on success
  */
 static bool
 freeBlock (struct Image* image, byte_t track, byte_t sector)
@@ -1104,8 +1104,8 @@ freeBlock (struct Image* image, byte_t track, byte_t sector)
       byte_t* BAM2;
 
       if (!(BAM = getBlock ((struct Image*) image, image->dirtrack, 0)) ||
-	  !(BAM2 = getBlock ((struct Image*) image, 35 + image->dirtrack, 0)))
-	return false;
+          !(BAM2 = getBlock ((struct Image*) image, 35 + image->dirtrack, 0)))
+        return false;
 
       /* increment the count of free sectors per track */
       BAM[0xDC + tr]++;
@@ -1129,21 +1129,21 @@ freeBlock (struct Image* image, byte_t track, byte_t sector)
       byte_t** BAMblocks = 0;
 
       if(track > image->partTops[image->dirtrack - 1] ||
-	 track < image->partBots[image->dirtrack - 1])
-	return false;
+         track < image->partBots[image->dirtrack - 1])
+        return false;
 
       if (2 != mapInode (&BAMblocks, image, image->dirtrack, 1, 0, 0)) {
-	if (BAMblocks) free (BAMblocks);
-	return false;
+        if (BAMblocks) free (BAMblocks);
+        return false;
       }
 
       if(track > 40) {
-	BAM = BAMblocks[1];
+        BAM = BAMblocks[1];
 
-	track -= 40;
+        track -= 40;
       }
       else
-	BAM = BAMblocks[0];
+        BAM = BAMblocks[0];
 
       free (BAMblocks);
 
@@ -1157,16 +1157,16 @@ freeBlock (struct Image* image, byte_t track, byte_t sector)
 }
 
 /** Wipe out and delete the file starting at the specified track and sector.
- * @param image		the disk image
- * @param track		track number of the first file block
- * @param sector	sector number of the first file block
- * @param do_it		flag: really remove the file
- * @return		status of the operation
+ * @param image         the disk image
+ * @param track         track number of the first file block
+ * @param sector        sector number of the first file block
+ * @param do_it         flag: really remove the file
+ * @return              status of the operation
  */
 static enum ImStatus
 deleteInode (struct Image* image,
-	     byte_t track, byte_t sector,
-	     bool do_it)
+             byte_t track, byte_t sector,
+             bool do_it)
 {
   int t, s;
 
@@ -1204,13 +1204,13 @@ deleteInode (struct Image* image,
 }
 
 /** Find the directory corresponding to a file
- * @param image	the disk image
- * @param name	the Commodore file name
- * @return	the corresponding directory entry, or NULL
+ * @param image the disk image
+ * @param name  the Commodore file name
+ * @return      the corresponding directory entry, or NULL
  */
 static struct DirEnt*
 getDirEnt (struct Image* image,
-	   const struct Filename* name)
+           const struct Filename* name)
 {
   const struct DiskGeometry* geom;
   byte_t** directory = 0;
@@ -1238,18 +1238,18 @@ getDirEnt (struct Image* image,
     dirent = (struct DirEnt*) directory[block];
 
     for (i = 0; i * sizeof (struct DirEnt) < (dirent->nextTrack
-					      ? 256
-					      : dirent->nextSector);
-	 i++) {
+                                              ? 256
+                                              : dirent->nextSector);
+         i++) {
       if (freeslotBlock == -1 && !dirent[i].type) {
-	/* null file type => unused slot */
-	freeslotBlock = block;
-	freeslotEntry = i;
+        /* null file type => unused slot */
+        freeslotBlock = block;
+        freeslotEntry = i;
       }
 
       if (!memcmp (dirent[i].name, name->name, 16)) {
-	free (directory);
-	return &dirent[i];
+        free (directory);
+        return &dirent[i];
       }
     }
 
@@ -1272,7 +1272,7 @@ getDirEnt (struct Image* image,
       /* grow the directory by growing its last sector */
 
       dirent->nextSector = (sizeof *dirent) *
-	(1 + dirent->nextSector / sizeof *dirent);
+        (1 + dirent->nextSector / sizeof *dirent);
       freeslotBlock = block;
       freeslotEntry = i;
     }
@@ -1286,18 +1286,18 @@ getDirEnt (struct Image* image,
       sector = geom->BAMblocks;
 
       if (!findNextFree (image, &track, &sector)) {
-	free (directory);
-	return 0;
+        free (directory);
+        return 0;
       }
 
       t = dirent->nextTrack = track;
       s = dirent->nextSector = sector;
 
       if (!allocBlock (image, &t, &s)) {
-	dirent->nextTrack = 0;
-	dirent->nextSector = 0xFF;
-	free (directory);
-	return 0;
+        dirent->nextTrack = 0;
+        dirent->nextSector = 0xFF;
+        free (directory);
+        return 0;
       }
 
       /* Remap the directory from the disk image */
@@ -1306,7 +1306,7 @@ getDirEnt (struct Image* image,
       directory = 0;
 
       if (!mapInode ((byte_t***)&directory, image, image->dirtrack, 0, 0, 0))
-	return 0;
+        return 0;
 
       block++;
 
@@ -1334,13 +1334,13 @@ getDirEnt (struct Image* image,
 
 #ifdef DEBUG
 /** Determine if a directory entry is valid
- * @param image		the disk image
- * @param dirent	the directory entry
- * @return		true if the directory entry is valid
+ * @param image         the disk image
+ * @param dirent        the directory entry
+ * @return              true if the directory entry is valid
  */
 static bool
 isValidDirEnt (const struct Image* image,
-	       const struct DirEnt* dirent)
+               const struct DirEnt* dirent)
 {
   const struct DiskGeometry* geom;
 
@@ -1357,8 +1357,8 @@ isValidDirEnt (const struct Image* image,
 #endif
 
 /** Determine whether a directory entry represents a GEOS file
- * @param dirent	the directory entry
- * @return		true if it is a GEOS directory entry
+ * @param dirent        the directory entry
+ * @return              true if it is a GEOS directory entry
  */
 static bool
 isGeosDirEnt (const struct DirEnt* dirent)
@@ -1370,13 +1370,13 @@ isGeosDirEnt (const struct DirEnt* dirent)
 }
 
 /** Determine the file type of a directory entry
- * @param image		the disk image
- * @param dirent	the directory entry
- * @return		the file type of the directory entry, or 0
+ * @param image         the disk image
+ * @param dirent        the directory entry
+ * @return              the file type of the directory entry, or 0
  */
 static enum Filetype
 getFiletype (const struct Image* image,
-	     const struct DirEnt* dirent)
+             const struct DirEnt* dirent)
 {
   enum Filetype type;
 
@@ -1394,13 +1394,13 @@ getFiletype (const struct Image* image,
 }
 
 /** Remove a directory entry and the files it is pointing to
- * @param image		the disk image
- * @param dirent	the directory entry
- * @return		status of the operation
+ * @param image         the disk image
+ * @param dirent        the directory entry
+ * @return              status of the operation
  */
 static enum ImStatus
 deleteDirEnt (struct Image* image,
-	      struct DirEnt* dirent)
+              struct DirEnt* dirent)
 {
   enum ImStatus status;
 
@@ -1412,27 +1412,27 @@ deleteDirEnt (struct Image* image,
   if (isGeosDirEnt (dirent)) {
     /* Check if the inodes can be deleted. */
     if (ImOK != deleteInode (image, dirent->firstTrack,
-			     dirent->firstSector, false) ||
-	ImOK != deleteInode (image, dirent->infoTrack,
-			     dirent->infoSector, false))
+                             dirent->firstSector, false) ||
+        ImOK != deleteInode (image, dirent->infoTrack,
+                             dirent->infoSector, false))
       return ImFail;
 
     if (dirent->isVLIR) {
       unsigned vlirblock;
       const byte_t* vlir = getBlock (image, dirent->firstTrack,
-				     dirent->firstSector);
+                                     dirent->firstSector);
 
       for (vlirblock = 1; vlirblock < 128; vlirblock++)
-	if (vlir[2 * vlirblock] &&
-	    ImOK != deleteInode (image, vlir[2 * vlirblock],
-				 vlir[2 * vlirblock + 1], false))
-	  return ImFail;
+        if (vlir[2 * vlirblock] &&
+            ImOK != deleteInode (image, vlir[2 * vlirblock],
+                                 vlir[2 * vlirblock + 1], false))
+          return ImFail;
 
       /* Delete the VLIR nodes. */
       for (vlirblock = 1; vlirblock < 128; vlirblock++)
-	if (vlir[2 * vlirblock])
-	  deleteInode (image, vlir[2 * vlirblock],
-		       vlir[2 * vlirblock + 1], true);
+        if (vlir[2 * vlirblock])
+          deleteInode (image, vlir[2 * vlirblock],
+                       vlir[2 * vlirblock + 1], true);
     }
 
     /* Delete the info block and the file. */
@@ -1442,10 +1442,10 @@ deleteDirEnt (struct Image* image,
     return ImOK;
   }
   else if (getFiletype (image, dirent) == REL &&
-	   (ImOK != deleteInode (image, dirent->firstTrack,
-				 dirent->firstSector, false) ||
-	    ImOK != deleteInode (image, dirent->ssTrack,
-				 dirent->ssSector, true)))
+           (ImOK != deleteInode (image, dirent->firstTrack,
+                                 dirent->firstSector, false) ||
+            ImOK != deleteInode (image, dirent->ssTrack,
+                                 dirent->ssSector, true)))
     return ImFail;
 
   status = deleteInode (image, dirent->firstTrack, dirent->firstSector, true);
@@ -1458,8 +1458,8 @@ deleteDirEnt (struct Image* image,
 }
 
 /** Determine the number of free blocks on the disk image.
- * @param image		the disk image
- * @return		the total number of available blocks
+ * @param image         the disk image
+ * @return              the total number of available blocks
  */
 static unsigned
 blocksFree (const struct Image* image)
@@ -1500,20 +1500,20 @@ blocksFree (const struct Image* image)
       byte_t** BAMblocks = 0;
 
       if (2 != mapInode (&BAMblocks, (struct Image*) image,
-			 image->dirtrack, 1, 0, 0)) {
-	if (BAMblocks) free (BAMblocks);
-	return 0;
+                         image->dirtrack, 1, 0, 0)) {
+        if (BAMblocks) free (BAMblocks);
+        return 0;
       }
 
       for (track = image->partBots[image->dirtrack - 1];
-	   track <= image->partTops[image->dirtrack - 1] && track <= 40;
-	   track++)
-	sum += BAMblocks[0][16 + (track - 1)*6];
+           track <= image->partTops[image->dirtrack - 1] && track <= 40;
+           track++)
+        sum += BAMblocks[0][16 + (track - 1)*6];
 
       for (track = image->partTops[image->dirtrack - 1];
-	   track >= image->partBots[image->dirtrack - 1] && track > 40;
-	   track--)
-	sum += BAMblocks[1][16 + (track - 41) * 6];
+           track >= image->partBots[image->dirtrack - 1] && track > 40;
+           track--)
+        sum += BAMblocks[1][16 + (track - 41) * 6];
 
       free (BAMblocks);
 
@@ -1525,17 +1525,17 @@ blocksFree (const struct Image* image)
 }
 
 /** Set up the side sector file for relative files.
- * @param image		the disk image
- * @param dirent	the directory entry
- * @param blocks	number of data blocks in the file
- * @param log		Call-back function for diagnostic output
- * @return		status of the operation
+ * @param image         the disk image
+ * @param dirent        the directory entry
+ * @param blocks        number of data blocks in the file
+ * @param log           Call-back function for diagnostic output
+ * @return              status of the operation
  */
 static enum WrStatus
 setupSideSectors (struct Image* image,
-		  struct DirEnt* dirent,
-		  size_t blocks,
-		  log_t log)
+                  struct DirEnt* dirent,
+                  size_t blocks,
+                  log_t log)
 {
   size_t sscount;
 
@@ -1568,7 +1568,7 @@ setupSideSectors (struct Image* image,
       return WrFail;
 
     status = writeInode (image, dirent->ssTrack, dirent->ssSector,
-			 buf, sslength);
+                         buf, sslength);
     free (buf);
 
     if (status != ImOK)
@@ -1581,13 +1581,13 @@ setupSideSectors (struct Image* image,
     byte_t ss, ssentry, i, track, sector;
 
     if (blocks != mapInode (&datafile, image,
-			    dirent->firstTrack, dirent->firstSector,
-			    log, dirent))
+                            dirent->firstTrack, dirent->firstSector,
+                            log, dirent))
       return WrFail;
 
     if (sscount != mapInode (&sidesect, image,
-			     dirent->ssTrack, dirent->ssSector,
-			     log, dirent)) {
+                             dirent->ssTrack, dirent->ssSector,
+                             log, dirent)) {
       free (datafile);
       return WrFail;
     }
@@ -1600,8 +1600,8 @@ setupSideSectors (struct Image* image,
       sidesect[ss][5] = dirent->ssSector;
 
       for (i = 1; i < sscount; i++) {
-	sidesect[ss][4 + i * 2] = sidesect[i - 1][0];
-	sidesect[ss][5 + i * 2] = sidesect[i - 1][1];
+        sidesect[ss][4 + i * 2] = sidesect[i - 1][0];
+        sidesect[ss][5 + i * 2] = sidesect[i - 1][1];
       }
     }
 
@@ -1612,7 +1612,7 @@ setupSideSectors (struct Image* image,
       ss = ssentry / 120;
 
       if (ss >= sscount)
-	return WrFail;
+        return WrFail;
 
       sidesect[ss][16 + (ssentry % 120) * 2] = track;
       sidesect[ss][17 + (ssentry % 120) * 2] = sector;
@@ -1629,15 +1629,15 @@ setupSideSectors (struct Image* image,
 }
 
 /** Check if the side sectors of a relative file are OK
- * @param image		the disk image
- * @param dirent	the directory entry
- * @param log		Call-back function for diagnostic output
- * @return		true if the side sectors pass the integrity checks
+ * @param image         the disk image
+ * @param dirent        the directory entry
+ * @param log           Call-back function for diagnostic output
+ * @return              true if the side sectors pass the integrity checks
  */
 static bool
 checkSideSectors (const struct Image* image,
-		  const struct DirEnt* dirent,
-		  log_t log)
+                  const struct DirEnt* dirent,
+                  log_t log)
 {
   unsigned ss, ssentry, sscount, i;
   byte_t** sidesect = 0;
@@ -1655,12 +1655,12 @@ checkSideSectors (const struct Image* image,
   /* Map the data file and the side sectors. */
 
   if (!(i = mapInode (&datafile, (struct Image*) image,
-		      dirent->firstTrack, dirent->firstSector, log, dirent)))
+                      dirent->firstTrack, dirent->firstSector, log, dirent)))
     return false;
 
   if (!(sscount = mapInode (&sidesect, (struct Image*) image,
-			    dirent->ssTrack, dirent->ssSector,
-			    log, dirent))) {
+                            dirent->ssTrack, dirent->ssSector,
+                            log, dirent))) {
     free (datafile);
     return false;
   }
@@ -1679,15 +1679,15 @@ checkSideSectors (const struct Image* image,
 
   for (ss = 0; ss < sscount; ss++) {
     if (sidesect[ss][2] != ss ||
-	sidesect[ss][3] != dirent->recordLength ||
-	sidesect[ss][4] != dirent->ssTrack ||
-	sidesect[ss][5] != dirent->ssSector)
+        sidesect[ss][3] != dirent->recordLength ||
+        sidesect[ss][4] != dirent->ssTrack ||
+        sidesect[ss][5] != dirent->ssSector)
       goto Failed;
 
     for (i = 1; i < sscount; i++)
       if (sidesect[ss][4 + i * 2] != sidesect[i - 1][0] ||
-	  sidesect[ss][5 + i * 2] != sidesect[i - 1][1])
-	goto Failed;
+          sidesect[ss][5 + i * 2] != sidesect[i - 1][1])
+        goto Failed;
   }
 
   /* Check the links to the data file */
@@ -1699,8 +1699,8 @@ checkSideSectors (const struct Image* image,
     ss = ssentry / 120;
 
     if (ss >= sscount ||
-	sidesect[ss][16 + (ssentry % 120) * 2] != track ||
-	sidesect[ss][17 + (ssentry % 120) * 2] != sector)
+        sidesect[ss][16 + (ssentry % 120) * 2] != track ||
+        sidesect[ss][17 + (ssentry % 120) * 2] != sector)
       goto Failed;
 
     track = datafile[ssentry][0];
@@ -1714,15 +1714,15 @@ checkSideSectors (const struct Image* image,
 }
 
 /** Generate a CP/M translation table.
- * @param image		the disk image
- * @param au		(output) the size of the allocation unit
- * @param sectors	(output) number of useable sectors
- * @return		the translation table, or NULL on error
+ * @param image         the disk image
+ * @param au            (output) the size of the allocation unit
+ * @param sectors       (output) number of useable sectors
+ * @return              the translation table, or NULL on error
  */
 static byte_t**
 CpmTransTable (struct Image* image,
-	       unsigned* au,
-	       unsigned* sectors)
+               unsigned* au,
+               unsigned* sectors)
 {
   byte_t** table = 0;
   byte_t* trackbuf;
@@ -1742,20 +1742,20 @@ CpmTransTable (struct Image* image,
     *au = 8;
     if ((table = calloc (*sectors = 680, sizeof (*table))))
       for (block = 0, trackbuf = image->buf; block < *sectors; block++) {
-	table[block] = &trackbuf[sector << 8];
-	sector = (sector + 5) % geom->sectors[track];
+        table[block] = &trackbuf[sector << 8];
+        sector = (sector + 5) % geom->sectors[track];
 
-	if (++sectorcount == geom->sectors[track]) {
-	  trackbuf += geom->sectors[track++] << 8;
+        if (++sectorcount == geom->sectors[track]) {
+          trackbuf += geom->sectors[track++] << 8;
 
-	  if (track == geom->dirtrack) {
-	    sectorcount = 1;
-	    sector = 5;
-	  } else {
-	    sectorcount = 0;
-	    sector = 0;
-	  }
-	}
+          if (track == geom->dirtrack) {
+            sectorcount = 1;
+            sector = 5;
+          } else {
+            sectorcount = 0;
+            sector = 0;
+          }
+        }
       }
 
     break;
@@ -1763,23 +1763,23 @@ CpmTransTable (struct Image* image,
     *au = 8;
     if ((table = calloc (*sectors = 1360, sizeof (*table))))
       for (block = 0, trackbuf = image->buf; block < *sectors; block++) {
-	table[block] = &trackbuf[sector << 8];
-	sector = (sector + 5) % geom->sectors[track];
+        table[block] = &trackbuf[sector << 8];
+        sector = (sector + 5) % geom->sectors[track];
 
-	if (++sectorcount == geom->sectors[track]) {
-	  trackbuf += geom->sectors[track++] << 8;
+        if (++sectorcount == geom->sectors[track]) {
+          trackbuf += geom->sectors[track++] << 8;
 
-	  if (track == 36) {
-	    sectorcount = 2;
-	    sector = 10;
-	  } else if (track % 36 == geom->dirtrack) {
-	    sectorcount = 1;
-	    sector = 5;
-	  } else {
-	    sectorcount = 0;
-	    sector = 0;
-	  }
-	}
+          if (track == 36) {
+            sectorcount = 2;
+            sector = 10;
+          } else if (track % 36 == geom->dirtrack) {
+            sectorcount = 1;
+            sector = 5;
+          } else {
+            sectorcount = 0;
+            sector = 0;
+          }
+        }
       }
 
     break;
@@ -1788,13 +1788,13 @@ CpmTransTable (struct Image* image,
     sector = sectorcount = 0;
     if ((table = calloc (*sectors = 3180, sizeof (*table))))
       for(block = 0, trackbuf = image->buf; block < *sectors; block++) {
-	table[block] = &trackbuf[sector << 8];
-	sector = (sector + 1) % geom->sectors[track];
+        table[block] = &trackbuf[sector << 8];
+        sector = (sector + 1) % geom->sectors[track];
 
-	if (++sectorcount == geom->sectors[track]) {
-	  trackbuf += geom->sectors[track++] << 8;
-	  sectorcount = sector = (track == geom->dirtrack) ? 20 : 0;
-	}
+        if (++sectorcount == geom->sectors[track]) {
+          trackbuf += geom->sectors[track++] << 8;
+          sectorcount = sector = (track == geom->dirtrack) ? 20 : 0;
+        }
       }
     break;
   }
@@ -1803,12 +1803,12 @@ CpmTransTable (struct Image* image,
 }
 
 /** Convert a CP/M directory entry to a PETSCII file name.
- * @param dirent	the CP/M directory entry
- * @param name		(output) the Commodore file name
+ * @param dirent        the CP/M directory entry
+ * @param name          (output) the Commodore file name
  */
 static void
 CpmConvertName (const struct CpmDirEnt* dirent,
-		struct Filename* name)
+                struct Filename* name)
 {
   char cpmname[13];
   unsigned i, j;
@@ -1842,19 +1842,19 @@ CpmConvertName (const struct CpmDirEnt* dirent,
 }
 
 /** Write a file into a CP/M disk image.
- * @param name		native (PETSCII) name of the file
- * @param data		the contents of the file
- * @param length	length of the file contents
- * @param image		the disk image
- * @param log		Call-back function for diagnostic output
- * @return		status of the operation
+ * @param name          native (PETSCII) name of the file
+ * @param data          the contents of the file
+ * @param length        length of the file contents
+ * @param image         the disk image
+ * @param log           Call-back function for diagnostic output
+ * @return              status of the operation
  */
 enum WrStatus
 WriteCpmImage (const struct Filename* name,
-	       const byte_t* data,
-	       size_t length,
-	       struct Image* image,
-	       log_t log)
+               const byte_t* data,
+               size_t length,
+               struct Image* image,
+               log_t log)
 {
   byte_t** trans;
   struct CpmDirEnt** allocated;
@@ -1888,26 +1888,26 @@ WriteCpmImage (const struct Filename* name,
 
     memset (&cpmname, 0, sizeof cpmname);
     memset (cpmname.basename, ' ',
-	    sizeof cpmname.basename + sizeof cpmname.suffix);
+            sizeof cpmname.basename + sizeof cpmname.suffix);
 
     /* Convert the file name base */
 
     for (i = 0; i < sizeof(name->name) &&
-	   i < sizeof(cpmname.basename) &&
-	   !memchr (".\240", name->name[i], 3);
-	 i++)
+           i < sizeof(cpmname.basename) &&
+           !memchr (".\240", name->name[i], 3);
+         i++)
       if (i && name->name[i] == ' ') /* stop at the first space */
-	break;
+        break;
       else if (name->name[i] >= 0x41 && name->name[i] <= 0x5A)
-	cpmname.basename[i] = name->name[i] + 'A' - 0x41; /* upper case only */
+        cpmname.basename[i] = name->name[i] + 'A' - 0x41; /* upper case only */
       else if (name->name[i] >= 0xC1 && name->name[i] <= 0xDA)
-	cpmname.basename[i] = name->name[i] + 'A' - 0xC1;
+        cpmname.basename[i] = name->name[i] + 'A' - 0xC1;
       else if ((name->name[i] & 0x7F) < 32 || name->name[i] == ' ')
-	cpmname.basename[i] = '-'; /* control chars and space */
+        cpmname.basename[i] = '-'; /* control chars and space */
       else if (name->name[i] < 127)
-	cpmname.basename[i] = name->name[i];
+        cpmname.basename[i] = name->name[i];
       else
-	cpmname.basename[i] = '+'; /* graphics characters */
+        cpmname.basename[i] = '+'; /* graphics characters */
 
     /* Convert the file name suffix */
 
@@ -1915,19 +1915,19 @@ WriteCpmImage (const struct Filename* name,
       unsigned j;
 
       for (j = 0; j < sizeof(cpmname.suffix) && i < sizeof(name->name);
-	   i++, j++)
-	if ((name->name[i] & 0x7F) == ' ') /* stop at the first space */
-	  break;
-	else if (name->name[i] >= 0x41 && name->name[i] <= 0x5A)
-	  cpmname.suffix[j] = name->name[i] + 'A' - 0x41; /* upper case only */
-	else if (name->name[i] >= 0xC1 && name->name[i] <= 0xDA)
-	  cpmname.suffix[j] = name->name[i] + 'A' - 0xC1;
-	else if ((name->name[i] & 0x7F) < 32)
-	  cpmname.suffix[j] = '-'; /* control chars */
-	else if (name->name[i] < 127)
-	  cpmname.suffix[j] = name->name[i];
-	else
-	  cpmname.suffix[j] = '+'; /* graphics characters */
+           i++, j++)
+        if ((name->name[i] & 0x7F) == ' ') /* stop at the first space */
+          break;
+        else if (name->name[i] >= 0x41 && name->name[i] <= 0x5A)
+          cpmname.suffix[j] = name->name[i] + 'A' - 0x41; /* upper case only */
+        else if (name->name[i] >= 0xC1 && name->name[i] <= 0xDA)
+          cpmname.suffix[j] = name->name[i] + 'A' - 0xC1;
+        else if ((name->name[i] & 0x7F) < 32)
+          cpmname.suffix[j] = '-'; /* control chars */
+        else if (name->name[i] < 127)
+          cpmname.suffix[j] = name->name[i];
+        else
+          cpmname.suffix[j] = '+'; /* graphics characters */
     }
   }
 
@@ -1943,46 +1943,46 @@ WriteCpmImage (const struct Filename* name,
 
     for (d = slot = 0; d < au * 8; d++) {
       if (dirent[d].area == 0xE5 ||
-	  !memcmp (&dirent[d], "\0\0\0\0\0\0\0\0\0\0\0", 12))
-	continue;
+          !memcmp (&dirent[d], "\0\0\0\0\0\0\0\0\0\0\0", 12))
+        continue;
 
       if (!memcmp (dirent[d].basename, cpmname.basename,
-		   sizeof cpmname.basename + sizeof cpmname.suffix)) {
-	if (image->direntOpts == DirEntOnlyCreate) {
-	  free (dirent);
-	  free (allocated);
-	  free (trans);
-	  return WrFileExists;
-	}
+                   sizeof cpmname.basename + sizeof cpmname.suffix)) {
+        if (image->direntOpts == DirEntOnlyCreate) {
+          free (dirent);
+          free (allocated);
+          free (trans);
+          return WrFileExists;
+        }
 
-	found = true;
-	continue; /* overwrite the file */
+        found = true;
+        continue; /* overwrite the file */
       }
 
       if (d != slot)
-	memmove (&dirent[slot], &dirent[d], (au * 8 - d) * sizeof(*dirent));
+        memmove (&dirent[slot], &dirent[d], (au * 8 - d) * sizeof(*dirent));
 
       d = slot++;
 
       for (i = 0; i < rounddiv(dirent[d].blocks, au); i++)
-	if (CPMBLOCK (dirent[d].block, i) < 2 ||
-	    CPMBLOCK (dirent[d].block, i) >= 2 * sectors / au) {
-	  struct Filename fn;
-	  CpmConvertName (&dirent[d], &fn);
-	  (*log) (Warnings, &fn,
-		  "Illegal block address in block %u of extent 0x%02x",
-		  i, dirent[d].extent);
-	}
-	else if (allocated[CPMBLOCK (dirent[d].block, i)]) {
-	  struct Filename fn;
-	  CpmConvertName (&dirent[d], &fn);
-	  (*log) (Warnings, &fn, "Sector 0x%02x allocated multiple times",
-		  CPMBLOCK (dirent[d].block, i));
-	}
-	else {
-	  allocated[CPMBLOCK (dirent[d].block, i)] = &dirent[d];
-	  blocksfree--;
-	}
+        if (CPMBLOCK (dirent[d].block, i) < 2 ||
+            CPMBLOCK (dirent[d].block, i) >= 2 * sectors / au) {
+          struct Filename fn;
+          CpmConvertName (&dirent[d], &fn);
+          (*log) (Warnings, &fn,
+                  "Illegal block address in block %u of extent 0x%02x",
+                  i, dirent[d].extent);
+        }
+        else if (allocated[CPMBLOCK (dirent[d].block, i)]) {
+          struct Filename fn;
+          CpmConvertName (&dirent[d], &fn);
+          (*log) (Warnings, &fn, "Sector 0x%02x allocated multiple times",
+                  CPMBLOCK (dirent[d].block, i));
+        }
+        else {
+          allocated[CPMBLOCK (dirent[d].block, i)] = &dirent[d];
+          blocksfree--;
+        }
     }
 
     /* See if the file was found */
@@ -1999,8 +1999,8 @@ WriteCpmImage (const struct Filename* name,
     /* Ensure that enough free space is available */
 
     if (slot >= 8 * au ||
-	length > (8 * au - slot) * au / 2 * 16 * 128 ||
-	length > blocksfree * au * 128) {
+        length > (8 * au - slot) * au / 2 * 16 * 128 ||
+        length > blocksfree * au * 128) {
       free (dirent);
       free (allocated);
       free (trans);
@@ -2017,41 +2017,41 @@ WriteCpmImage (const struct Filename* name,
 
     for (block = 0, blocks = rounddiv(length, 128); blocks;) {
       if (!(block % 128)) { /* advance to next directory slot */
-	de = &dirent[slot++];
-	memcpy (de, &cpmname, sizeof cpmname);
-	de->extent = block / 128;
+        de = &dirent[slot++];
+        memcpy (de, &cpmname, sizeof cpmname);
+        de->extent = block / 128;
       }
 
       /* Copy the blocks */
 
       {
-	unsigned j;
+        unsigned j;
 
-	de->blocks = blocks < 128 ? blocks : 128;
-	blocks -= de->blocks;
+        de->blocks = blocks < 128 ? blocks : 128;
+        blocks -= de->blocks;
 
-	for (j = 0; j < de->blocks; j++, block++) {
-	  if (!(j % au)) {
-	    unsigned k;
-	    /* Get next free block */
-	    while (allocated[freeblock]) freeblock++;
-	    allocated[freeblock] = de;
-	    if (au == 8)
-	      de->block[j / au] = freeblock;
-	    else {
-	      de->block[(j / au) * 2] = freeblock & 0xFF;
-	      de->block[(j / au) * 2 + 1] = freeblock >> 8;
-	    }
-	    /* Pad it with ^Z */
-	    for (k = 0; k < au / 2; k++)
-	      memset (trans[(au / 2) * freeblock + k], 0x1A, 256);
-	  }
+        for (j = 0; j < de->blocks; j++, block++) {
+          if (!(j % au)) {
+            unsigned k;
+            /* Get next free block */
+            while (allocated[freeblock]) freeblock++;
+            allocated[freeblock] = de;
+            if (au == 8)
+              de->block[j / au] = freeblock;
+            else {
+              de->block[(j / au) * 2] = freeblock & 0xFF;
+              de->block[(j / au) * 2 + 1] = freeblock >> 8;
+            }
+            /* Pad it with ^Z */
+            for (k = 0; k < au / 2; k++)
+              memset (trans[(au / 2) * freeblock + k], 0x1A, 256);
+          }
 
-	  /* Copy the block */
-	  memcpy (trans[(au / 2) * freeblock + ((j / 2) % (au / 2))] +
-		  128 * (j % 2), data + 128 * block,
-		  length >= 128 * (block + 1) ? 128 : length - 128 * block);
-	}
+          /* Copy the block */
+          memcpy (trans[(au / 2) * freeblock + ((j / 2) % (au / 2))] +
+                  128 * (j % 2), data + 128 * block,
+                  length >= 128 * (block + 1) ? 128 : length - 128 * block);
+        }
       }
     }
   }
@@ -2070,17 +2070,17 @@ WriteCpmImage (const struct Filename* name,
 }
 
 /** Read and convert a disk image in C128 CP/M format
- * @param file		the file input stream
- * @param filename	host system name of the file
- * @param writeCallback	function for writing the contained files
- * @param log		Call-back function for diagnostic output
- * @return		status of the operation
+ * @param file          the file input stream
+ * @param filename      host system name of the file
+ * @param writeCallback function for writing the contained files
+ * @param log           Call-back function for diagnostic output
+ * @return              status of the operation
  */
 enum RdStatus
 ReadCpmImage (FILE* file,
-	      const char* filename,
-	      write_file_t writeCallback,
-	      log_t log)
+              const char* filename,
+              write_file_t writeCallback,
+              log_t log)
 {
   struct Image image;
   byte_t** trans;
@@ -2112,8 +2112,8 @@ ReadCpmImage (FILE* file,
 
     for (i = 0, blocks = length / 256; i < elementsof(diskGeometry); i++)
       if (diskGeometry[i].blocks == blocks) {
-	geom = &diskGeometry[i];
-	break;
+        geom = &diskGeometry[i];
+        break;
       }
 
     if (!geom)
@@ -2160,92 +2160,92 @@ ReadCpmImage (FILE* file,
       CpmConvertName (directory, &name);
 
       if (directory->extent) {
-	(*log) (Warnings, &name,
-		"starting with non-zero extent 0x%02x, file ignored",
-		directory->extent);
-	continue;
+        (*log) (Warnings, &name,
+                "starting with non-zero extent 0x%02x, file ignored",
+                directory->extent);
+        continue;
       }
 
       /* search for following extents */
       for (i = d, j = length = 0; i < au * 8; i++) {
-	struct CpmDirEnt* dir = ((struct CpmDirEnt*) trans[i / 8]) + (i % 8);
+        struct CpmDirEnt* dir = ((struct CpmDirEnt*) trans[i / 8]) + (i % 8);
 
-	if (memcmp (dir, directory, 12) ||
-	    dir->extent != j || dir->blocks > 128)
-	  break;
+        if (memcmp (dir, directory, 12) ||
+            dir->extent != j || dir->blocks > 128)
+          break;
 
-	j++;
-	length += dir->blocks;
+        j++;
+        length += dir->blocks;
 
-	if (dir->blocks < 128)
-	  break;
+        if (dir->blocks < 128)
+          break;
       }
 
       /* j holds the number of directory extents */
 
       if (!j) {
-	(*log) (Warnings, &name, "error in directory entry, file skipped");
-	continue;
+        (*log) (Warnings, &name, "error in directory entry, file skipped");
+        continue;
       }
 
       if (directory->area)
-	(*log) (Warnings, &name, "user area code 0x%02x ignored",
-		directory->area);
+        (*log) (Warnings, &name, "user area code 0x%02x ignored",
+                directory->area);
 
       length *= 128;
 
       /* Read the file */
       {
-	byte_t* curr, *buf = malloc (length);
+        byte_t* curr, *buf = malloc (length);
 
-	if (!buf) {
-	  (*log) (Warnings, &name, "out of memory");
-	  d += j - 1;
-	  continue;
-	}
+        if (!buf) {
+          (*log) (Warnings, &name, "out of memory");
+          d += j - 1;
+          continue;
+        }
 
-	for (curr = buf, j += d; d < j; d++) {
-	  directory = ((struct CpmDirEnt*) trans[d / 8]) + (d % 8);
+        for (curr = buf, j += d; d < j; d++) {
+          directory = ((struct CpmDirEnt*) trans[d / 8]) + (d % 8);
 
-	  for (i = 0; i < directory->blocks; i++) {
-	    unsigned sect = (au / 2) * CPMBLOCK (directory->block, i / au) +
-	      ((i / 2) % (au / 2));
+          for (i = 0; i < directory->blocks; i++) {
+            unsigned sect = (au / 2) * CPMBLOCK (directory->block, i / au) +
+              ((i / 2) % (au / 2));
 
-	    if (sect >= sectors) {
-	      (*log) (Errors, &name,
-		      "Illegal block address in block %u of extent 0x%02x",
-		      i, directory->extent);
-	      free (buf);
-	      goto FileDone;
-	    }
+            if (sect >= sectors) {
+              (*log) (Errors, &name,
+                      "Illegal block address in block %u of extent 0x%02x",
+                      i, directory->extent);
+              free (buf);
+              goto FileDone;
+            }
 
-	    memcpy (curr, trans[sect] + 128 * (i % 2), 128);
-	    curr += 128;
-	  }
-	}
+            memcpy (curr, trans[sect] + 128 * (i % 2), 128);
+            curr += 128;
+          }
+        }
 
-	/* Remove trailing EOF characters (only when they are at end of the
-	   last block). */
-	while (length-- && buf[length] == 0x1A);
-	length++;
+        /* Remove trailing EOF characters (only when they are at end of the
+           last block). */
+        while (length-- && buf[length] == 0x1A);
+        length++;
 
-	switch ((*writeCallback) (&name, buf, length)) {
-	case WrOK:
-	  break;
-	case WrNoSpace:
-	  free (buf);
-	  free (image.buf);
-	  free (trans);
-	  return RdNoSpace;
-	case WrFail:
-	default:
-	  free (buf);
-	  free (image.buf);
-	  free (trans);
-	  return RdFail;
-	}
+        switch ((*writeCallback) (&name, buf, length)) {
+        case WrOK:
+          break;
+        case WrNoSpace:
+          free (buf);
+          free (image.buf);
+          free (trans);
+          return RdNoSpace;
+        case WrFail:
+        default:
+          free (buf);
+          free (image.buf);
+          free (trans);
+          return RdFail;
+        }
 
-	free (buf);
+        free (buf);
       }
 
     FileDone:
@@ -2260,19 +2260,19 @@ ReadCpmImage (FILE* file,
 }
 
 /** Write to an image in CBM DOS format
- * @param name		native (PETSCII) name of the file
- * @param data		the contents of the file
- * @param length	length of the file contents
- * @param image		the disk image
- * @param log		Call-back function for diagnostic output
- * @return		status of the operation
+ * @param name          native (PETSCII) name of the file
+ * @param data          the contents of the file
+ * @param length        length of the file contents
+ * @param image         the disk image
+ * @param log           Call-back function for diagnostic output
+ * @return              status of the operation
  */
 enum WrStatus
 WriteImage (const struct Filename* name,
-	    const byte_t* data,
-	    size_t length,
-	    struct Image* image,
-	    log_t log)
+            const byte_t* data,
+            size_t length,
+            struct Image* image,
+            log_t log)
 {
   struct DirEnt* dirent;
 
@@ -2282,7 +2282,7 @@ WriteImage (const struct Filename* name,
   /* See if it is a GEOS file. */
   if (name->type >= DEL && name->type < REL && length > 2 * 254 &&
       !strncmp ((char*)&data[sizeof (struct DirEnt) + 1],
-		" formatted GEOS file ", 21)) {
+                " formatted GEOS file ", 21)) {
     size_t len;
     struct Filename geosname;
     const byte_t* info = &data[254];
@@ -2302,22 +2302,22 @@ WriteImage (const struct Filename* name,
       len = 3 * 254;
 
       for (vlirblock = 0; vlirblock < 127; vlirblock++) {
-	unsigned blocks = vlir[2 * vlirblock];
-	unsigned lastblocklen = vlir[2 * vlirblock + 1];
+        unsigned blocks = vlir[2 * vlirblock];
+        unsigned lastblocklen = vlir[2 * vlirblock + 1];
 
-	if (!blocks) {
-	  if (lastblocklen != 0 && lastblocklen != 0xFF)
-	    goto notGEOS;
-	}
-	else if (lastblocklen < 2)
-	  goto notGEOS;
-	else
-	  len = 254 * (rounddiv(len, 254) + blocks - 1) + lastblocklen - 1;
+        if (!blocks) {
+          if (lastblocklen != 0 && lastblocklen != 0xFF)
+            goto notGEOS;
+        }
+        else if (lastblocklen < 2)
+          goto notGEOS;
+        else
+          len = 254 * (rounddiv(len, 254) + blocks - 1) + lastblocklen - 1;
       }
 
       if (len > length) {
-	(*log) (Warnings, &geosname, "%d bytes too short file", len - length);
-	goto notGEOS;
+        (*log) (Warnings, &geosname, "%d bytes too short file", len - length);
+        goto notGEOS;
       }
     }
     else
@@ -2325,22 +2325,22 @@ WriteImage (const struct Filename* name,
 
     if ((info[0x42] ^ dirent->type) & 0x8F)
       (*log) (Warnings, &geosname, "file types differ: $%02x $%02x",
-	      info[0x42], dirent->type);
+              info[0x42], dirent->type);
 
     if (info[0x43] != dirent->geos.type)
       (*log) (Warnings, &geosname, "GEOS file types differ: $%02x $%02x",
-	      info[0x43], dirent->geos.type);
+              info[0x43], dirent->geos.type);
 
     if (info[0x44] != dirent->isVLIR)
       (*log) (Warnings, &geosname, "VLIR flags differ: $%02x $%02x",
-	      info[0x44], dirent->isVLIR);
+              info[0x44], dirent->isVLIR);
 
     if (len != length)
       (*log) (Warnings, &geosname, "File size mismatch: %d extraneous bytes",
-	      length - len);
+              length - len);
 
     if (rounddiv(len, 254) - 1 !=
-	dirent->blocksLow + ((unsigned) dirent->blocksHigh << 8)) {
+        dirent->blocksLow + ((unsigned) dirent->blocksHigh << 8)) {
       unsigned blks = rounddiv(len, 254) - 1;
       dirent->blocksLow = blks & 0xFF;
       dirent->blocksHigh = blks >> 8;
@@ -2354,12 +2354,12 @@ WriteImage (const struct Filename* name,
 
     if (dirent->type) {
       if (image->direntOpts == DirEntOnlyCreate)
-	return WrFileExists;
+        return WrFileExists;
 
       /* delete the old file */
       if (ImOK != deleteDirEnt (image, dirent)) {
-	(*log) (Errors, &geosname, "Could not delete existing file.");
-	return WrFail;
+        (*log) (Errors, &geosname, "Could not delete existing file.");
+        return WrFail;
       }
     }
 
@@ -2381,92 +2381,92 @@ WriteImage (const struct Filename* name,
       /* back up the old BAM */
 
       if (!backupBAM (image, &oldBAM)) {
-	(*log) (Errors, name, "Backing up the BAM failed.");
-	return WrFail;
+        (*log) (Errors, name, "Backing up the BAM failed.");
+        return WrFail;
       }
 
       if (!findNextFree (image, &dirent->infoTrack, &dirent->infoSector))
-	return WrNoSpace;
+        return WrNoSpace;
 
       status = writeInode (image, dirent->infoTrack, dirent->infoSector,
-			   &data[254], 254);
+                           &data[254], 254);
 
       if (status != WrOK) {
-	restoreBAM (image, &oldBAM);
-	(*log) (Errors, &geosname, "Writing the info sector failed.");
-	return status;
+        restoreBAM (image, &oldBAM);
+        (*log) (Errors, &geosname, "Writing the info sector failed.");
+        return status;
       }
 
       if (dirent->isVLIR) {
-	byte_t vlir[254];
-	const byte_t* vlirsrc = &data[254 * 2];
-	unsigned vlirblock;
-	const byte_t* buf = &data[254 * 3];
-	byte_t track = dirent->infoTrack;
-	byte_t sector = dirent->infoSector;
+        byte_t vlir[254];
+        const byte_t* vlirsrc = &data[254 * 2];
+        unsigned vlirblock;
+        const byte_t* buf = &data[254 * 3];
+        byte_t track = dirent->infoTrack;
+        byte_t sector = dirent->infoSector;
 
-	memcpy (vlir, vlirsrc, 254);
+        memcpy (vlir, vlirsrc, 254);
 
-	for (vlirblock = 0; vlirblock < 127; vlirblock++) {
-	  unsigned blocks = vlirsrc[2 * vlirblock];
-	  unsigned lastblocklen = vlirsrc[2 * vlirblock + 1];
+        for (vlirblock = 0; vlirblock < 127; vlirblock++) {
+          unsigned blocks = vlirsrc[2 * vlirblock];
+          unsigned lastblocklen = vlirsrc[2 * vlirblock + 1];
 
-	  if (blocks) {
-	    if (!findNextFree (image, &track, &sector)) {
-	      restoreBAM (image, &oldBAM);
-	      return WrNoSpace;
-	    }
+          if (blocks) {
+            if (!findNextFree (image, &track, &sector)) {
+              restoreBAM (image, &oldBAM);
+              return WrNoSpace;
+            }
 
-	    vlir[vlirblock * 2] = track;
-	    vlir[vlirblock * 2 + 1] = sector;
+            vlir[vlirblock * 2] = track;
+            vlir[vlirblock * 2 + 1] = sector;
 
-	    len = 254 * (blocks - 1) + lastblocklen - 1;
-	    status = writeInode (image, track, sector, buf, len);
+            len = 254 * (blocks - 1) + lastblocklen - 1;
+            status = writeInode (image, track, sector, buf, len);
 
-	    if (status != WrOK) {
-	      restoreBAM (image, &oldBAM);
-	      (*log) (Errors, &geosname, "Writing a VLIR node failed.");
-	      return status;
-	    }
+            if (status != WrOK) {
+              restoreBAM (image, &oldBAM);
+              (*log) (Errors, &geosname, "Writing a VLIR node failed.");
+              return status;
+            }
 
-	    buf += 254 * blocks;
-	  }
-	}
+            buf += 254 * blocks;
+          }
+        }
 
-	dirent->firstTrack = dirent->infoTrack;
-	dirent->firstSector = dirent->infoSector;
+        dirent->firstTrack = dirent->infoTrack;
+        dirent->firstSector = dirent->infoSector;
 
-	if (!findNextFree (image, &dirent->firstTrack, &dirent->firstSector)) {
-	  restoreBAM (image, &oldBAM);
-	  return WrNoSpace;
-	}
+        if (!findNextFree (image, &dirent->firstTrack, &dirent->firstSector)) {
+          restoreBAM (image, &oldBAM);
+          return WrNoSpace;
+        }
 
-	status = writeInode (image, dirent->firstTrack, dirent->firstSector,
-			     vlir, 254);
+        status = writeInode (image, dirent->firstTrack, dirent->firstSector,
+                             vlir, 254);
 
-	if (status != WrOK) {
-	  restoreBAM (image, &oldBAM);
-	  (*log) (Errors, &geosname, "Writing the VLIR block failed.");
-	  return status;
-	}
+        if (status != WrOK) {
+          restoreBAM (image, &oldBAM);
+          (*log) (Errors, &geosname, "Writing the VLIR block failed.");
+          return status;
+        }
       }
       else {
-	dirent->firstTrack = dirent->infoTrack;
-	dirent->firstSector = dirent->infoSector;
+        dirent->firstTrack = dirent->infoTrack;
+        dirent->firstSector = dirent->infoSector;
 
-	if (!findNextFree (image, &dirent->firstTrack, &dirent->firstSector)) {
-	  restoreBAM (image, &oldBAM);
-	  return WrNoSpace;
-	}
+        if (!findNextFree (image, &dirent->firstTrack, &dirent->firstSector)) {
+          restoreBAM (image, &oldBAM);
+          return WrNoSpace;
+        }
 
-	status = writeInode (image, dirent->firstTrack, dirent->firstSector,
-			     &data[254 * 2], length - 254 * 2);
+        status = writeInode (image, dirent->firstTrack, dirent->firstSector,
+                             &data[254 * 2], length - 254 * 2);
 
-	if (status != WrOK) {
-	  restoreBAM (image, &oldBAM);
-	  (*log) (Errors, &geosname, "Writing the data sectors failed.");
-	  return status;
-	}
+        if (status != WrOK) {
+          restoreBAM (image, &oldBAM);
+          (*log) (Errors, &geosname, "Writing the data sectors failed.");
+          return status;
+        }
       }
 
       free (oldBAM);
@@ -2537,7 +2537,7 @@ WriteImage (const struct Filename* name,
     }
 
     status = writeInode (image, dirent->firstTrack, dirent->firstSector,
-			 data, length);
+                         data, length);
 
     if (status != WrOK) {
       restoreBAM (image, &oldBAM);
@@ -2554,9 +2554,9 @@ WriteImage (const struct Filename* name,
       status = setupSideSectors (image, dirent, rounddiv(length, 254), log);
 
       if (status != WrOK) {
-	restoreBAM (image, &oldBAM);
-	(*log) (Errors, name, "Could not set up the side sectors.");
-	return status;
+        restoreBAM (image, &oldBAM);
+        (*log) (Errors, name, "Could not set up the side sectors.");
+        return status;
       }
 
       /* fall through */
@@ -2580,17 +2580,17 @@ WriteImage (const struct Filename* name,
 }
 
 /** Read and convert a disk image in CBM DOS format
- * @param file		the file input stream
- * @param filename	host system name of the file
- * @param writeCallback	function for writing the contained files
- * @param log		Call-back function for diagnostic output
- * @return		status of the operation
+ * @param file          the file input stream
+ * @param filename      host system name of the file
+ * @param writeCallback function for writing the contained files
+ * @param log           Call-back function for diagnostic output
+ * @return              status of the operation
  */
 enum RdStatus
 ReadImage (FILE* file,
-	   const char* filename,
-	   write_file_t writeCallback,
-	   log_t log)
+           const char* filename,
+           write_file_t writeCallback,
+           log_t log)
 {
   const struct DiskGeometry* geom = 0;
   struct Image image;
@@ -2619,8 +2619,8 @@ ReadImage (FILE* file,
 
     for (i = 0, blocks = length / 256; i < elementsof(diskGeometry); i++)
       if (diskGeometry[i].blocks == blocks) {
-	geom = &diskGeometry[i];
-	break;
+        geom = &diskGeometry[i];
+        break;
       }
 
     if (!geom)
@@ -2651,7 +2651,7 @@ ReadImage (FILE* file,
 
     if (!(block = mapInode (&directory, &image, image.dirtrack, 0, log, 0))) {
       (*log) (Errors, 0, "Could not read the directory on track %u.",
-	      image.dirtrack);
+              image.dirtrack);
       free (image.buf);
       return RdFail;
     }
@@ -2670,254 +2670,254 @@ ReadImage (FILE* file,
       struct Filename name;
 
       for (i = 0; i < 256 / sizeof (struct DirEnt); i++) {
-	struct DirEnt* dirent = &((struct DirEnt*) directory[block])[i];
+        struct DirEnt* dirent = &((struct DirEnt*) directory[block])[i];
 
-	memcpy (name.name, dirent->name, 16);
-	name.type = getFiletype (&image, dirent);
-	name.recordLength = dirent->recordLength;
+        memcpy (name.name, dirent->name, 16);
+        name.type = getFiletype (&image, dirent);
+        name.recordLength = dirent->recordLength;
 
-	if (isGeosDirEnt (dirent)) {
-	  static const char cvt[] = "PRG formatted GEOS file V1.0";
-	  size_t length = 0;
-	  byte_t* buf;
-	  const byte_t
-	    *vlir = 0,
-	    *info = getBlock (&image, dirent->infoTrack, dirent->infoSector);
+        if (isGeosDirEnt (dirent)) {
+          static const char cvt[] = "PRG formatted GEOS file V1.0";
+          size_t length = 0;
+          byte_t* buf;
+          const byte_t
+            *vlir = 0,
+            *info = getBlock (&image, dirent->infoTrack, dirent->infoSector);
 
-	  if (!info || memcmp (info, "\0\377\3\25\277", 5))
-	    goto notGEOS; /* invalid info block */
+          if (!info || memcmp (info, "\0\377\3\25\277", 5))
+            goto notGEOS; /* invalid info block */
 
-	  if (dirent->isVLIR) {
-	    unsigned vlirblock;
-	    vlir = getBlock (&image, dirent->firstTrack, dirent->firstSector);
-	    if (!vlir || vlir[0] != 0 || vlir[1] != 0xFF)
-	      goto notGEOS;
+          if (dirent->isVLIR) {
+            unsigned vlirblock;
+            vlir = getBlock (&image, dirent->firstTrack, dirent->firstSector);
+            if (!vlir || vlir[0] != 0 || vlir[1] != 0xFF)
+              goto notGEOS;
 
-	    /* see if the VLIR block is valid and determine file length */
-	    for (length = 0, vlirblock = 1; vlirblock < 128; vlirblock++)
-	      if (!vlir[2 * vlirblock])
-		continue;
-	      else if (vlir[2 * vlirblock] > geom->tracks ||
-		       vlir[2 * vlirblock + 1] >=
-		       geom->sectors[vlir[2 * vlirblock]])
-		goto notGEOS;
-	      else {
-		byte_t* b = 0;
-		size_t chainlen = readInode (&b, &image,
-					     vlir[2 * vlirblock],
-					     vlir[2 * vlirblock + 1]);
-		if (!chainlen)
-		  goto notGEOS;
+            /* see if the VLIR block is valid and determine file length */
+            for (length = 0, vlirblock = 1; vlirblock < 128; vlirblock++)
+              if (!vlir[2 * vlirblock])
+                continue;
+              else if (vlir[2 * vlirblock] > geom->tracks ||
+                       vlir[2 * vlirblock + 1] >=
+                       geom->sectors[vlir[2 * vlirblock]])
+                goto notGEOS;
+              else {
+                byte_t* b = 0;
+                size_t chainlen = readInode (&b, &image,
+                                             vlir[2 * vlirblock],
+                                             vlir[2 * vlirblock + 1]);
+                if (!chainlen)
+                  goto notGEOS;
 
-		free (b);
-		length = 254 * rounddiv(length, 254) + chainlen;
-	      }
-	  }
-	  else {
-	    byte_t* b = 0;
-	    length = readInode (&b, &image,
-				dirent->firstTrack, dirent->firstSector);
-	    if (!length)
-	      goto notGEOS;
-	    free (b);
-	  }
+                free (b);
+                length = 254 * rounddiv(length, 254) + chainlen;
+              }
+          }
+          else {
+            byte_t* b = 0;
+            length = readInode (&b, &image,
+                                dirent->firstTrack, dirent->firstSector);
+            if (!length)
+              goto notGEOS;
+            free (b);
+          }
 
-	  /* convert the GEOS file name and type */
-	  {
-	    unsigned j;
+          /* convert the GEOS file name and type */
+          {
+            unsigned j;
 
-	    for (j = 0; j < sizeof name.name; j++)
-	      if (name.name[j] >= 'A' && name.name[j] <= 'Z')
-		name.name[j] = name.name[j] - 'A' + 0xC1;
-	      else if (name.name[j] >= 'a' && name.name[j] <= 'z')
-		name.name[j] = name.name[j] - 'a' + 0x41;
+            for (j = 0; j < sizeof name.name; j++)
+              if (name.name[j] >= 'A' && name.name[j] <= 'Z')
+                name.name[j] = name.name[j] - 'A' + 0xC1;
+              else if (name.name[j] >= 'a' && name.name[j] <= 'z')
+                name.name[j] = name.name[j] - 'a' + 0x41;
 
-	    name.type = PRG;
-	  }
+            name.type = PRG;
+          }
 
-	  if ((info[0x44] ^ dirent->type) & 0x8F)
-	    (*log) (Warnings, &name, "file types differ: $%02x $%02x",
-		    info[0x44], dirent->type);
+          if ((info[0x44] ^ dirent->type) & 0x8F)
+            (*log) (Warnings, &name, "file types differ: $%02x $%02x",
+                    info[0x44], dirent->type);
 
-	  if (info[0x45] != dirent->geos.type)
-	    (*log) (Warnings, &name, "GEOS file types differ: $%02x $%02x",
-		    info[0x45], dirent->geos.type);
+          if (info[0x45] != dirent->geos.type)
+            (*log) (Warnings, &name, "GEOS file types differ: $%02x $%02x",
+                    info[0x45], dirent->geos.type);
 
-	  if (info[0x46] != dirent->isVLIR)
-	    (*log) (Warnings, &name, "VLIR flags differ: $%02x $%02x",
-		    info[0x46], dirent->isVLIR);
+          if (info[0x46] != dirent->isVLIR)
+            (*log) (Warnings, &name, "VLIR flags differ: $%02x $%02x",
+                    info[0x46], dirent->isVLIR);
 
-	  if (rounddiv(length, 254) + 1 + dirent->isVLIR !=
-	      dirent->blocksLow + ((unsigned) dirent->blocksHigh << 8)) {
-	    unsigned blks = rounddiv(length, 254) + 1 + dirent->isVLIR;
-	    dirent->blocksLow = blks & 0xFF;
-	    dirent->blocksHigh = blks >> 8;
-	    (*log) (Warnings, &name, "invalid block count");
-	  }
+          if (rounddiv(length, 254) + 1 + dirent->isVLIR !=
+              dirent->blocksLow + ((unsigned) dirent->blocksHigh << 8)) {
+            unsigned blks = rounddiv(length, 254) + 1 + dirent->isVLIR;
+            dirent->blocksLow = blks & 0xFF;
+            dirent->blocksHigh = blks >> 8;
+            (*log) (Warnings, &name, "invalid block count");
+          }
 
-	  if (!(buf = calloc ((2 + dirent->isVLIR) * 254 + length, 1))) {
-	    (*log) (Errors, &name, "Out of memory");
-	    free (image.buf);
-	    free (directory);
-	    return RdFail;
-	  }
+          if (!(buf = calloc ((2 + dirent->isVLIR) * 254 + length, 1))) {
+            (*log) (Errors, &name, "Out of memory");
+            free (image.buf);
+            free (directory);
+            return RdFail;
+          }
 
-	  /* set the Convert header data */
-	  memcpy (&buf[0], &dirent->type, length = sizeof (struct DirEnt) - 2);
-	  memcpy (&buf[length], cvt, sizeof cvt); length += sizeof cvt;
-	  /* clear the track/sector information from the header */
-	  buf[1] = buf[2] = buf[0x13] = buf[0x14] = 0;
+          /* set the Convert header data */
+          memcpy (&buf[0], &dirent->type, length = sizeof (struct DirEnt) - 2);
+          memcpy (&buf[length], cvt, sizeof cvt); length += sizeof cvt;
+          /* clear the track/sector information from the header */
+          buf[1] = buf[2] = buf[0x13] = buf[0x14] = 0;
 
-	  /* copy the info block */
-	  memcpy (&buf[254], &info[2], 254);
+          /* copy the info block */
+          memcpy (&buf[254], &info[2], 254);
 
-	  if (dirent->isVLIR) {
-	    unsigned vlirblock;
-	    bool ended = false, wasended = false;
+          if (dirent->isVLIR) {
+            unsigned vlirblock;
+            bool ended = false, wasended = false;
 
-	    memcpy (&buf[2 * 254], &vlir[2], 254);
+            memcpy (&buf[2 * 254], &vlir[2], 254);
 
-	    for (length = 3 * 254, vlirblock = 1; vlirblock < 128; vlirblock++)
-	      if (vlir[2 * vlirblock]) {
-		byte_t* b = 0;
-		size_t chainlen = readInode (&b, &image,
-					     vlir[2 * vlirblock],
-					     vlir[2 * vlirblock + 1]);
+            for (length = 3 * 254, vlirblock = 1; vlirblock < 128; vlirblock++)
+              if (vlir[2 * vlirblock]) {
+                byte_t* b = 0;
+                size_t chainlen = readInode (&b, &image,
+                                             vlir[2 * vlirblock],
+                                             vlir[2 * vlirblock + 1]);
 
-		if (!chainlen || !b) {
-		  (*log) (Errors, &name, "unable to read VLIR chain!");
-		  break;
-		}
+                if (!chainlen || !b) {
+                  (*log) (Errors, &name, "unable to read VLIR chain!");
+                  break;
+                }
 
-		length = 254 * rounddiv(length, 254);
-		memcpy (&buf[length], b, chainlen);
-		length += chainlen;
-		free (b);
+                length = 254 * rounddiv(length, 254);
+                memcpy (&buf[length], b, chainlen);
+                length += chainlen;
+                free (b);
 
-		if (ended && !wasended) {
-		  (*log) (Warnings, &name, "false EOF in VLIR sector");
-		  wasended = true;
-		}
+                if (ended && !wasended) {
+                  (*log) (Warnings, &name, "false EOF in VLIR sector");
+                  wasended = true;
+                }
 
-		/* Set the VLIR block information: amount of blocks */
-		buf[(253 + vlirblock) * 2] = rounddiv(chainlen, 254);
-		/* amount of used bytes in the last block of this chain */
-		buf[(253 + vlirblock) * 2 + 1] =
-		  chainlen % 254 ? chainlen % 254 + 1 : 0xFF;
-	      }
-	      else {
-		switch (vlir[2 * vlirblock + 1]) {
-		case 0:
-		  ended = true;
-		  break;
+                /* Set the VLIR block information: amount of blocks */
+                buf[(253 + vlirblock) * 2] = rounddiv(chainlen, 254);
+                /* amount of used bytes in the last block of this chain */
+                buf[(253 + vlirblock) * 2 + 1] =
+                  chainlen % 254 ? chainlen % 254 + 1 : 0xFF;
+              }
+              else {
+                switch (vlir[2 * vlirblock + 1]) {
+                case 0:
+                  ended = true;
+                  break;
 
-		case 0xFF:
-		  if (ended && !wasended) {
-		    (*log) (Warnings, &name, "false EOF in VLIR sector");
-		    wasended = true;
-		  }
-		  break;
+                case 0xFF:
+                  if (ended && !wasended) {
+                    (*log) (Warnings, &name, "false EOF in VLIR sector");
+                    wasended = true;
+                  }
+                  break;
 
-		default:
-		  buf[(253 + vlirblock) * 2] = 0;
-		  buf[(253 + vlirblock) * 2 + 1] = ended ? 0 : 0xFF;
+                default:
+                  buf[(253 + vlirblock) * 2] = 0;
+                  buf[(253 + vlirblock) * 2 + 1] = ended ? 0 : 0xFF;
 
-		  (*log) (Warnings, &name,
-			  "invalid VLIR pointer $00%02x, "
-			  "corrected to $00%02x",
-			  vlir[2 * vlirblock + 1],
-			  buf[(253 + vlirblock) * 2 + 1]);
-		  break;
-		}
-	      }
-	  }
-	  else {
-	    byte_t* b = 0;
-	    size_t len = readInode (&b, &image,
-				    dirent->firstTrack, dirent->firstSector);
-	    memcpy (&buf[2 * 254], b, len);
-	    length = 2 * 254 + len;
-	    free (b);
-	  }
+                  (*log) (Warnings, &name,
+                          "invalid VLIR pointer $00%02x, "
+                          "corrected to $00%02x",
+                          vlir[2 * vlirblock + 1],
+                          buf[(253 + vlirblock) * 2 + 1]);
+                  break;
+                }
+              }
+          }
+          else {
+            byte_t* b = 0;
+            size_t len = readInode (&b, &image,
+                                    dirent->firstTrack, dirent->firstSector);
+            memcpy (&buf[2 * 254], b, len);
+            length = 2 * 254 + len;
+            free (b);
+          }
 
-	  switch ((*writeCallback) (&name, buf, length)) {
-	  case WrOK:
-	    continue;
-	  case WrNoSpace:
-	    free (buf);
-	    free (image.buf);
-	    free (directory);
-	    return RdNoSpace;
-	  case WrFail:
-	  default:
-	    free (buf);
-	    free (image.buf);
-	    free (directory);
-	    return RdFail;
-	  notGEOS:
-	    (*log) (Warnings, &name, "not a valid GEOS file");
-	  }
-	}
-	switch (name.type) {
-	  byte_t* buf;
-	  size_t length;
-	case REL:
-	  if (!checkSideSectors (&image, dirent, log))
-	    (*log) (Warnings, &name, "error in side sector data");
+          switch ((*writeCallback) (&name, buf, length)) {
+          case WrOK:
+            continue;
+          case WrNoSpace:
+            free (buf);
+            free (image.buf);
+            free (directory);
+            return RdNoSpace;
+          case WrFail:
+          default:
+            free (buf);
+            free (image.buf);
+            free (directory);
+            return RdFail;
+          notGEOS:
+            (*log) (Warnings, &name, "not a valid GEOS file");
+          }
+        }
+        switch (name.type) {
+          byte_t* buf;
+          size_t length;
+        case REL:
+          if (!checkSideSectors (&image, dirent, log))
+            (*log) (Warnings, &name, "error in side sector data");
 
-	  /* fall through */
-	case DEL:
-	case SEQ:
-	case PRG:
-	case USR:
-	  buf = 0;
-	  length = readInode (&buf, &image,
-			      dirent->firstTrack, dirent->firstSector);
-	  if (!length)
-	    (*log) (Errors, &name, "could not read file");
-	  else {
-	    if (name.type != REL && rounddiv(length, 254) !=
-		dirent->blocksLow + ((unsigned) dirent->blocksHigh << 8))
-	      (*log) (Warnings, &name, "invalid block count");
+          /* fall through */
+        case DEL:
+        case SEQ:
+        case PRG:
+        case USR:
+          buf = 0;
+          length = readInode (&buf, &image,
+                              dirent->firstTrack, dirent->firstSector);
+          if (!length)
+            (*log) (Errors, &name, "could not read file");
+          else {
+            if (name.type != REL && rounddiv(length, 254) !=
+                dirent->blocksLow + ((unsigned) dirent->blocksHigh << 8))
+              (*log) (Warnings, &name, "invalid block count");
 
-	    switch ((*writeCallback) (&name, buf, length)) {
-	    case WrOK:
-	      break;
-	    case WrNoSpace:
-	      free (buf);
-	      free (image.buf);
-	      free (directory);
-	      return RdNoSpace;
-	    case WrFail:
-	    default:
-	      free (buf);
-	      free (image.buf);
-	      free (directory);
-	      return RdFail;
-	    }
-	  }
+            switch ((*writeCallback) (&name, buf, length)) {
+            case WrOK:
+              break;
+            case WrNoSpace:
+              free (buf);
+              free (image.buf);
+              free (directory);
+              return RdNoSpace;
+            case WrFail:
+            default:
+              free (buf);
+              free (image.buf);
+              free (directory);
+              return RdFail;
+            }
+          }
 
-	  free (buf);
-	  break;
+          free (buf);
+          break;
 
-	case CBM:
-	  if(image.type == Im1581) {
-	    (*log) (Errors, &name, "skipping partition");
-	    /* TODO: Recurse... */
-	    break;
-	  }
+        case CBM:
+          if(image.type == Im1581) {
+            (*log) (Errors, &name, "skipping partition");
+            /* TODO: Recurse... */
+            break;
+          }
 
-	  /* Fall through (CBM type only supported by the 1581) */
+          /* Fall through (CBM type only supported by the 1581) */
 
-	default:
-	  if (dirent->type)
-	    (*log) (Errors, &name, "unknown file type $%02x, skipping",
-		    dirent->type);
-	}
+        default:
+          if (dirent->type)
+            (*log) (Errors, &name, "unknown file type $%02x, skipping",
+                    dirent->type);
+        }
       }
 
       if (!((struct DirEnt*) directory[block])->nextTrack)
-	break;
+        break;
     }
 
     free (directory);
@@ -2928,18 +2928,18 @@ ReadImage (FILE* file,
 }
 
 /** Open an existing disk image or create a new one.
- * @param filename	name of 1541 disk image on the host system
- * @param image		address of the disk image buffer pointer
- *			(will be allocated by this function)
- * @param type		type of the disk image
- * @param direntOpts	directory entry handling options
- * @return		Status of the operation
+ * @param filename      name of 1541 disk image on the host system
+ * @param image         address of the disk image buffer pointer
+ *                      (will be allocated by this function)
+ * @param type          type of the disk image
+ * @param direntOpts    directory entry handling options
+ * @return              Status of the operation
  */
 enum ImStatus
 OpenImage (const char* filename,
-	   struct Image** image,
-	   enum ImageType type,
-	   enum DirEntOpts direntOpts)
+           struct Image** image,
+           enum ImageType type,
+           enum DirEntOpts direntOpts)
 {
   FILE* f;
   const struct DiskGeometry* geom;
@@ -2984,7 +2984,7 @@ OpenImage (const char* filename,
     /* Read in the disk image */
 
     if (1 != fread ((*image)->buf, geom->blocks * 256, 1, f) ||
-	EOF != fgetc (f)) {
+        EOF != fgetc (f)) {
       fclose (f);
       goto Failed;
     }
@@ -3000,9 +3000,9 @@ OpenImage (const char* filename,
 }
 
 /** Write back a disk image.
- * @param image		address of the disk image buffer
- *			(will be deallocated by this function)
- * @return		Status of the operation
+ * @param image         address of the disk image buffer
+ *                      (will be deallocated by this function)
+ * @return              Status of the operation
  */
 enum ImStatus
 CloseImage (struct Image* image)
