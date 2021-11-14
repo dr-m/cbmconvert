@@ -1,4 +1,4 @@
-CMAKE_MINIMUM_REQUIRED (VERSION 3.14)
+CMAKE_MINIMUM_REQUIRED (VERSION 3.0.2)
 
 PROJECT (cbmconvert)
 
@@ -7,5 +7,18 @@ ADD_EXECUTABLE (cbmconvert main.c util.c read.c write.c lynx.c unark.c unarc.c
 ADD_EXECUTABLE (zip2disk zip2disk.c)
 ADD_EXECUTABLE (disk2zip disk2zip.c)
 
-INSTALL(FILES cbmconvert.1 zip2disk.1 disk2zip.1 TYPE MAN)
+IF (CMAKE_VERSION VERSION_GREATER_EQUAL 3.14)
+  INSTALL(FILES cbmconvert.1 zip2disk.1 disk2zip.1 TYPE MAN)
+ENDIF()
 INSTALL(TARGETS cbmconvert zip2disk disk2zip)
+
+ENABLE_TESTING()
+ADD_TEST (cbmconvert_usage ${CMAKE_BINARY_DIR}/cbmconvert)
+ADD_TEST (disk2zip_usage ${CMAKE_BINARY_DIR}/disk2zip)
+ADD_TEST (zip2disk_usage ${CMAKE_BINARY_DIR}/zip2disk)
+
+SET_TESTS_PROPERTIES(cbmconvert_usage disk2zip_usage zip2disk_usage
+  PROPERTIES WILL_FAIL TRUE)
+
+ADD_TEST (NAME empty_files
+  COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/empty_files.cmake)

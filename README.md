@@ -35,19 +35,20 @@ running in an old computer or an emulator.
 
 ## Requirements
 
-* [CMake](https://cmake.org) 3.14 or later
+* [CMake](https://cmake.org) 3.0.2 or later
 * At least 32-bit C compiler, compliant to to ISO/IEC 9899:1990 (C90) or later
 * A POSIX-like operating system (including Microsoft Windows)
 
 ## Installation
 
-You can build and install the code as follows:
+You can build, test, and install the code as follows:
 
 ```sh
 mkdir build
 cd build
 cmake ..
 cmake --build .
+ctest
 cmake --install .
 ```
 

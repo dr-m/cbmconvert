@@ -232,7 +232,8 @@ ReadLynx (FILE* file,
         break;
       }
 
-      if ((blocks && length < 2) || (length == 1) || (!blocks && length)) {
+      if ((blocks && length < 2) || (length == 1) ||
+          (!blocks && !errNoLength && length)) {
         (*log) (Errors, &name, "illegal length, skipping file");
         (*log) (Errors, &name,
                 "FATAL: the archive may be corrupted from this point on!");
@@ -372,9 +373,10 @@ ArchiveLynx (const struct Archive* archive,
     if (ae->name.type == REL)
       fprintf (f, " %u \15", ae->name.recordLength);
 
-    fprintf (f, " %u \15",
-             (unsigned)(ae->length % 254 ?
-                        (ae->length - 254 * (i - 1) + 1) : 255));
+    fprintf (f, " %u \15", ae->length
+             ? (unsigned)(ae->length % 254 ?
+                          (ae->length - 254 * (i - 1) + 1) : 255)
+             : 0U);
   }
 
   if (ferror (f))

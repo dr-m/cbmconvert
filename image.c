@@ -2881,28 +2881,24 @@ ReadImage (FILE* file,
           buf = 0;
           length = readInode (&buf, &image,
                               dirent->firstTrack, dirent->firstSector);
-          if (!length)
-            (*log) (Errors, &name, "could not read file");
-          else {
-            if (name.type != REL && rounddiv(length, 254) !=
-                dirent->blocksLow + ((unsigned) dirent->blocksHigh << 8))
-              (*log) (Warnings, &name, "invalid block count");
+          if (name.type != REL && rounddiv(length, 254) !=
+              dirent->blocksLow + ((unsigned) dirent->blocksHigh << 8))
+            (*log) (Warnings, &name, "invalid block count");
 
-            switch ((*writeCallback) (&name, buf, length)) {
-            case WrOK:
-              break;
-            case WrNoSpace:
-              free (buf);
-              free (image.buf);
-              free (directory);
-              return RdNoSpace;
-            case WrFail:
-            default:
-              free (buf);
-              free (image.buf);
-              free (directory);
-              return RdFail;
-            }
+          switch ((*writeCallback) (&name, buf, length)) {
+          case WrOK:
+            break;
+          case WrNoSpace:
+            free (buf);
+            free (image.buf);
+            free (directory);
+            return RdNoSpace;
+          case WrFail:
+          default:
+            free (buf);
+            free (image.buf);
+            free (directory);
+            return RdFail;
           }
 
           free (buf);
