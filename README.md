@@ -48,9 +48,14 @@ mkdir build
 cd build
 cmake ..
 cmake --build .
-ctest
+ctest -C Debug
 cmake --install .
 ```
+Note: The `-C Debug` option for `ctest` is only needed on
+multi-target generators, such as Microsoft Visual Studio.
+On a single-target generator, such as Unix Makefiles or Ninja,
+you may specify `-DCMAKE_BUILD_TYPE=RelWithDebInfo` to the first
+command.
 
 For more information, see [cbmconvert.html](cbmconvert.html) and
 the manual pages:

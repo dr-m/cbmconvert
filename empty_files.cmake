@@ -1,6 +1,6 @@
 EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E remove empty.prg empty.d64
   empty.p00 empty.lnx emptz.d64 1!empty 2!empty 3!empty 4!empty)
-EXECUTE_PROCESS(COMMAND ${CMAKE_BINARY_DIR}/cbmconvert -D4 empty.d64 empty.prg
+EXECUTE_PROCESS(COMMAND ${CBMCONVERT} -D4 empty.d64 empty.prg
   RESULT_VARIABLE res)
 IF (NOT res EQUAL 2)
   MESSAGE(FATAL_ERROR "creating empty.d64 failed: " ${res})
@@ -11,7 +11,7 @@ IF (NOT md5 MATCHES "274f94a63ada0913cf717677e536cdf9")
   MESSAGE(FATAL_ERROR "unexpected empty image contents: " ${md5})
 ENDIF()
 EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E touch empty.prg)
-EXECUTE_PROCESS(COMMAND ${CMAKE_BINARY_DIR}/cbmconvert -D4 empty.d64 empty.prg
+EXECUTE_PROCESS(COMMAND ${CBMCONVERT} -D4 empty.d64 empty.prg
   RESULT_VARIABLE res)
 IF (res)
   MESSAGE(FATAL_ERROR "copying empty.prg to empty.d64 failed: " ${res})
@@ -21,7 +21,7 @@ EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E md5sum empty.d64
 IF (NOT md5 MATCHES "b92a237dc6356940542593037d2184cf")
   MESSAGE(FATAL_ERROR "unexpected empty.prg image contents: " ${md5})
 ENDIF()
-EXECUTE_PROCESS(COMMAND ${CMAKE_BINARY_DIR}/cbmconvert -L empty.lnx -d empty.d64
+EXECUTE_PROCESS(COMMAND ${CBMCONVERT} -L empty.lnx -d empty.d64
   RESULT_VARIABLE res)
 IF (res)
   MESSAGE(FATAL_ERROR "copying empty.d64 to empty.lnx failed: " ${res})
@@ -31,14 +31,14 @@ EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E md5sum empty.lnx
 IF (NOT md5 MATCHES "67715c3da9c4c73168d2e7177ea25545")
   MESSAGE(FATAL_ERROR "unexpected empty.lnx contents: " ${md5})
 ENDIF()
-EXECUTE_PROCESS(COMMAND ${CMAKE_BINARY_DIR}/cbmconvert -P -l empty.lnx
+EXECUTE_PROCESS(COMMAND ${CBMCONVERT} -P -l empty.lnx
   RESULT_VARIABLE res)
 EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E md5sum empty.p00
   OUTPUT_VARIABLE md5)
 IF (NOT md5 MATCHES "34dca27bbc851ac44ca0817dabeb9593")
   MESSAGE(FATAL_ERROR "unexpected empty.p00 contents: " ${md5})
 ENDIF()
-EXECUTE_PROCESS(COMMAND ${CMAKE_BINARY_DIR}/disk2zip empty.d64 empty
+EXECUTE_PROCESS(COMMAND ${DISK2ZIP} empty.d64 empty
   RESULT_VARIABLE res)
 IF (res)
   MESSAGE(FATAL_ERROR "disk2zip failed: " ${res})
@@ -63,7 +63,7 @@ EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E md5sum 4!empty
 IF (NOT md5 MATCHES "0cae9f355cf09bc153272c4b8d2b97cd")
   MESSAGE(FATAL_ERROR "unexpected 4!empty contents: " ${md5})
 ENDIF()
-EXECUTE_PROCESS(COMMAND ${CMAKE_BINARY_DIR}/zip2disk empty emptz.d64
+EXECUTE_PROCESS(COMMAND ${ZIP2DISK} empty emptz.d64
   RESULT_VARIABLE res)
 IF (res)
   MESSAGE(FATAL_ERROR "zip2disk failed: " ${res})

@@ -21,4 +21,8 @@ SET_TESTS_PROPERTIES(cbmconvert_usage disk2zip_usage zip2disk_usage
   PROPERTIES WILL_FAIL TRUE)
 
 ADD_TEST (NAME empty_files
-  COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/empty_files.cmake)
+  COMMAND ${CMAKE_COMMAND}
+  -DCBMCONVERT=$<TARGET_FILE:cbmconvert>
+  -DZIP2DISK=$<TARGET_FILE:zip2disk>
+  -DDISK2ZIP=$<TARGET_FILE:disk2zip>
+  -P ${CMAKE_CURRENT_SOURCE_DIR}/empty_files.cmake)
