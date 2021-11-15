@@ -53,9 +53,34 @@ cmake --install .
 ```
 Note: The `-C Debug` option for `ctest` is only needed on
 multi-target generators, such as Microsoft Visual Studio.
-On a single-target generator, such as Unix Makefiles or Ninja,
-you may specify `-DCMAKE_BUILD_TYPE=RelWithDebInfo` to the first
-command.
+
+On many Unix-like systems, a single-target 'Unix Makefiles' generator
+will be used by default, and the type of the target may be changed
+by executing one of the following in the build directory:
+```sh
+cmake -DCMAKE_BUILD_TYPE=Debug .
+cmake --build .
+cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo .
+cmake --build .
+```
+
+### Multi-target configuration
+
+Starting with CMake 3.17, the `Ninja Multi-Config` generator may be used
+to compile multiple types of executables in a single build directory:
+
+```sh
+mkdir build
+cd build
+cmake .. -G 'Ninja Multi-Config'
+cmake --build --config Debug .
+cmake --build --config RelWithDebInfo .
+ctest -C Debug
+ctest -C RelWithDebInfo
+cmake --install . --config RelWithDebInfo
+```
+
+## Further information
 
 For more information, see [cbmconvert.html](cbmconvert.html) and
 the manual pages:
