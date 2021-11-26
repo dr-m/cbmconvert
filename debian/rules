@@ -1,0 +1,10 @@
+#!/usr/bin/make -f
+
+# Enable Debian Hardening
+# https://wiki.debian.org/Hardening
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+
+include /usr/share/dpkg/default.mk
+
+%:
+	dh $@ --parallel --list-missing

@@ -7,9 +7,7 @@ ADD_EXECUTABLE (cbmconvert main.c util.c read.c write.c lynx.c unark.c unarc.c
 ADD_EXECUTABLE (zip2disk zip2disk.c)
 ADD_EXECUTABLE (disk2zip disk2zip.c)
 
-IF (CMAKE_VERSION VERSION_GREATER_EQUAL 3.14)
-  INSTALL(FILES cbmconvert.1 zip2disk.1 disk2zip.1 TYPE MAN)
-ENDIF()
+INSTALL(FILES cbmconvert.1 zip2disk.1 disk2zip.1 DESTINATION "share/man/man1")
 INSTALL(TARGETS cbmconvert zip2disk disk2zip)
 
 ENABLE_TESTING()

@@ -1,0 +1,25 @@
+Source: cbmconvert
+Section: contrib/otherosfs
+Priority: optional
+Maintainer: Marko Mäkelä <marko.makela@iki.fi>
+Build-Depends: cmake
+Rules-Requires-Root: no
+Standards-Version: 4.5.0
+Vcs-Browser: https://github.com/dr-m/cbmconvert/
+Vcs-Git: https://github.com/dr-m/cbmconvert.git
+Description: Create and convert Commodore 8-bit binary file archives
+ cbmconvert extracts files from most known archive file formats that
+ are used on 8-bit Commodore computer platforms and writes them to
+ several different formats, including some formats used by some
+ emulators.
+
+Package: cbmconvert
+Architecture: any
+Section: contrib/otherosfs
+Priority: optional
+Depends: ${shlibs:Depends}
+Description: Create and convert Commodore 8-bit binary file archives
+ cbmconvert extracts files from most known archive file formats that
+ are used on 8-bit Commodore computer platforms and writes them to
+ several different formats, including some formats used by some
+ emulators.

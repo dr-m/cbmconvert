@@ -1,0 +1,5 @@
+cbmconvert (1:2.1.4) unstable; urgency=medium
+
+  * Initial CMake based release
+
+ -- Marko Mäkelä <marko.makela@iki.fi>  Fri, 26 Nov 2021 22:18:40 +0200

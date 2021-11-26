@@ -80,6 +80,14 @@ ctest -C RelWithDebInfo
 cmake --install . --config RelWithDebInfo
 ```
 
+### Debian GNU/Linux, Ubuntu, and similar systems
+
+You can build and install a package as follows:
+```sh
+fakeroot dpkg-buildpackage --no-sign
+sudo dpkg -i ../cbmconvert*.deb
+```
+
 ## Further information
 
 For more information, see [cbmconvert.html](cbmconvert.html) and
