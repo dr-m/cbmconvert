@@ -34,6 +34,9 @@ several different formats, including some formats used by some emulators.")
 SET (CPACK_PACKAGE_CONTACT "marko.makela@iki.fi")
 SET (CPACK_DEBIAN_PACKAGE_SECTION "contrib/otherosfs")
 SET (CPACK_DEBIAN_PACKAGE_DEPENDS "libc6")
+SET (CPACK_WIX_PRODUCT_GUID "aa32b470-5a32-51e2-9bb3-f0827715bee0")
+SET (CPACK_WIX_UPGRADE_GUID "8f269924-924b-51fe-bc67-c87444c15aa6")
+SET (CPACK_PACKAGE_INSTALL_DIRECTORY "cbmconvert")
 INCLUDE (CPack)
 
 ADD_EXECUTABLE (cbmconvert main.c util.c read.c write.c lynx.c unark.c unarc.c
@@ -41,8 +44,13 @@ ADD_EXECUTABLE (cbmconvert main.c util.c read.c write.c lynx.c unark.c unarc.c
 ADD_EXECUTABLE (zip2disk zip2disk.c)
 ADD_EXECUTABLE (disk2zip disk2zip.c)
 
-INSTALL(FILES cbmconvert.1 zip2disk.1 disk2zip.1 DESTINATION "share/man/man1")
-INSTALL(FILES cbmconvert.html DESTINATION "share/doc/cbmconvert")
+IF (WIN32)
+  INSTALL(FILES cbmconvert.html DESTINATION ".")
+ELSE()
+  INSTALL(FILES cbmconvert.html DESTINATION "share/doc/cbmconvert")
+  INSTALL(FILES cbmconvert.1 zip2disk.1 disk2zip.1
+    DESTINATION "share/man/man1")
+ENDIF()
 INSTALL(TARGETS cbmconvert zip2disk disk2zip)
 
 ENABLE_TESTING()

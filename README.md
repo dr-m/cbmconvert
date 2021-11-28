@@ -41,7 +41,9 @@ running in an old computer or an emulator.
 
 ## Installation
 
-You can build, test, and install the code as follows:
+You can build, test, and install the code as follows.
+But see below how to create installation packages for
+various operating systems.
 
 ```sh
 mkdir build
@@ -64,6 +66,42 @@ cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo .
 cmake --build .
 ```
 
+### Creating an installation package
+
+```sh
+mkdir build
+cd build
+cmake ..
+cpack -G RPM
+```
+The command `cpack --help` will display the list of generators
+that are available on your system.
+
+#### Creating a `.msi` file for Microsoft Windows
+
+```sh
+mkdir build
+cd build
+cmake ..
+cmake --build . --config Release
+cpack -G WIX
+```
+
+#### Creating a `.deb` for Debian GNU/Linux, Ubuntu, and similar systems
+
+The `cpack` generator will skip `ctest` or the creation of a separate
+package for debug information:
+```sh
+cpack -G DEB
+sudo dpkg -i cbmconvert*.deb
+```
+You can also initiate a build, run tests and create and install
+more conventional packages using the following commands:
+```sh
+fakeroot dpkg-buildpackage --no-sign
+sudo dpkg -i ../cbmconvert*.deb
+```
+
 ### Multi-target configuration
 
 Starting with CMake 3.17, the `Ninja Multi-Config` generator may be used
@@ -78,32 +116,6 @@ cmake --build --config RelWithDebInfo .
 ctest -C Debug
 ctest -C RelWithDebInfo
 cmake --install . --config RelWithDebInfo
-```
-
-### Creating an installation package with CPack
-
-```sh
-mkdir build
-cd build
-cmake ..
-cpack -G ZIP
-```
-The command `cpack --help` will display the list of generators
-that are available on your system.
-
-### Debian GNU/Linux, Ubuntu, and similar systems
-
-The `cpack` generator will skip `ctest` or the creation of a separate
-package for debug information:
-```sh
-cpack -G DEB
-sudo dpkg -i cbmconvert*.deb
-```
-You can also initiate a build, run tests and create and install
-more conventional packages using the following commands:
-```sh
-fakeroot dpkg-buildpackage --no-sign
-sudo dpkg -i ../cbmconvert*.deb
 ```
 
 ## Further information
