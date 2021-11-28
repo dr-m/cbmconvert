@@ -28,6 +28,7 @@
 #include <string.h>
 #include <errno.h>
 
+#include "version.h"
 #include "input.h"
 #include "output.h"
 
@@ -465,7 +466,7 @@ main (int argc, char** argv)
   if (argc < 2) {
   Usage:
     fprintf (stderr,
-             "cbmconvert 2.1.3 - Commodore archive converter\n"
+             "cbmconvert " VERSION " - Commodore archive converter\n"
              "Usage: %s [options] file(s)\n", prog);
 
     fputs ("Options: -I: Create ISO 9660 compliant file names.\n"

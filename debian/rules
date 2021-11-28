@@ -7,4 +7,4 @@ export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 include /usr/share/dpkg/default.mk
 
 %:
-	dh $@ --parallel --list-missing
+	dh $@ --list-missing

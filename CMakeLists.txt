@@ -1,6 +1,40 @@
 CMAKE_MINIMUM_REQUIRED (VERSION 3.0.2)
 
-PROJECT (cbmconvert)
+SET (VERSION 2.1.4)
+CONFIGURE_FILE (version.cmake version.h)
+INCLUDE_DIRECTORIES (${CMAKE_CURRENT_BINARY_DIR})
+
+IF(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  # Setting build type to RelWithDebInfo as none was specified.
+  # Must occur before PROJECT
+  SET(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING
+   "Choose the type of build, options are: None Debug Release RelWithDebInfo
+ MinSizeRel ..."
+   FORCE)
+  # Set the possible values of build type for cmake-gui
+  SET_PROPERTY(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
+   "None" "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+ENDIF()
+
+IF (CMAKE_VERSION VERSION_GREATER_EQUAL 3.12)
+  PROJECT (cbmconvert VERSION ${VERSION}
+    DESCRIPTION "Create and convert Commodore 8-bit binary file archives"
+    HOMEPAGE_URL "https://github.com/dr-m/cbmconvert/")
+ELSEIF (CMAKE_VERSION VERSION_GREATER_EQUAL 3.9)
+  PROJECT (cbmconvert VERSION ${VERSION}
+    DESCRIPTION "Create and convert Commodore 8-bit binary file archives")
+ELSE()
+  PROJECT (cbmconvert VERSION ${VERSION})
+ENDIF()
+
+SET (CPACK_PACKAGE_DESCRIPTION
+"cbmconvert extracts files from most known archive file formats that
+are used on 8-bit Commodore computer platforms and writes them to
+several different formats, including some formats used by some emulators.")
+SET (CPACK_PACKAGE_CONTACT "marko.makela@iki.fi")
+SET (CPACK_DEBIAN_PACKAGE_SECTION "contrib/otherosfs")
+SET (CPACK_DEBIAN_PACKAGE_DEPENDS "libc6")
+INCLUDE (CPack)
 
 ADD_EXECUTABLE (cbmconvert main.c util.c read.c write.c lynx.c unark.c unarc.c
   t64.c c2n.c image.c archive.c util.h input.h output.h)
@@ -8,6 +42,7 @@ ADD_EXECUTABLE (zip2disk zip2disk.c)
 ADD_EXECUTABLE (disk2zip disk2zip.c)
 
 INSTALL(FILES cbmconvert.1 zip2disk.1 disk2zip.1 DESTINATION "share/man/man1")
+INSTALL(FILES cbmconvert.html DESTINATION "share/doc/cbmconvert")
 INSTALL(TARGETS cbmconvert zip2disk disk2zip)
 
 ENABLE_TESTING()

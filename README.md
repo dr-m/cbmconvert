@@ -80,9 +80,27 @@ ctest -C RelWithDebInfo
 cmake --install . --config RelWithDebInfo
 ```
 
+### Creating an installation package with CPack
+
+```sh
+mkdir build
+cd build
+cmake ..
+cpack -G ZIP
+```
+The command `cpack --help` will display the list of generators
+that are available on your system.
+
 ### Debian GNU/Linux, Ubuntu, and similar systems
 
-You can build and install a package as follows:
+The `cpack` generator will skip `ctest` or the creation of a separate
+package for debug information:
+```sh
+cpack -G DEB
+sudo dpkg -i cbmconvert*.deb
+```
+You can also initiate a build, run tests and create and install
+more conventional packages using the following commands:
 ```sh
 fakeroot dpkg-buildpackage --no-sign
 sudo dpkg -i ../cbmconvert*.deb
