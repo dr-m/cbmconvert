@@ -1,5 +1,50 @@
-© 1993‒2021 Marko Mäkelä and others.
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: cbmconvert
+Upstream-Contact: https://github.com/dr-m/cbmconvert/issues
+Source: https://github.com/dr-m/cbmconvert
+License: GPL-2+
 
-According to the file "COPYING" all parts of this package are licenced
-under the terms of the GNU GPL Version 2 of which a copy is available
-in /usr/share/common-licenses.
+Files: *
+Copyright: (C) 1993-2021 Marko Mäkelä <marko.makela at iki.fi>
+License: GPL-2+
+
+Files: image.c
+Copyright: (C) Pasi Ojala <albert at cs.tut.fi>,
+ (C) 1993-2021 Marko Mäkelä <marko.makela at iki.fi>
+License: GPL-2+
+
+Files: t64.c
+Copyright: (C) 1995 Daniel Fandrich,
+ (C) 1997-2021 Marko Mäkelä <marko.makela at iki.fi>
+License: GPL-2+
+
+Files: unarc.c
+Copyright: (C) 1990 Chris Smeets,
+ (C) 1993-2021 Marko Mäkelä <marko.makela at iki.fi>
+License: GPL-2+
+
+Files: zip2disk.c
+Copyright: (C) Paul David Doherty <h0142kdd@rz.hu-berlin.de>,
+ (C) 1993-2021 Marko Mäkelä <marko.makela at iki.fi>
+License: GPL-2+
+
+Files: debian/*
+Copyright: (C) 2021      Marko Mäkelä <marko.makela at iki.fi>
+License: GPL-2+
+
+License: GPL-2+
+ This package is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+ .
+ This package is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program. If not, see <https://www.gnu.org/licenses/>
+ .
+ On Debian systems, the complete text of the GNU General Public
+ License version 2 can be found in `/usr/share/common-licenses/GPL-2'.

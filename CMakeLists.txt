@@ -32,7 +32,7 @@ SET (CPACK_PACKAGE_DESCRIPTION
 are used on 8-bit Commodore computer platforms and writes them to
 several different formats, including some formats used by some emulators.")
 SET (CPACK_PACKAGE_CONTACT "marko.makela@iki.fi")
-SET (CPACK_DEBIAN_PACKAGE_SECTION "contrib/otherosfs")
+SET (CPACK_DEBIAN_PACKAGE_SECTION "otherosfs")
 SET (CPACK_DEBIAN_PACKAGE_DEPENDS "libc6")
 SET (CPACK_WIX_PRODUCT_GUID "aa32b470-5a32-51e2-9bb3-f0827715bee0")
 SET (CPACK_WIX_UPGRADE_GUID "8f269924-924b-51fe-bc67-c87444c15aa6")
