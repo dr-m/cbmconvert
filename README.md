@@ -42,8 +42,8 @@ running in an old computer or an emulator.
 ## Installation
 
 You can build, test, and install the code as follows.
-But see below how to create installation packages for
-various operating systems.
+See [separate instructions](PACKAGING.md) how to create installation
+packages for various operating systems.
 
 ```sh
 mkdir build
@@ -54,7 +54,8 @@ ctest -C Debug
 cmake --install .
 ```
 Note: The `-C Debug` option for `ctest` is only needed on
-multi-target generators, such as Microsoft Visual Studio.
+multi-target generators, such as Microsoft Visual Studio
+or Ninja Multi-Config.
 
 On many Unix-like systems, a single-target 'Unix Makefiles' generator
 will be used by default, and the type of the target may be changed
@@ -64,42 +65,6 @@ cmake -DCMAKE_BUILD_TYPE=Debug .
 cmake --build .
 cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo .
 cmake --build .
-```
-
-### Creating an installation package
-
-```sh
-mkdir build
-cd build
-cmake ..
-cpack -G RPM -C Release
-```
-The command `cpack --help` will display the list of generators
-that are available on your system.
-
-#### Creating a `.msi` file for Microsoft Windows
-
-```sh
-mkdir build
-cd build
-cmake ..
-cmake --build . --config Release
-cpack -G WIX
-```
-
-#### Creating a `.deb` for Debian GNU/Linux, Ubuntu, and similar systems
-
-The `cpack` generator will skip `ctest` or the creation of a separate
-package for debug information:
-```sh
-cpack -G DEB -C Release
-sudo dpkg -i cbmconvert*.deb
-```
-You can also initiate a build, run tests and create and install
-more conventional packages using the following commands:
-```sh
-fakeroot dpkg-buildpackage --no-sign
-sudo dpkg -i ../cbmconvert*.deb
 ```
 
 ### Multi-target configuration
