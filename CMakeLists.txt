@@ -18,10 +18,12 @@ ENDIF()
 
 IF (CMAKE_VERSION VERSION_GREATER_EQUAL 3.12)
   PROJECT (cbmconvert VERSION ${VERSION}
+    LANGUAGES C
     DESCRIPTION "Create and convert Commodore 8-bit binary file archives"
     HOMEPAGE_URL "https://github.com/dr-m/cbmconvert/")
 ELSEIF (CMAKE_VERSION VERSION_GREATER_EQUAL 3.9)
   PROJECT (cbmconvert VERSION ${VERSION}
+    LANGUAGES C
     DESCRIPTION "Create and convert Commodore 8-bit binary file archives")
 ELSE()
   PROJECT (cbmconvert VERSION ${VERSION})
@@ -47,9 +49,15 @@ ADD_EXECUTABLE (disk2zip disk2zip.c)
 IF (WIN32)
   INSTALL(FILES cbmconvert.html DESTINATION ".")
 ELSE()
-  INSTALL(FILES cbmconvert.html DESTINATION "share/doc/cbmconvert")
-  INSTALL(FILES cbmconvert.1 zip2disk.1 disk2zip.1
-    DESTINATION "share/man/man1")
+  INCLUDE(GNUInstallDirs)
+  IF (CMAKE_VERSION VERSION_GREATER_EQUAL 3.14)
+    INSTALL(FILES cbmconvert.html TYPE DOC)
+    INSTALL(FILES cbmconvert.1 zip2disk.1 disk2zip.1 TYPE MAN)
+  ELSE()
+    INSTALL(FILES cbmconvert.html DESTINATION ${CMAKE_INSTALL_DOCDIR})
+    INSTALL(FILES cbmconvert.1 zip2disk.1 disk2zip.1
+      DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+  ENDIF()
 ENDIF()
 INSTALL(TARGETS cbmconvert zip2disk disk2zip)
 
