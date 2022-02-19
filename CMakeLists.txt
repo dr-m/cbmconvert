@@ -50,14 +50,9 @@ IF (WIN32)
   INSTALL(FILES cbmconvert.html DESTINATION ".")
 ELSE()
   INCLUDE(GNUInstallDirs)
-  IF (CMAKE_VERSION VERSION_GREATER_EQUAL 3.14)
-    INSTALL(FILES cbmconvert.html TYPE DOC)
-    INSTALL(FILES cbmconvert.1 zip2disk.1 disk2zip.1 TYPE MAN)
-  ELSE()
-    INSTALL(FILES cbmconvert.html DESTINATION ${CMAKE_INSTALL_DOCDIR})
-    INSTALL(FILES cbmconvert.1 zip2disk.1 disk2zip.1
-      DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
-  ENDIF()
+  INSTALL(FILES cbmconvert.html DESTINATION ${CMAKE_INSTALL_DOCDIR})
+  INSTALL(FILES cbmconvert.1 zip2disk.1 disk2zip.1
+    DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 ENDIF()
 INSTALL(TARGETS cbmconvert zip2disk disk2zip)
 
