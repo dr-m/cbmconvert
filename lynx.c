@@ -5,7 +5,7 @@
  */
 
 /*
-** Copyright © 1993-1997,2001,2006,2021 Marko Mäkelä
+** Copyright © 1993-1997,2001,2006,2021,2022 Marko Mäkelä
 **
 **     This program is free software; you can redistribute it and/or modify
 **     it under the terms of the GNU General Public License as published by
@@ -355,8 +355,11 @@ ArchiveLynx (const struct Archive* archive,
     fprintf (f, " %u  %s\15 %u \15", blockcounter, lynxhdr, filecnt);
   }
 
-  if (ferror (f))
+  if (ferror (f)) {
+  f_error:
+    fclose (f);
     return errno == ENOSPC ? ArNoSpace : ArFail;
+  }
 
   /* Write the Lynx directory. */
   for (ae = archive->first; ae; ae = ae->next) {
@@ -380,7 +383,7 @@ ArchiveLynx (const struct Archive* archive,
   }
 
   if (ferror (f))
-    return errno == ENOSPC ? ArNoSpace : ArFail;
+    goto f_error;
 
   /* Write the files. */
 
