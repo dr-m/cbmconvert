@@ -83,6 +83,25 @@ ctest -C RelWithDebInfo
 cmake --install . --config RelWithDebInfo
 ```
 
+## Instrumentation and Test Coverage
+
+It can be useful to run tests on instrumented builds. To do that, you
+may adapt one of the `cmake --build` and `ctest` invocations above
+and specify some `CMAKE_C_FLAGS`. Examples include:
+* `-fanalyzer` (GCC static analysis)
+* `-fsanitize=address` (GCC and Clang; environment variable `ASAN_OPTIONS`)
+* `-fsanitize=undefined` (GCC and Clang; environment variable `UBSAN_OPTIONS`)
+* `-fsanitize=memory` (Clang; environment variable `MSAN_OPTIONS`)
+* `--coverage` (GCC code coverage; invoke `gcov` on the `*.gcno` files)
+
+For the sanitizers, you may want to specify a file name prefix `log_path`
+for any error messages, instead of having them written via the standard error
+to a `ctest` log file:
+```sh
+UBSAN_OPTIONS=print_stacktrace=1:log_path=ubsan ctest
+ASAN_OPTIONS=abort_on_error=1:log_path=asan ctest
+```
+
 ## Further information
 
 For more information, see [cbmconvert.html](cbmconvert.html) and
