@@ -5,7 +5,7 @@
  */
 
 /*
-** Copyright © 1998 Marko Mäkelä
+** Copyright © 1998, 2022, Marko Mäkelä
 **
 **     This program is free software; you can redistribute it and/or modify
 **     it under the terms of the GNU General Public License as published by
@@ -98,7 +98,8 @@ WriteArchive (const struct Filename* name,
   }
 
   memcpy (&ae->name, name, sizeof (*name));
-  memcpy (ae->data, data, length);
+  if (length)
+    memcpy (ae->data, data, length);
   ae->length = length;
   ae->next = 0;
 
