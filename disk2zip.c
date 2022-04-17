@@ -5,7 +5,7 @@
  */
 
 /*
-** Copyright © 1993-1998,2001,2006,2021 Marko Mäkelä
+** Copyright © 1993-1998,2001,2006,2021,2022 Marko Mäkelä
 **
 **     This program is free software; you can redistribute it and/or modify
 **     it under the terms of the GNU General Public License as published by
@@ -331,7 +331,7 @@ optloop:
   status = 0;
 
 FuncExit:
-  if (infile != stdin)
+  if (infile && infile != stdin)
     fclose (infile);
   if (outfile)
     fclose (outfile);
