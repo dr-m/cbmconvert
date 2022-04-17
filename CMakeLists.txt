@@ -74,4 +74,6 @@ ADD_TEST (NAME empty_files
 ADD_TEST (NAME small_files
   COMMAND ${CMAKE_COMMAND}
   -DCBMCONVERT=$<TARGET_FILE:cbmconvert>
+  -DZIP2DISK=$<TARGET_FILE:zip2disk>
+  -DDISK2ZIP=$<TARGET_FILE:disk2zip>
   -P ${CMAKE_CURRENT_SOURCE_DIR}/small_files.cmake)
