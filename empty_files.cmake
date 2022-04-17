@@ -78,7 +78,7 @@ IF (CMAKE_VERSION VERSION_GREATER_EQUAL 3.19)
   FILE(CHMOD empty.d64 PERMISSIONS OWNER_WRITE OWNER_READ)
 ENDIF()
 
-EXECUTE_PROCESS(COMMAND ${ZIP2DISK} empty e RESULT_VARIABLE res)
+EXECUTE_PROCESS(COMMAND ${ZIP2DISK} empty e.d64 RESULT_VARIABLE res)
 IF (NOT res EQUAL 3)
   MESSAGE(FATAL_ERROR "incorrect disk2zip invocation failed: " ${res})
 ENDIF()
@@ -185,7 +185,7 @@ IF (NOT res EQUAL 4)
   MESSAGE(FATAL_ERROR "incorrect zip2disk invocation failed: " ${res})
 ENDIF()
 EXECUTE_PROGRAM(${CMAKE_COMMAND} -E compare_files fail.d64 empty.prg)
-EXECUTE_PROGRAM(${ZIP2DISK} e empty)
+EXECUTE_PROGRAM(${ZIP2DISK} e empty.d64)
 EXECUTE_PROGRAM(${CMAKE_COMMAND} -E compare_files empty.d64 e.d64)
 
 EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E remove empty.prg empty.d64
