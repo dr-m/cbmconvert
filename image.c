@@ -6,7 +6,7 @@
  */
 
 /*
-** Copyright © 1993-1998,2001,2006,2021 Marko Mäkelä
+** Copyright © 1993-1998,2001,2006,2021,2022 Marko Mäkelä
 ** 1581 disk image management by Pasi Ojala
 **
 **     This program is free software; you can redistribute it and/or modify
@@ -890,7 +890,6 @@ backupBAM (const struct Image* image, byte_t** BAM)
     const byte_t* bamblock;
 
   case ImUnknown:
-    return false;
   case Im1541:
     if (!(bamblock = getBlock ((struct Image*) image, image->dirtrack, 0)))
       return false;
