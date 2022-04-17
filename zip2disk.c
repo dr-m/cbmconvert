@@ -6,7 +6,7 @@
  */
 
 /*
-** Copyright © 1993-1997,2001,2006,2021 Marko Mäkelä
+** Copyright © 1993-1997,2001,2006,2021,2022 Marko Mäkelä
 ** Original version © 1993 Paul David Doherty (h0142kdd@rz.hu-berlin.de)
 **
 **     This program is free software; you can redistribute it and/or modify
@@ -64,7 +64,6 @@ static char* outname;
  * @param filename      the base file name
  * @retval 0 on success
  * @retval 1 on out of memory
- * @retval 2 if not all input files could be opened
  * @retval 3 if no output could be created
  */
 static int
@@ -94,19 +93,6 @@ init_files (const char* filename)
     fname++;
   memmove (fname + 2, fname, i + 1 - (size_t) (fname - inname));
   fname[1] = '!';
-
-  /* try to find the input files */
-
-  for (*fname = '1'; *fname < '5'; (*fname)++) {
-    infile = fopen (inname, "rb");
-
-    if (infile)
-      fclose (infile);
-    else
-      return 2;
-  }
-
-  infile = 0;
 
   /* try to create output file */
 
@@ -248,10 +234,6 @@ main (int argc, char** argv)
   switch (init_files (argv[1])) {
   case 3:
     fprintf (stderr, "zip2disk: Could not create %s.\n", outname);
-    status = 3;
-    goto ErrExit;
-  case 2:
-    fprintf (stderr, "zip2disk: File %s not found.\n", inname);
     status = 3;
     goto ErrExit;
   case 1:
