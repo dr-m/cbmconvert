@@ -392,7 +392,7 @@ ArchiveLynx (const struct Archive* archive,
 
     /* Reserve space for the side sectors. */
     if (ae->name.type == REL)
-      blockcounter += (blocks + 119) / 121;
+      blockcounter += rounddiv (blocks, 120);
 
     /* Write the file. */
     if (fseek (f, blockcounter * 254, SEEK_SET) ||
