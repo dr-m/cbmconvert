@@ -1577,7 +1577,8 @@ setupSideSectors (struct Image* image,
   {
     byte_t** sidesect = 0;
     byte_t** datafile = 0;
-    byte_t ss, ssentry, i, track, sector;
+    size_t ssentry;
+    byte_t ss, i, track, sector;
 
     if (blocks != mapInode (&datafile, image,
                             dirent->firstTrack, dirent->firstSector,
@@ -1607,7 +1608,7 @@ setupSideSectors (struct Image* image,
     track = dirent->firstTrack;
     sector = dirent->firstSector;
 
-    for (ss = ssentry = 0; track; ssentry++) {
+    for (ssentry = 0; track; ssentry++) {
       ss = ssentry / 120;
 
       if (ss >= sscount)
