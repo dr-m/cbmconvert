@@ -21,7 +21,7 @@ MACRO(CBMCONVERT)
   EXECUTE_PROGRAM(${CBMCONVERT} ${ARGV})
 ENDMACRO()
 
-FILE(REMOVE 123.d64 123.lnx)
+FILE(REMOVE 123.d64 123.lnx 5.d64 5.lnx 5.l7f 5.rel)
 FILE(WRITE 1,S "1")
 FILE(WRITE 2,U "12")
 FILE(WRITE 3,D "123")
@@ -86,6 +86,25 @@ MD5SUM(8a757d89cb216af47a66a6a8632fa5ed 5_f.p00)
 FILE(RENAME 5,f 5.rel)
 EXECUTE_PROGRAM_EXPECT(4 ${CBMCONVERT} -D4 123.d64 5.rel)
 
-FILE(REMOVE 1,s 2,u 3,d 4,p 5.rel 5_lff.p00 5_f.p00
+FILE(REMOVE 1,s 2,u 3,d 4,p 5_lff.p00 5_f.p00
   1.s00 2.u00 3.d00 4.p00 5.r00 123.lnx 123.d64 4.d64
   1!123 2!123 3!123 4!123)
+
+FILE(RENAME 5.rel 5.l7f)
+
+FILE(APPEND 5.l7f "${b}:${b}:${b}:${b}:${b}:${b}:${b}")
+FILE(READ 5.l7f b8)
+FILE(APPEND 5.l7f "${b8}:${b8}:${b8}:${b8}:${b8}:${b8}:${b8}")
+FILE(READ 5.l7f b8)
+FILE(APPEND 5.l7f "${b8}:${b8}:${b8}:${b8}:${b8}:${b8}:${b8}:${b8}:${b8}")
+CBMCONVERT(-L 5.lnx 5.l7f)
+MD5SUM(3a72dcc312183124d05987ddd8b28205 5.lnx)
+CBMCONVERT(-D4 5.d64 5.l7f)
+MD5SUM(4e8315ba00cecef6883a1ed58cc66911 5.d64)
+FILE(RENAME 5.l7f 5.rel)
+CBMCONVERT(-l 5.lnx)
+EXECUTE_PROGRAM(${CMAKE_COMMAND} -E compare_files 5.l7F 5.rel)
+FILE(REMOVE 5.l7F)
+CBMCONVERT(-d 5.d64)
+EXECUTE_PROGRAM(${CMAKE_COMMAND} -E compare_files 5.l7F 5.rel)
+FILE(REMOVE 5.l7F 5.rel 5.lnx 5.d64)

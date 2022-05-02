@@ -357,6 +357,7 @@ findNextFree (const struct Image* image,
 {
   const struct DiskGeometry* geom;
   byte_t t = *track, s = *sector;
+  size_t visited[64 / (sizeof(size_t) * CHAR_BIT)];
   unsigned i;
 
   if (!image || !image->buf || !(geom = getGeometry (image->type)))
@@ -368,61 +369,111 @@ findNextFree (const struct Image* image,
   if (t >= image->dirtrack) {
     /* search from the current track upwards */
 
-    for (; t <= image->partTops[image->dirtrack - 1]; t++)
+    for (; t <= image->partTops[image->dirtrack - 1]; t++) {
+      memset(visited, 0, sizeof visited);
       for (i = geom->sectors[t]; i; i--) {
         if (isFreeBlock (image, t, s)) {
           *track = t;
           *sector = s;
           return true;
         }
+        visited[s / ((sizeof *visited) * CHAR_BIT)] |=
+          ((size_t) 1) << (s % ((sizeof *visited) * CHAR_BIT));
         s += geom->interleave[t];
         s %= geom->sectors[t];
+
+        while (visited[s / ((sizeof *visited) * CHAR_BIT)] &
+               ((size_t) 1) << (s % ((sizeof *visited) * CHAR_BIT)))
+          if (++s == geom->sectors[t]) {
+            s = 0;
+            if (i == 1)
+              break;
+            i--;
+          }
       }
+    }
 
     /* search from lower tracks (from the directory track downwards) */
 
     for (t = image->dirtrack - 1;
-         t >= image->partBots[image->dirtrack - 1]; t--)
+         t >= image->partBots[image->dirtrack - 1]; t--) {
+      memset(visited, 0, sizeof visited);
       for (i = geom->sectors[t]; i; i--) {
         if (isFreeBlock (image, t, s)) {
           *track = t;
           *sector = s;
           return true;
         }
+        visited[s / ((sizeof *visited) * CHAR_BIT)] |=
+          ((size_t) 1) << (s % ((sizeof *visited) * CHAR_BIT));
         s += geom->interleave[t];
         s %= geom->sectors[t];
+        while (visited[s / ((sizeof *visited) * CHAR_BIT)] &
+               ((size_t) 1) << (s % ((sizeof *visited) * CHAR_BIT)))
+          if (++s == geom->sectors[t]) {
+            s = 0;
+            if (i == 1)
+              break;
+            i--;
+          }
       }
+    }
   }
   else {
     /* search from the current track downwards */
 
-    for (; t >= image->partBots[image->dirtrack - 1]; t--)
+    for (; t >= image->partBots[image->dirtrack - 1]; t--) {
+      memset(visited, 0, sizeof visited);
       for (i = geom->sectors[t]; i; i--) {
         if (isFreeBlock (image, t, s)) {
           *track = t;
           *sector = s;
           return true;
         }
+        visited[s / ((sizeof *visited) * CHAR_BIT)] |=
+          ((size_t) 1) << (s % ((sizeof *visited) * CHAR_BIT));
         s += geom->interleave[t];
         s %= geom->sectors[t];
+        while (visited[s / ((sizeof *visited) * CHAR_BIT)] &
+               ((size_t) 1) << (s % ((sizeof *visited) * CHAR_BIT)))
+          if (++s == geom->sectors[t]) {
+            s = 0;
+            if (i == 1)
+              break;
+            i--;
+          }
       }
+    }
 
     /* search from upper tracks (from the directory track upwards) */
 
     for (t = image->dirtrack + 1;
-         t <= image->partTops[image->dirtrack - 1]; t++)
+         t <= image->partTops[image->dirtrack - 1]; t++) {
+      memset(visited, 0, sizeof visited);
       for (i = geom->sectors[t]; i; i--) {
         if (isFreeBlock (image, t, s)) {
           *track = t;
           *sector = s;
           return true;
         }
+        visited[s / ((sizeof *visited) * CHAR_BIT)] |=
+          ((size_t) 1) << (s % ((sizeof *visited) * CHAR_BIT));
         s += geom->interleave[t];
         s %= geom->sectors[t];
+        while (visited[s / ((sizeof *visited) * CHAR_BIT)] &
+               ((size_t) 1) << (s % ((sizeof *visited) * CHAR_BIT)))
+          if (++s == geom->sectors[t]) {
+            s = 0;
+            if (i == 1)
+              break;
+            i--;
+          }
       }
+    }
 
     /* last resort: search from the directory track */
     t = image->dirtrack;
+    memset(visited, 0, sizeof visited);
 
     for (i = geom->sectors[t]; i; i--) {
       if (isFreeBlock (image, t, s)) {
@@ -430,8 +481,18 @@ findNextFree (const struct Image* image,
         *sector = s;
         return true;
       }
+      visited[s / ((sizeof *visited) * CHAR_BIT)] |=
+        ((size_t) 1) << (s % ((sizeof *visited) * CHAR_BIT));
       s += geom->interleave[t];
       s %= geom->sectors[t];
+      while (visited[s / ((sizeof *visited) * CHAR_BIT)] &
+             ((size_t) 1) << (s % ((sizeof *visited) * CHAR_BIT)))
+        if (++s == geom->sectors[t]) {
+          s = 0;
+          if (i == 1)
+            break;
+          i--;
+        }
     }
   }
 
