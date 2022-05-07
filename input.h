@@ -5,7 +5,7 @@
  */
 
 /*
-** Copyright © 1993-1997,2001 Marko Mäkelä
+** Copyright © 1993-1997,2001,2022 Marko Mäkelä
 **
 **     This program is free software; you can redistribute it and/or modify
 **     it under the terms of the GNU General Public License as published by
@@ -28,6 +28,10 @@
 #  include "util.h"
 #  include "output.h"
 
+#ifndef __GNUC__
+# define __attribute__(x) /* empty */
+#endif
+
 /* File management */
 
 /** Call-back function for writing files
@@ -36,9 +40,9 @@
  * @param length        length of the file contents
  * @return              status of the operation
  */
-typedef enum WrStatus write_file_t (const struct Filename* name,
-                                    const byte_t* data,
-                                    size_t length);
+typedef __attribute__((nonnull))
+enum WrStatus write_file_t (const struct Filename* name, const byte_t* data,
+                            size_t length);
 
 /** Status of a conversion operation */
 enum RdStatus
@@ -55,10 +59,9 @@ enum RdStatus
  * @param log           Call-back function for diagnostic output
  * @return              status of the operation
  */
-typedef enum RdStatus read_file_t (FILE* file,
-                                   const char* filename,
-                                   write_file_t writeCallback,
-                                   log_t log);
+typedef __attribute__((nonnull))
+enum RdStatus read_file_t (FILE* file, const char* filename,
+                           write_file_t writeCallback, log_t log);
 
 /** Read and convert a raw file */
 read_file_t ReadNative;
