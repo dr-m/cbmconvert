@@ -330,7 +330,7 @@ isFreeBlock (const struct Image* image, byte_t track, byte_t sector)
     if (!(BAM = getBlock ((struct Image*) image, image->dirtrack, 1)))
       return false;
 
-    if(track > 40) {
+    if (track > 40) {
       if (!(BAM = getBlock ((struct Image*) image, BAM[0], BAM[1])))
         return false;
 
@@ -765,7 +765,8 @@ FormatImage (struct Image* image)
     BAM[0xA2] = id1;
     BAM[0xA3] = id2;
     /* free all blocks */
-    memset (&BAM[4], 0xFF, (size_t) geom->tracks << 2);
+    memset (&BAM[4], 0xFF, 35 << 2);
+    memset (&BAM[683 << 8], 0xFF, 35 * 3);
 
     for (track = 1; track <= 35; track++) {
       /* set amount of free blocks on each track */
@@ -780,7 +781,8 @@ FormatImage (struct Image* image)
       BAM[0xDC + track + 1] = sector = geom->sectors[track + 1];
       /* allocate non-existent blocks */
       for (; sector < 24; sector++)
-        BAM[(track * 3) + (sector >> 3)] &= (byte_t) ~(1 << (sector & 7));
+        BAM[(683 << 8) + (track * 3) + (sector >> 3)] &=
+          (byte_t) ~(1 << (sector & 7));
     }
 
     /* Allocate the BAM and directory entries. */
@@ -970,16 +972,9 @@ backupBAM (const struct Image* image, byte_t** BAM)
       return false;
 
     memcpy (*BAM, &bamblock[4], 35 << 2);
-    memcpy (BAM[35 << 2], &bamblock[0xDD], 35);
+    memcpy (*BAM + (35 << 2), &bamblock[0xDD], 35);
 
-    if (!(bamblock = getBlock ((struct Image*) image,
-                               35 + image->dirtrack, 0))) {
-      free (*BAM);
-      *BAM = 0;
-      return false;
-    }
-
-    memcpy (BAM[35 * 5], bamblock, 35 * 3);
+    memcpy (*BAM + 35 * 5, bamblock + (683 << 8), 35 * 3);
     return true;
 
   case Im1581:
@@ -1022,7 +1017,7 @@ restoreBAM (struct Image* image, byte_t** BAM)
 
   switch (image->type) {
   case ImUnknown:
-    return false;
+    break;
   case Im1541:
     {
       byte_t* bamblock;
@@ -1031,11 +1026,12 @@ restoreBAM (struct Image* image, byte_t** BAM)
         return false;
 
       memcpy (&bamblock[4], *BAM, (size_t) geom->tracks << 2);
-      free (*BAM);
-      *BAM = 0;
-
-      return true;
     }
+  done:
+    free (*BAM);
+    *BAM = 0;
+
+    return true;
   case Im1571:
     {
       byte_t* bamblock;
@@ -1044,16 +1040,10 @@ restoreBAM (struct Image* image, byte_t** BAM)
         return false;
 
       memcpy (&bamblock[4], *BAM, 35 << 2);
-      memcpy (&bamblock[0xDD], BAM[35 << 2], 35);
+      memcpy (&bamblock[0xDD], *BAM + (35 << 2), 35);
 
-      if (!(bamblock = getBlock (image, 35 + image->dirtrack, 0)))
-        return false;
-
-      memcpy (bamblock, BAM[35 * 5], 35 * 3);
-      free (*BAM);
-      *BAM = 0;
-
-      return true;
+      memcpy (&bamblock[683 << 8], *BAM + 35 * 5, 35 * 3);
+      goto done;
     }
   case Im1581:
     {
@@ -1068,10 +1058,7 @@ restoreBAM (struct Image* image, byte_t** BAM)
       memcpy (bamblocks[1], *BAM + 256, 256);
 
       free (bamblocks);
-      free (BAM);
-      *BAM = 0;
-
-      return true;
+      goto done;
     }
   }
 
