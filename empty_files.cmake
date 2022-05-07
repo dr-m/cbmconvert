@@ -22,7 +22,7 @@ MACRO(CBMCONVERT)
   EXECUTE_PROGRAM(${CBMCONVERT} ${ARGV})
 ENDMACRO()
 
-FILE(REMOVE empty.prg empty.d64
+FILE(REMOVE empty.prg empty.d64 empty.c2n
   empty.p00 empty.lnx emptz.d64 1!empty 2!empty 3!empty 4!empty)
 
 EXECUTE_PROGRAM_EXPECT(2 ${CBMCONVERT} -vw -D4 empty.d64 empty.prg)
@@ -36,6 +36,9 @@ CBMCONVERT(-vv -P -l empty.lnx)
 MD5SUM(34dca27bbc851ac44ca0817dabeb9593 empty.p00)
 EXECUTE_PROGRAM_EXPECT(4 ${CBMCONVERT} -v0 -P -l empty.prg)
 EXECUTE_PROGRAM_EXPECT(1 ${CBMCONVERT} -vi -P -l empty.prg)
+EXECUTE_PROGRAM(${CBMCONVERT} -vv -C empty.c2n empty.prg)
+EXECUTE_PROGRAM(${CMAKE_COMMAND} -E compare_files empty.c2n empty.prg)
+EXECUTE_PROGRAM(${CBMCONVERT} -c empty.c2n)
 
 EXECUTE_PROGRAM_EXPECT(1 ${DISK2ZIP} -i 0 empty.d64 empty)
 EXECUTE_PROGRAM_EXPECT(1 ${DISK2ZIP} -i 00000 empty.d64 empty)
@@ -93,5 +96,5 @@ EXECUTE_PROGRAM(${CMAKE_COMMAND} -E compare_files fail.d64 empty.prg)
 EXECUTE_PROGRAM(${ZIP2DISK} e empty.d64)
 EXECUTE_PROGRAM(${CMAKE_COMMAND} -E compare_files empty.d64 e.d64)
 
-FILE(REMOVE empty.prg empty.d64 empty.p00 empty.lnx e.d64 fail.d64
+FILE(REMOVE empty.prg empty.d64 empty.c2n empty.p00 empty.lnx e.d64 fail.d64
   1!empty 2!empty 3!empty 4!empty 1!e 2!e 3!e 4!e)
