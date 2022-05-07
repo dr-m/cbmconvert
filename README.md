@@ -76,8 +76,8 @@ to compile multiple types of executables in a single build directory:
 mkdir build
 cd build
 cmake .. -G 'Ninja Multi-Config'
-cmake --build --config Debug .
-cmake --build --config RelWithDebInfo .
+cmake --build . --config Debug
+cmake --build . --config RelWithDebInfo
 ctest -C Debug
 ctest -C RelWithDebInfo
 cmake --install . --config RelWithDebInfo
