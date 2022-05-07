@@ -5,7 +5,7 @@
  */
 
 /*
-** Copyright © 1993-1998,2001,2003,2006,2021 Marko Mäkelä
+** Copyright © 1993‒1998,2001,2003,2006,2021‒2022 Marko Mäkelä
 **
 **     This program is free software; you can redistribute it and/or modify
 **     it under the terms of the GNU General Public License as published by
@@ -284,7 +284,7 @@ imageType (enum ImageType im)
 {
   switch (im) {
   case ImUnknown:
-    return "(unknown)";
+    break;
   case Im1541:
     return "1541";
   case Im1571:
@@ -293,7 +293,7 @@ imageType (enum ImageType im)
     return "1581";
   }
 
-  return 0;
+  return "(unknown)";
 }
 
 /** The main program
@@ -503,6 +503,7 @@ main (int argc, char** argv)
            stderr);
 
     if (image) {
+      CloseImage (image);
       free (image->name);
       free (image);
       image = 0;
@@ -536,14 +537,13 @@ main (int argc, char** argv)
 
     case RdNoSpace:
       writeLog (Errors, 0, "out of space.");
-      if (image || archive)
-        goto write;
-      else
-        return 3;
+      retval = 3;
+      goto read_error;
 
     default:
       writeLog (Errors, 0, "unexpected error.");
       retval = 4;
+    read_error:
       if (image || archive)
         goto write;
       else
