@@ -1,3 +1,9 @@
+cbmconvert (2.1.5-1) unstable; urgency=medium
+
+  * Maintenance release, with regression tests and bug fixes.
+
+ -- Marko Mäkelä <marko.makela@iki.fi>  Sun, 15 May 2022 16:48:40 +0300
+
 cbmconvert (2.1.4-1) unstable; urgency=medium
 
   * Initial CMake based release.
