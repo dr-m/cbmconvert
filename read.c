@@ -37,9 +37,9 @@ static unsigned char
 ascii2petscii (unsigned char c)
 {
   if (c >= 'A' && c <= 'Z') /* convert upper case letters */
-    c -= 'A' - 0xC1;
+    c -= (unsigned char) ('A' - 0xC1);
   else if (c >= 'a' && c <= 'z') /* convert lower case letters */
-    c -= 'a' - 0x41;
+    c -= (unsigned char) ('a' - 0x41);
   else if ((c & 127) < 32) /* convert control characters */
     c = '-';
   else if (c == 0xa0); /* do not touch shifted spaces */

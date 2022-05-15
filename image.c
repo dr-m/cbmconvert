@@ -1657,11 +1657,10 @@ setupSideSectors (struct Image* image,
     sector = dirent->firstSector;
 
     for (ssentry = 0; track; ssentry++) {
-      ss = ssentry / 120;
-
-      if (ss >= sscount)
+      if (ssentry / 120 >= sscount)
         return WrFail;
 
+      ss = (byte_t) (ssentry / 120);
       sidesect[ss][16 + (ssentry % 120) * 2] = track;
       sidesect[ss][17 + (ssentry % 120) * 2] = sector;
 
@@ -2784,9 +2783,9 @@ ReadImage (FILE* file,
 
             for (j = 0; j < sizeof name.name; j++)
               if (name.name[j] >= 'A' && name.name[j] <= 'Z')
-                name.name[j] = name.name[j] - 'A' + 0xC1;
+                name.name[j] -= (unsigned char) ('A' + 0xC1);
               else if (name.name[j] >= 'a' && name.name[j] <= 'z')
-                name.name[j] = name.name[j] - 'a' + 0x41;
+                name.name[j] -= (unsigned char) ('a' + 0x41);
 
             name.type = PRG;
           }
