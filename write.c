@@ -5,7 +5,7 @@
  */
 
 /*
-** Copyright © 1993-1997,2001,2021 Marko Mäkelä
+** Copyright © 1993-1997,2001,2021,2022 Marko Mäkelä
 **
 **     This program is free software; you can redistribute it and/or modify
 **     it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@ static bool
 filename2char (const struct Filename* name, char** newname)
 {
   size_t i = sizeof(name->name);
-  unsigned char* c;
+  char* c;
 
   if (!newname)
     return false;
@@ -57,16 +57,17 @@ filename2char (const struct Filename* name, char** newname)
   memcpy (*newname, name->name, i + 1);
   (*newname)[i + 1] = 0;
 
-  for (c = (unsigned char*)*newname; *c; c++) {
+  for (c = *newname; c <= *newname + i; c++) {
     if (*c == '/') /* map slash */
       *c = '.';
     else if (*c >= 0x41 && *c <= 0x5A) /* convert lower case letters */
       *c += 'a' - 0x41;
-    else if (*c >= 0xC1 && *c <= 0xDA) /* convert upper case letters */
-      *c += 'A' - 0xC1;
-    else if ((*c & 127) < 32) /* convert control chars */
+    else if ((*c & 0x7f) < 32) /* convert control chars */
       *c = '-';
-    else if (*c > 0xDA) /* convert graphics characters */
+    else if ((*c & 0x7f) >= 0x41 && ((*c & 0x7f)) <= 0x5A)
+      /* convert upper case letters */
+      *c += 'A' - 0xC1;
+    else if (*c & 0x80) /* convert graphics characters */
       *c = '+';
   }
 
@@ -80,7 +81,7 @@ filename2char (const struct Filename* name, char** newname)
 static bool
 isWovel (unsigned char c)
 {
-  return !!memchr ("AEIOU", c, 5);
+  return !!memchr ("aeiou", c, 5);
 }
 
 /** A character that was removed to make a file name ISO 9660 compliant */
@@ -104,9 +105,7 @@ TruncateName (unsigned char* name)
     else if (*c >= '0' && *c <= '9')/* So are numbers */
       continue;
     else if (*c >= 'A' && *c <= 'Z')/* Convert characters to lower case */
-      *c -= 'A' - 'a';
-    else if (*c >= 0xC1 && *c <= 0xDA) /* Convert upper case PETSCII chars */
-      *c -= 0xC1 - 'a';
+      *c -= (unsigned char) ('A' - 'a');
     else
       *c = '_';                     /* Convert anything else to underscore */
   }
@@ -142,7 +141,7 @@ TruncateName (unsigned char* name)
   if (efflen > 8) {
     /* remove letters from the end */
     for (c = &name[len]; c > name; c--)
-      if (*c >= 'A' && *c <= 'Z') {
+      if (*c >= 'a' && *c <= 'z') {
         *c = REMOVED;
         if (--efflen <= 8) break;
       }
@@ -158,12 +157,7 @@ TruncateName (unsigned char* name)
       }
   }
 
-  if (!efflen) {
-    /* create a file name for empty file names */
-    name[0] = '_';
-    name[1] = 0;
-  }
-  else {
+  {
     /* remove removed characters */
     unsigned char* t;
 
@@ -284,6 +278,7 @@ WriteNative (const struct Filename* name,
     }
   }
 
+  free (filename);
   (*log) (Errors, name, "out of file name space");
   return WrFail;
 }
@@ -349,6 +344,7 @@ WritePC64 (const struct Filename* name,
     }
   }
 
+  free (filename);
   (*log) (Errors, name, "out of file name space");
   return WrFail;
 }
@@ -396,6 +392,7 @@ Write9660 (const struct Filename* name,
     }
   }
 
+  free (filename);
   (*log) (Errors, name, "out of file name space");
   return WrFail;
 }

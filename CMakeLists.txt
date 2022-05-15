@@ -77,3 +77,8 @@ ADD_TEST (NAME small_files
   -DZIP2DISK=$<TARGET_FILE:zip2disk>
   -DDISK2ZIP=$<TARGET_FILE:disk2zip>
   -P ${CMAKE_CURRENT_SOURCE_DIR}/small_files.cmake)
+
+ADD_TEST (NAME file_names
+  COMMAND ${CMAKE_COMMAND}
+  -DCBMCONVERT=$<TARGET_FILE:cbmconvert>
+  -P ${CMAKE_CURRENT_SOURCE_DIR}/file_names.cmake)
