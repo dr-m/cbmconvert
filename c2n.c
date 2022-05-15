@@ -5,7 +5,7 @@
  */
 
 /*
-** Copyright © 2001,2021 Marko Mäkelä
+** Copyright © 2001,2021,2022 Marko Mäkelä
 **
 **     This program is free software; you can redistribute it and/or modify
 **     it under the terms of the GNU General Public License as published by
@@ -124,10 +124,17 @@ ReadC2N (FILE* file,
     /** end address of the file being processed */
     unsigned end;
 
-    if (1 != fread (&header, sizeof header, 1, file)) {
-      if (feof (file))
-        break;
+    switch (fread (&header, 1, sizeof header, file)) {
+    case 0:
+      if (!ferror (file))
+        continue;
       (*log) (Errors, name.type ? &name : 0, "fread: %s", strerror (errno));
+      return RdFail;
+    case 192:
+      break;
+    default:
+    errEOF:
+      (*log) (Errors, name.type ? &name : 0, "unexpected end of file");
       return RdFail;
     }
 
@@ -174,20 +181,26 @@ ReadC2N (FILE* file,
       byte_t* buf = 0;
 
     nextBlock:
-      if (1 != fread (&header, sizeof header, 1, file)) {
-        if (feof (file))
+      switch (fread (&header, 1, sizeof header, file)) {
+      case 0:
+        if (!ferror (file))
           goto writeData;
         (*log) (Errors, &name, "fread: %s", strerror (errno));
+      errExit:
         free (buf);
         return RdFail;
+      case 192:
+        break;
+      default:
+        free (buf);
+        goto errEOF;
       }
 
       if (header.tag == tDataBlock) {
         byte_t* b = realloc (buf, length + (sizeof header) - 1);
         if (!b) {
           (*log) (Errors, &name, "Out of memory.");
-          free (buf);
-          return RdFail;
+          goto errExit;
         }
         buf = b;
         memcpy (buf + length, ((byte_t*) &header) + 1, (sizeof header) - 1);
