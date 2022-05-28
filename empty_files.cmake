@@ -2,10 +2,9 @@ MACRO(MD5SUM expected filename)
   EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E md5sum ${filename}
     OUTPUT_VARIABLE md5)
   IF (NOT md5 MATCHES ${expected})
-    MESSAGE(FATAL_ERROR "unexpected md5sum: " ${md5})
+    MESSAGE(FATAL_ERROR "unexpected md5sum: " ${expected} " != " ${md5})
   ENDIF()
 ENDMACRO()
-
 MACRO(EXECUTE_PROGRAM)
   EXECUTE_PROCESS(COMMAND ${ARGV} RESULT_VARIABLE res)
   IF (res)
