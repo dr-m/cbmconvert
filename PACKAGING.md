@@ -37,6 +37,9 @@ cpack -G WIX
 The `cpack` generator will skip `ctest` or the creation of a separate
 package for debug information:
 ```sh
+mkdir build
+cd build
+cmake ..
 cpack -G DEB -C Release
 sudo dpkg -i cbmconvert*.deb
 ```
@@ -45,4 +48,26 @@ more conventional packages using the following commands:
 ```sh
 dpkg-buildpackage --no-sign
 sudo dpkg -i ../cbmconvert*.deb
+```
+If you invoking `dpkg-buildpackage` on an arbitrary source code revision
+and not a release, you will have to apply a patch like this in order to
+bypass some checks:
+```diff
+diff --git a/debian/source/format b/debian/source/format
+index 163aaf8..89ae9db 100644
+--- a/debian/source/format
++++ b/debian/source/format
+@@ -1 +1 @@
+-3.0 (quilt)
++3.0 (native)
+diff --git a/debian/changelog b/debian/changelog
+index ffbec85..d4786f2 100644
+--- a/debian/changelog
++++ b/debian/changelog
+@@ -1,4 +1,4 @@
+-cbmconvert (2.1.5-1) unstable; urgency=medium
++cbmconvert (2.1.5) unstable; urgency=medium
+ 
+   * Maintenance release, with regression tests and bug fixes.
+ 
 ```
