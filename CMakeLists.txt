@@ -54,7 +54,8 @@ ELSE()
   INSTALL(FILES cbmconvert.1 zip2disk.1 disk2zip.1
     DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 ENDIF()
-INSTALL(TARGETS cbmconvert zip2disk disk2zip)
+INSTALL(TARGETS cbmconvert zip2disk disk2zip
+  RUNTIME DESTINATION bin)
 
 ENABLE_TESTING()
 ADD_TEST (cbmconvert_usage ${CMAKE_BINARY_DIR}/cbmconvert)
