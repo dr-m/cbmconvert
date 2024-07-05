@@ -72,12 +72,16 @@ typedef unsigned int tbyte_t;
 typedef unsigned long int tbyte_t;
 #  endif
 
+#if __STDC_VERSION__ < 201100L
 /** Truth value */
 typedef enum
 {
   false = 0,    /**< false, binary digit '0' */
   true          /**< true, binary digit '1' */
 } bool;
+#else
+# include <stdbool.h>
+#endif
 
 /** Commodore file types */
 enum Filetype
