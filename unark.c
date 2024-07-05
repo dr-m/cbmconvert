@@ -134,6 +134,7 @@ ReadArkive (FILE* file,
         sidesectLastLength = 15 + 2 * ((blocks - sidesectCount) % 120);
 
         if (entry.sidesectCount != sidesectCount ||
+            blocks < sidesectCount ||
             entry.sidesectLastLength != sidesectLastLength) {
           (*log) (Errors, &name, "improper side sector length");
           (*log) (Errors, &name, "Following files may be totally wrong!");
@@ -150,6 +151,11 @@ ReadArkive (FILE* file,
       (*log) (Errors, &name, "Unknown type, defaulting to DEL");
       name.type = DEL;
       break;
+    }
+
+    if (length >= 254 * 3200/* 1581 disk image size */) {
+      (*log) (Errors, &name, "incorrect file length: %zu bytes", length);
+      return RdFail;
     }
 
     /* read the file */
