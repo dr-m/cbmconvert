@@ -5,7 +5,7 @@
  */
 
 /*
-** Copyright © 1993‒1998,2001,2003,2006,2021‒2022 Marko Mäkelä
+** Copyright © 1993‒1998,2001,2003,2006,2021‒2022,2024 Marko Mäkelä
 **
 **     This program is free software; you can redistribute it and/or modify
 **     it under the terms of the GNU General Public License as published by
@@ -63,7 +63,10 @@ enum ChangeDisks
 };
 
 /** The default disk image changing policy */
-enum ChangeDisks changeDisks = Sometimes;
+static enum ChangeDisks changeDisks = Sometimes;
+
+/** Whether io ignore duplicate file names */
+static bool ignoreDuplicates = false;
 
 /** Call-back function for diagnostic output
  * @param verbosity     the verbosity level
@@ -105,6 +108,17 @@ writeLog (enum Verbosity verbosity,
   }
 }
 
+/** Report a duplicate file name
+ * @param name          native (PETSCII) name of the file
+ * @retval WrOk  (always)
+ */
+static enum WrStatus
+reportDuplicateName (const struct Filename* name)
+{
+  writeLog (Everything, name, "skipping file with non-unique name");
+  return WrOK;
+}
+
 /** Write a file
  * @param name          native (PETSCII) name of the file
  * @param data          the contents of the file
@@ -135,6 +149,8 @@ writeFile (const struct Filename* name,
       writeLog (Errors, name, "Write failed!");
       return WrFail;
     case WrFileExists:
+      if (ignoreDuplicates)
+        return reportDuplicateName (name);
       if (changeDisks < Always) {
         writeLog (Errors, name, "non-unique file name!");
         return WrFileExists;
@@ -248,6 +264,8 @@ writeFile (const struct Filename* name,
       writeLog (Errors, name, "Write failed!");
       return WrFail;
     case WrFileExists:
+      if (ignoreDuplicates)
+        return reportDuplicateName (name);
       writeLog (Errors, name, "non-unique file name!");
       return WrFileExists;
     case WrNoSpace:
@@ -350,6 +368,20 @@ main (int argc, char** argv)
           break;
         case '2':
           changeDisks = Always;
+          break;
+        default:
+          goto Usage;
+        }
+        opts++;
+        break;
+
+      case 'o':
+        switch (opts[1]) {
+        case '0':
+          ignoreDuplicates = false;
+          break;
+        case '1':
+          ignoreDuplicates = true;
           break;
         default:
           goto Usage;
@@ -485,6 +517,9 @@ main (int argc, char** argv)
            "         -i2: Switch disk images on out of space or duplicate file name.\n"
            "         -i1: Switch disk images on out of space.\n"
            "         -i0: Never switch disk images.\n"
+           "\n"
+           "         -o0: Detect files with duplicate names\n"
+           "         -o1: Ignore files with duplicate names\n"
            "\n"
            "         -n: input files in native format.\n"
            "         -p: input files in PC64 format.\n"

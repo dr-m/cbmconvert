@@ -1,5 +1,5 @@
 .\" Manual page in -*- nroff -*- format; see man(7)
-.TH CBMCONVERT 1 "September 18, 2001"
+.TH CBMCONVERT 1 "July 5, 2024"
 .SH NAME
 cbmconvert \- create, extract and convert various Commodore binary archives
 .SH SYNOPSIS
@@ -122,6 +122,12 @@ Switch disk images when running out of space.  This is the default behaviour.
 .TP
 .B -i0
 Never switch disk images.
+.TP
+.B -o1
+Skip files with duplicate names (except the first one).
+.TP
+.B -o0
+Stop if a duplicate file name is found.  This is the default behaviour.
 .TP
 .B -n
 Input \(files in native (raw) format.

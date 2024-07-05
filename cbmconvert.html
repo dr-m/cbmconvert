@@ -34,7 +34,7 @@ td.c { text-align: center; }
  <dd>create, extract and convert different Commodore binary archives</dd>
 </dl>
 
-<p>Copyright © 1993‒2006,2021‒2022 <a class="ext"
+<p>Copyright © 1993‒2006,2021‒2022,2024 <a class="ext"
 href="http://www.iki.fi/~msmakela/">Marko Mäkelä</a>.</p>
 
 <blockquote>
@@ -306,6 +306,11 @@ or SEQ files with different names.  For example, the first separator
 can be a string of 16 dashes, the second one can be 15 dashes, and so
 on.</p>
 
+<p>By default, <code>cbmconvert</code> stops when it notices the first
+duplicated file name. If you specify the option <code>-o1</code>,
+files with duplicate names will be skipped (only the first such file will
+be copied).</p>
+
 <p>Arkive also works on illegal file types that cannot be created
 without directly modifying the directory blocks.  Such files will be
 converted to a supported file type.  Files with unknown types on disk
@@ -375,6 +380,11 @@ href="https://github.com/dr-m/cbmconvert/"
 <h3><a name="dist-hist" href="#toc-dist-hist">5.1</a> Revision History</h3>
 
 <dl>
+ <dt>Version 2.1.6:</dt>
+ <dd>Fixed compatibility with the 2023 version of the C standard.
+ Implemented <code>cbmconvert -o1</code> to skip files with duplicate
+ names; by default (<code>-o0</code>), copying is stopped and an error
+ returned.</dd>
  <dt>Version 2.1.5:</dt>
  <dd>Bug fixes, and regression tests for everything except the read-only formats
  <code>-a</code>, <code>-k</code>, <code>-t</code></dd>
