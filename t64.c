@@ -97,6 +97,8 @@ ReadT64 (FILE* file,
 {
   unsigned numEntries, entry;
 
+  (void) filename; /* unused */
+
   /* Check the header. */
 
   {

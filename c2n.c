@@ -111,6 +111,9 @@ ReadC2N (FILE* file,
 {
   /** name of the file being processed */
   struct Filename name;
+
+  (void) filename; /* unused */
+
   /* clear the file type code (to denote uninitialized file name) */
   name.type = 0;
   /* clear the record length (no relative files on tapes) */

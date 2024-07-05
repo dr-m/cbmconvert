@@ -83,12 +83,25 @@ ctest -C RelWithDebInfo
 cmake --install . --config RelWithDebInfo
 ```
 
-## Instrumentation and Test Coverage
+## Compile-Time Checks
 
 It can be useful to run tests on instrumented builds. To do that, you
 may adapt one of the `cmake --build` and `ctest` invocations above
-and specify some `CMAKE_C_FLAGS`. Examples include:
+and specify some `CMAKE_C_FLAGS`. For GCC and Clang and their derivatives,
+some examples include:
+
+* `-Wall -Wextra` (some extra warnings for GCC and Clang)
+* `-Wall -Wextra -Wcast-function-type-strict` (Clang specific)
 * `-fanalyzer` (GCC static analysis)
+
+Some warnings may be emitted or omitted depending on compiler
+optimizations. You may get different results if you additionally
+enable some optimizations, such as `-O2` or the GCC specific `-Og`.
+
+## Instrumentation and Test Coverage
+
+It can be useful to run tests on instrumented builds. To do that, you
+may specify some `CMAKE_C_FLAGS`. Examples include:
 * `-fsanitize=address` (GCC and Clang; environment variable `ASAN_OPTIONS`)
 * `-fsanitize=undefined` (GCC and Clang; environment variable `UBSAN_OPTIONS`)
 * `-fsanitize=memory` (Clang; environment variable `MSAN_OPTIONS`)

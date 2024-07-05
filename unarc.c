@@ -614,6 +614,8 @@ ReadARC (FILE* file,
          write_file_t writeCallback,
          log_t log)
 {
+  (void) filename; /* unused */
+
   fp = file;
 
   switch (setjmp (LZStackError)) {

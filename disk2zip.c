@@ -246,6 +246,7 @@ optloop:
         argc--;
         break;
       }
+      goto Usage;
     case 'i':
       if (!(*argv)[2] && argv[1]) { /* "-i" specifies disk identifier */
         argv++;

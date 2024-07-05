@@ -73,6 +73,8 @@ ReadArkive (FILE* file,
   size_t headerPos; /* current header position */
   size_t archivePos; /* current archive position */
 
+  (void) filename; /* unused */
+
   if (EOF == (fcount = fgetc (file))) {
   hdrError:
     (*log) (Errors, 0, "File header read failed: %s", strerror(errno));

@@ -35,7 +35,7 @@
 struct Archive*
 newArchive (void)
 {
-  return calloc (sizeof (struct Archive), 1);
+  return calloc (1, sizeof (struct Archive));
 }
 /** Deallocate an archive data structure.
  * @param archive       the archive to be deallocated

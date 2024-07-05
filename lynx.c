@@ -55,6 +55,8 @@ ReadLynx (FILE* file,
 
   bool errNoLength = false; /* set if the file length is unknown */
 
+  (void) filename; /* unused */
+
   {
     byte_t* buf;
     size_t i, length;

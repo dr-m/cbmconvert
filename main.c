@@ -139,7 +139,7 @@ writeFile (const struct Filename* name,
         writeLog (Errors, name, "non-unique file name!");
         return WrFileExists;
       }
-      /* non-unique file name, fall through */
+      /* fall through */
     case WrNoSpace:
       if (changeDisks < Sometimes) {
         writeLog (Errors, name, "out of space!");

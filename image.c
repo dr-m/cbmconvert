@@ -315,7 +315,7 @@ isFreeBlock (const struct Image* image, byte_t track, byte_t sector)
 
       return true && BAM[(track * 3) + (sector >> 3)] & (1 << (sector & 7));
     }
-    /* fall through: track <= 35 */
+    /* fall through */
   case Im1541:
     if (!(BAM = getBlock ((struct Image*) image, image->dirtrack, 0)))
       return false;
@@ -616,7 +616,7 @@ allocBlock (struct Image* image,
       findNextFree (image, track, sector);
       return true;
     }
-    /* fall through: track <= 35 */
+    /* fall through */
   case Im1541:
     if (!(BAM = getBlock ((struct Image*) image, image->dirtrack, 0)))
       return false;
@@ -1160,7 +1160,7 @@ freeBlock (struct Image* image, byte_t track, byte_t sector)
       BAM2[((tr - 1) * 3) + (sector >> 3)] |= (byte_t) (1 << (sector & 7));
       return true;
     }
-    /* fall through: track <= 35 */
+    /* fall through */
   case Im1541:
     if (!(BAM = getBlock ((struct Image*) image, image->dirtrack, 0)))
       return false;
@@ -2134,6 +2134,8 @@ ReadCpmImage (FILE* file,
   unsigned au; /* allocation unit size */
   unsigned sectors; /* number of disk sectors */
 
+  (void) filename; /* unused */
+
   /* determine disk image type from its length */
   {
     const struct DiskGeometry* geom = 0;
@@ -2646,6 +2648,8 @@ ReadImage (FILE* file,
   const struct DiskGeometry* geom = 0;
   struct Image image;
 
+  (void) filename; /* unused */
+
   /* determine disk image type from its length */
   {
     size_t length, blocks;
@@ -2952,14 +2956,13 @@ ReadImage (FILE* file,
           break;
 
         case CBM:
-          if(image.type == Im1581) {
+          if (image.type == Im1581) {
             (*log) (Errors, &name, "skipping partition");
             /* TODO: Recurse... */
             break;
           }
 
-          /* Fall through (CBM type only supported by the 1581) */
-
+          /* fall through */
         default:
           if (dirent->type)
             (*log) (Errors, &name, "unknown file type $%02x, skipping",
