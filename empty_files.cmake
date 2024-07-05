@@ -57,6 +57,7 @@ CBMCONVERT(-vv -C empty.c2n empty.prg)
 EXECUTE_PROGRAM(${CMAKE_COMMAND} -E compare_files empty.c2n empty.prg)
 CBMCONVERT(-N -c empty.c2n)
 
+EXECUTE_PROGRAM_EXPECT(1 ${DISK2ZIP} --- empty.d64 empty)
 EXECUTE_PROGRAM_EXPECT(1 ${DISK2ZIP} -i 0 empty.d64 empty)
 EXECUTE_PROGRAM_EXPECT(1 ${DISK2ZIP} -i 00000 empty.d64 empty)
 EXECUTE_PROGRAM_EXPECT(1 ${DISK2ZIP} -i0000 empty.d64 empty)
