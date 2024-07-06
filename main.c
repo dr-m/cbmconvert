@@ -65,6 +65,8 @@ enum ChangeDisks
 /** The default disk image changing policy */
 static enum ChangeDisks changeDisks = Sometimes;
 
+/** Whether io allow duplicate file names */
+bool allowDuplicates = false;
 /** Whether io ignore duplicate file names */
 static bool ignoreDuplicates = false;
 
@@ -115,7 +117,7 @@ writeLog (enum Verbosity verbosity,
 static enum WrStatus
 reportDuplicateName (const struct Filename* name)
 {
-  writeLog (Everything, name, "skipping file with non-unique name");
+  writeLog (Warnings, name, "skipping file with non-unique name");
   return WrOK;
 }
 
@@ -376,10 +378,13 @@ main (int argc, char** argv)
       case 'o':
         switch (opts[1]) {
         case '0':
-          ignoreDuplicates = false;
-          break;
         case '1':
-          ignoreDuplicates = true;
+          ignoreDuplicates = opts[1] != '0';
+          allowDuplicates = false;
+	  break;
+        case '2':
+          ignoreDuplicates = false;
+          allowDuplicates = true;
           break;
         default:
           goto Usage;
@@ -469,7 +474,11 @@ main (int argc, char** argv)
           argv++;
 
           {
-            enum DirEntOpts dopts = DirEntOnlyCreate;
+            enum DirEntOpts dopts = DirEntUniqCreate;
+            if (opts[1] == 'd') {
+              dopts = DirEntDupCreate;
+              opts++;
+            }
             if (opts[1] == 'o') {
               dopts = DirEntFindOrCreate;
               opts++;
@@ -505,12 +514,13 @@ main (int argc, char** argv)
            "         -L archive.lnx: Output files in Lynx format.\n"
            "         -C archive.c2n: Output files in Commodore C2N format.\n"
            "         -D4 imagefile: Write to a 1541 disk image.\n"
+           "         -D4d imagefile: Ditto, allowing duplicate file names.\n"
            "         -D4o imagefile: Ditto, overwriting existing files.\n"
-           "         -D7[o] imagefile: Write to a 1571 disk image.\n"
-           "         -D8[o] imagefile: Write to a 1581 disk image.\n"
-           "         -M4[o] imagefile: Write to a 1541 CP/M disk image.\n"
-           "         -M7[o] imagefile: Write to a 1571 CP/M disk image.\n"
-           "         -M8[o] imagefile: Write to a 1581 CP/M disk image.\n"
+           "         -D7[do] imagefile: Write to a 1571 disk image.\n"
+           "         -D8[do] imagefile: Write to a 1581 disk image.\n"
+           "         -M4[do] imagefile: Write to a 1541 CP/M disk image.\n"
+           "         -M7[do] imagefile: Write to a 1571 CP/M disk image.\n"
+           "         -M8[do] imagefile: Write to a 1581 CP/M disk image.\n"
            "\n"
            "         -i2: Switch disk images on out of space or duplicate file name.\n"
            "         -i1: Switch disk images on out of space.\n"
@@ -518,6 +528,7 @@ main (int argc, char** argv)
            "\n"
            "         -o0: Detect files with duplicate names\n"
            "         -o1: Ignore files with duplicate names\n"
+           "         -o2: Allow files with duplicate names\n"
            "\n"
            "         -n: input files in native format.\n"
            "         -p: input files in PC64 format.\n"

@@ -83,6 +83,9 @@ typedef enum
 # include <stdbool.h>
 #endif
 
+/** whether to allow duplicate file names */
+extern bool allowDuplicates;
+
 /** Commodore file types */
 enum Filetype
 {
@@ -118,8 +121,9 @@ enum ImageType
 enum DirEntOpts
 {
   DirEntDontCreate, /**< only try to find the file name */
-  DirEntOnlyCreate, /**< only create a new slot */
-  DirEntFindOrCreate/**< create the directory entry if it doesn't exist */
+  DirEntUniqCreate, /**< only create a new slot with unique name */
+  DirEntFindOrCreate,/**< create the directory entry if it doesn't exist */
+  DirEntDupCreate   /**< create new directory entries if the name exists */
 };
 
 /** Disk image */

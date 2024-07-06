@@ -1292,7 +1292,8 @@ getDirEnt (struct Image* image,
         freeslotEntry = i;
       }
 
-      if (!memcmp (dirent[i].name, name->name, 16)) {
+      if (image->direntOpts < DirEntDupCreate &&
+          !memcmp (dirent[i].name, name->name, 16)) {
         free (directory);
         return &dirent[i];
       }
@@ -1972,9 +1973,10 @@ WriteCpmImage (const struct Filename* name,
           !memcmp (&dirent[d], "\0\0\0\0\0\0\0\0\0\0\0", 12))
         continue;
 
-      if (!memcmp (dirent[d].basename, cpmname.basename,
+      if (image->direntOpts < DirEntDupCreate &&
+          !memcmp (dirent[d].basename, cpmname.basename,
                    sizeof cpmname.basename + sizeof cpmname.suffix)) {
-        if (image->direntOpts == DirEntOnlyCreate) {
+        if (image->direntOpts == DirEntUniqCreate) {
           status = WrFileExists;
           goto Done;
         }
@@ -2382,7 +2384,7 @@ WriteImage (const struct Filename* name,
       return WrNoSpace;
 
     if (dirent->type) {
-      if (image->direntOpts == DirEntOnlyCreate)
+      if (image->direntOpts == DirEntUniqCreate)
         return WrFileExists;
 
       /* delete the old file */
@@ -2514,7 +2516,7 @@ WriteImage (const struct Filename* name,
     return WrNoSpace;
 
   if (dirent->type) {
-    if (image->direntOpts == DirEntOnlyCreate)
+    if (image->direntOpts == DirEntUniqCreate)
       return WrFileExists;
 
     /* delete the old file */

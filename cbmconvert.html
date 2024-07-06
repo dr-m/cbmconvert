@@ -297,19 +297,20 @@ or vice versa, and some PETSCII or ASCII specific characters will be
 lost in the conversions.  Non-standard directory information available
 in some formats will be lost as well.</p>
 
-<p>Lynx, Arkive and ARC allow duplicate filenames.  But
+<p>Lynx, Arkive and ARC allow duplicate filenames.  By default,
 <code>cbmconvert</code> detects them and refuses to write multiple
 files with identical names to archives or to disk images.  These
 duplicates are often used as directory separators, to separate groups
-of filenames. If you really need such separators, use 1-block-long PRG
-or SEQ files with different names.  For example, the first separator
-can be a string of 16 dashes, the second one can be 15 dashes, and so
-on.</p>
+of filenames.</p>
 
 <p>By default, <code>cbmconvert</code> stops when it notices the first
-duplicated file name. If you specify the option <code>-o1</code>,
-files with duplicate names will be skipped (only the first such file will
-be copied).</p>
+duplicated file name.  If you specify the option <code>-o1</code>,
+files with duplicate names will be skipped (only the first such file
+will be copied).  If you specify the option <code>-o2</code>, files
+with duplicate file names can be created. For writing disk images, the
+corresponding options are <code>-D4d</code> or <code>-M4d</code> and
+so on.  The native file system output <code>-N</code> does not allow
+duplicate file names.</p>
 
 <p>Arkive also works on illegal file types that cannot be created
 without directly modifying the directory blocks.  Such files will be
@@ -382,9 +383,10 @@ href="https://github.com/dr-m/cbmconvert/"
 <dl>
  <dt>Version 2.1.6:</dt>
  <dd>Fixed compatibility with the 2023 version of the C standard.
- Implemented <code>cbmconvert -o1</code> to skip files with duplicate
- names; by default (<code>-o0</code>), copying is stopped and an error
- returned.</dd>
+ Implemented <code>cbmconvert</code>
+ options <code>-o1</code>, <code>-o2</code> and <code>-D4d</code> for
+ more options regarding duplicate file names; by default
+ (<code>-o0</code>), copying is stopped and an error returned.</dd>
  <dt>Version 2.1.5:</dt>
  <dd>Bug fixes, and regression tests for everything except the read-only formats
  <code>-a</code>, <code>-k</code>, <code>-t</code></dd>

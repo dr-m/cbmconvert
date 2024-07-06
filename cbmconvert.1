@@ -1,5 +1,5 @@
 .\" Manual page in -*- nroff -*- format; see man(7)
-.TH CBMCONVERT 1 "July 5, 2024"
+.TH CBMCONVERT 1 "July 6, 2024"
 .SH NAME
 cbmconvert \- create, extract and convert various Commodore binary archives
 .SH SYNOPSIS
@@ -92,25 +92,26 @@ Output \(files in Lynx format.
 .BI -C " archive.c2n"
 Output \(files in Commodore C2N tape format.
 .TP
-.BR -D4 [ o ] " \fIimage.d64\fP"
+.BR -D4 [ d | o ] " \fIimage.d64\fP"
 Write to a Commodore 1541 CBM DOS disk image.  The \fBo\fP option
 speci\(fies that \(file name collisions should be resolved by
-overwriting existing \(files.  The default behaviour is keep the old
+overwriting existing \(files.  The \fBd\fP option speci\(fies that
+duplicate \(file names be allowed.  The default behaviour is keep the old
 \(files.
 .TP
-.BR -D7 [ o ] " \fIimage.d71\fP"
+.BR -D7 [ d | o ] " \fIimage.d71\fP"
 Write to a Commodore 1571 CBM DOS disk image.
 .TP
-.BR -D8 [ o ] " \fIimage.d81\fP"
+.BR -D8 [ d | o ] " \fIimage.d81\fP"
 Write to a Commodore 1581 CBM DOS disk image.
 .TP
-.BR -M4 [ o ] " \fIimage.d64\fP"
+.BR -M4 [ d | o ] " \fIimage.d64\fP"
 Write to a Commodore 1541 disk image in the Commodore 128 CP/M format.
 .TP
-.BR -M7 [ o ] " \fIimage.d71\fP"
+.BR -M7 [ d | o ] " \fIimage.d71\fP"
 Write to a Commodore 1571 disk image in the Commodore 128 CP/M format.
 .TP
-.BR -M8 [ o ] " \fIimage.d81\fP"
+.BR -M8 [ d | o ] " \fIimage.d81\fP"
 Write to a Commodore 1581 disk image in the Commodore 128 CP/M format.
 .TP
 .B -i2
@@ -122,6 +123,10 @@ Switch disk images when running out of space.  This is the default behaviour.
 .TP
 .B -i0
 Never switch disk images.
+.TP
+.B -o2
+Write files even with duplicate names.  If the \fB-N\fP option is in effect,
+this will be treated as \fB-o0\fP.
 .TP
 .B -o1
 Skip files with duplicate names (except the first one).
