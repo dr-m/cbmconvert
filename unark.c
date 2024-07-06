@@ -5,7 +5,7 @@
  */
 
 /*
-** Copyright © 1993-1997,2001,2021 Marko Mäkelä
+** Copyright © 1993-1997,2001,2021,2024 Marko Mäkelä
 **
 **     This program is free software; you can redistribute it and/or modify
 **     it under the terms of the GNU General Public License as published by
@@ -161,6 +161,7 @@ ReadArkive (FILE* file,
     /* read the file */
 
     {
+      enum WrStatus wrStatus;
       byte_t* buf;
 
       if (fseek (file, (long) archivePos, SEEK_SET)) {
@@ -174,32 +175,34 @@ ReadArkive (FILE* file,
       }
 
       if (length != fread (buf, 1, length, file)) {
-        free (buf);
         (*log) (Errors, &name, "fread: %s", strerror(errno));
-        return RdFail;
+        wrStatus = WrFail;
       }
+      else {
+        archivePos += 254 * blocks;
 
-      archivePos += 254 * blocks;
+        if (name.type == REL)
+          /* Arkive stores the last side sector, */
+          /* wasting 254 bytes */
+          /* for each relative file. */
+          archivePos -= 254U * (entry.sidesectCount - 1);
 
-      if (name.type == REL)
-        /* Arkive stores the last side sector, */
-        /* wasting 254 bytes */
-        /* for each relative file. */
-        archivePos -= 254U * (entry.sidesectCount - 1);
-
-      switch ((*writeCallback) (&name, buf, length)) {
-      case WrOK:
-        break;
-      case WrNoSpace:
-        free (buf);
-        return RdNoSpace;
-      case WrFail:
-      default:
-        free (buf);
-        return RdFail;
+        wrStatus = (*writeCallback) (&name, buf, length);
       }
 
       free (buf);
+
+      switch (wrStatus) {
+      case WrOK:
+        continue;
+      case WrNoSpace:
+        return RdNoSpace;
+      case WrFail:
+      case WrFileExists:
+        break;
+      }
+
+      return RdFail;
     }
   }
 

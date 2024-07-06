@@ -6,7 +6,7 @@
  */
 
 /*
-** Copyright © 1993-1998,2001,2006,2021,2022 Marko Mäkelä
+** Copyright © 1993-1998,2001,2006,2021,2022,2024 Marko Mäkelä
 ** 1581 disk image management by Pasi Ojala
 **
 **     This program is free software; you can redistribute it and/or modify
@@ -638,18 +638,16 @@ allocBlock (struct Image* image,
     {
       byte_t** BAMblocks = 0;
       byte_t offset;
+      size_t s;
 
-      if(*track > image->partTops[image->dirtrack - 1] ||
-         *track < image->partBots[image->dirtrack - 1])
+      if (*track > image->partTops[image->dirtrack - 1] ||
+          *track < image->partBots[image->dirtrack - 1])
         return false;
 
-      if (2 != mapInode (&BAMblocks, image, image->dirtrack, 1, 0, 0)) {
-        if (BAMblocks) free (BAMblocks);
-        return false;
-      }
+      s = mapInode (&BAMblocks, image, image->dirtrack, 1, 0, 0);
 
       offset = *track;
-      if(offset > 40) {
+      if (offset > 40) {
         BAM = BAMblocks[1];
         offset -= 40;
       }
@@ -657,6 +655,9 @@ allocBlock (struct Image* image,
         BAM = BAMblocks[0];
 
       free (BAMblocks);
+
+      if (2 != s)
+        return false;
 
       if (!(BAM[16 + (offset - 1) * 6 + (*sector >> 3) + 1] &
             (1 << (*sector & 7))))
@@ -980,20 +981,17 @@ backupBAM (const struct Image* image, byte_t** BAM)
   case Im1581:
     {
       byte_t** bamblocks = 0;
+      bool ok = 2 == mapInode (&bamblocks, (struct Image*) image,
+                               image->dirtrack, 1, 0, 0) &&
+        !!(*BAM = malloc (2 << 8));
 
-      if (2 != mapInode (&bamblocks, (struct Image*) image,
-                         image->dirtrack, 1, 0, 0)) {
-        if (bamblocks) free (bamblocks);
-        return false;
+      if (ok) {
+        memcpy (*BAM, bamblocks[0], 256);
+        memcpy (*BAM + 256, bamblocks[1], 256);
       }
 
-      if (!(*BAM = malloc (2 << 8)))
-        return false;
-
-      memcpy (*BAM, bamblocks[0], 256);
-      memcpy (*BAM + 256, bamblocks[1], 256);
       free (bamblocks);
-      return true;
+      return ok;
     }
   }
 
@@ -1050,7 +1048,7 @@ restoreBAM (struct Image* image, byte_t** BAM)
       byte_t** bamblocks = 0;
 
       if (2 != mapInode (&bamblocks, image, image->dirtrack, 1, 0, 0)) {
-        if (bamblocks) free (bamblocks);
+        free (bamblocks);
         return false;
       }
 
@@ -1174,25 +1172,25 @@ freeBlock (struct Image* image, byte_t track, byte_t sector)
   case Im1581:
     {
       byte_t** BAMblocks = 0;
+      size_t s;
 
-      if(track > image->partTops[image->dirtrack - 1] ||
-         track < image->partBots[image->dirtrack - 1])
+      if (track > image->partTops[image->dirtrack - 1] ||
+          track < image->partBots[image->dirtrack - 1])
         return false;
 
-      if (2 != mapInode (&BAMblocks, image, image->dirtrack, 1, 0, 0)) {
-        if (BAMblocks) free (BAMblocks);
-        return false;
-      }
+      s = mapInode (&BAMblocks, image, image->dirtrack, 1, 0, 0);
 
-      if(track > 40) {
+      if (track > 40) {
         BAM = BAMblocks[1];
-
         track -= 40;
       }
       else
         BAM = BAMblocks[0];
 
       free (BAMblocks);
+
+      if (2 != s)
+        return false;
 
       BAM[16 + (track - 1) * 6] += 1;
       BAM[16 + (track - 1) * 6 + (sector >> 3) + 1] |= (byte_t) (1 << (sector & 7));
@@ -1369,13 +1367,13 @@ getDirEnt (struct Image* image,
   /* Clear the directory entry. */
 
   dirent = &((struct DirEnt*) directory[freeslotBlock])[freeslotEntry];
+  free (directory);
 
   if (freeslotEntry)
     memset (dirent, 0, sizeof *dirent);
   else
     memset (&dirent->type, 0, (sizeof *dirent) - 2);
 
-  free (directory);
   return dirent;
 }
 
@@ -1546,24 +1544,20 @@ blocksFree (const struct Image* image)
     {
       byte_t** BAMblocks = 0;
 
-      if (2 != mapInode (&BAMblocks, (struct Image*) image,
+      if (2 == mapInode (&BAMblocks, (struct Image*) image,
                          image->dirtrack, 1, 0, 0)) {
-        if (BAMblocks) free (BAMblocks);
-        return 0;
+        for (track = image->partBots[image->dirtrack - 1];
+             track <= image->partTops[image->dirtrack - 1] && track <= 40;
+             track++)
+          sum += BAMblocks[0][16 + (track - 1)*6];
+
+        for (track = image->partTops[image->dirtrack - 1];
+             track >= image->partBots[image->dirtrack - 1] && track > 40;
+             track--)
+          sum += BAMblocks[1][16 + (track - 41) * 6];
       }
 
-      for (track = image->partBots[image->dirtrack - 1];
-           track <= image->partTops[image->dirtrack - 1] && track <= 40;
-           track++)
-        sum += BAMblocks[0][16 + (track - 1)*6];
-
-      for (track = image->partTops[image->dirtrack - 1];
-           track >= image->partBots[image->dirtrack - 1] && track > 40;
-           track--)
-        sum += BAMblocks[1][16 + (track - 41) * 6];
-
       free (BAMblocks);
-
       return sum;
     }
   }
@@ -1585,13 +1579,14 @@ setupSideSectors (struct Image* image,
                   log_t log)
 {
   size_t sscount;
+  enum WrStatus status;
 
 #ifdef DEBUG
   if (!isValidDirEnt (image, dirent) || getFiletype (image, dirent) != REL)
     return WrFail;
 #endif
 
-  if(image->type == Im1581)
+  if (image->type == Im1581)
     return WrFail; /* TODO: super side sector setup etc. */
 
   sscount = rounddiv (blocks, 120);
@@ -1608,7 +1603,6 @@ setupSideSectors (struct Image* image,
 
   {
     byte_t* buf;
-    enum WrStatus status;
     size_t sslength = 14 + 254 * (sscount - 1) + 2 * (blocks % 120);
 
     if (!(buf = calloc (sslength, 1)))
@@ -1617,63 +1611,60 @@ setupSideSectors (struct Image* image,
     status = writeInode (image, dirent->ssTrack, dirent->ssSector,
                          buf, sslength);
     free (buf);
-
-    if (status != WrOK)
-      return status;
   }
 
-  {
+  if (status == WrOK) {
     byte_t** sidesect = 0;
     byte_t** datafile = 0;
-    size_t ssentry;
-    byte_t ss, i, track, sector;
+    status = WrFail;
 
-    if (blocks != mapInode (&datafile, image,
+    if (blocks == mapInode (&datafile, image,
                             dirent->firstTrack, dirent->firstSector,
-                            log, dirent))
-      return WrFail;
-
-    if (sscount != mapInode (&sidesect, image,
+                            log, dirent) &&
+        sscount == mapInode (&sidesect, image,
                              dirent->ssTrack, dirent->ssSector,
                              log, dirent)) {
-      free (datafile);
-      return WrFail;
-    }
+      size_t ssentry;
+      byte_t ss, i, track, sector;
+      for (ss = 0; ss < sscount; ss++) {
+        sidesect[ss][2] = ss;
+        sidesect[ss][3] = dirent->recordLength;
 
-    for (ss = 0; ss < sscount; ss++) {
-      sidesect[ss][2] = ss;
-      sidesect[ss][3] = dirent->recordLength;
+        sidesect[ss][4] = dirent->ssTrack;
+        sidesect[ss][5] = dirent->ssSector;
 
-      sidesect[ss][4] = dirent->ssTrack;
-      sidesect[ss][5] = dirent->ssSector;
-
-      for (i = 1; i < sscount; i++) {
-        sidesect[ss][4 + i * 2] = sidesect[i - 1][0];
-        sidesect[ss][5 + i * 2] = sidesect[i - 1][1];
+        for (i = 1; i < sscount; i++) {
+          sidesect[ss][4 + i * 2] = sidesect[i - 1][0];
+          sidesect[ss][5 + i * 2] = sidesect[i - 1][1];
+        }
       }
+
+      track = dirent->firstTrack;
+      sector = dirent->firstSector;
+
+      for (ssentry = 0; track; ssentry++) {
+        if (ssentry / 120 >= sscount)
+          goto Done;
+
+        ss = (byte_t) (ssentry / 120);
+        sidesect[ss][16 + (ssentry % 120) * 2] = track;
+        sidesect[ss][17 + (ssentry % 120) * 2] = sector;
+
+        track = datafile[ssentry][0];
+        sector = datafile[ssentry][1];
+      }
+
+      status = WrOK;
     }
 
-    track = dirent->firstTrack;
-    sector = dirent->firstSector;
-
-    for (ssentry = 0; track; ssentry++) {
-      if (ssentry / 120 >= sscount)
-        return WrFail;
-
-      ss = (byte_t) (ssentry / 120);
-      sidesect[ss][16 + (ssentry % 120) * 2] = track;
-      sidesect[ss][17 + (ssentry % 120) * 2] = sector;
-
-      track = datafile[ssentry][0];
-      sector = datafile[ssentry][1];
-    }
-
+  Done:
     free (datafile);
     free (sidesect);
   }
 
-  return WrOK;
+  return status;
 }
+
 
 /** Check if the side sectors of a relative file are OK
  * @param image         the disk image
@@ -1690,6 +1681,7 @@ checkSideSectors (const struct Image* image,
   byte_t** sidesect = 0;
   byte_t** datafile = 0;
   byte_t track, sector;
+  bool ok = false;
 
 #ifdef DEBUG
   if (!isValidDirEnt (image, dirent))
@@ -1702,25 +1694,17 @@ checkSideSectors (const struct Image* image,
   /* Map the data file and the side sectors. */
 
   if (!(i = mapInode (&datafile, (struct Image*) image,
-                      dirent->firstTrack, dirent->firstSector, log, dirent)))
-    return false;
-
-  if (!(sscount = mapInode (&sidesect, (struct Image*) image,
+                      dirent->firstTrack, dirent->firstSector, log, dirent)) ||
+      !(sscount = mapInode (&sidesect, (struct Image*) image,
                             dirent->ssTrack, dirent->ssSector,
-                            log, dirent))) {
-    free (datafile);
-    return false;
-  }
+                            log, dirent)))
+    goto Done;
 
   /* Check the block counts */
   if (sscount != rounddiv(i, 120) ||
       i + sscount != dirent->blocksLow + ((unsigned) dirent->blocksHigh << 8) ||
-      i != 120U * (sscount - 1U) + (sidesect[sscount - 1][1] - 15) / 2U) {
-  Failed:
-    free (datafile);
-    free (sidesect);
-    return false;
-  }
+      i != 120U * (sscount - 1U) + (sidesect[sscount - 1][1] - 15) / 2U)
+    goto Done;
 
   /* Check the side sector links */
 
@@ -1729,12 +1713,12 @@ checkSideSectors (const struct Image* image,
         sidesect[ss][3] != dirent->recordLength ||
         sidesect[ss][4] != dirent->ssTrack ||
         sidesect[ss][5] != dirent->ssSector)
-      goto Failed;
+      goto Done;
 
     for (i = 1; i < sscount; i++)
       if (sidesect[ss][4 + i * 2] != sidesect[i - 1][0] ||
           sidesect[ss][5 + i * 2] != sidesect[i - 1][1])
-        goto Failed;
+        goto Done;
   }
 
   /* Check the links to the data file */
@@ -1748,16 +1732,17 @@ checkSideSectors (const struct Image* image,
     if (ss >= sscount ||
         sidesect[ss][16 + (ssentry % 120) * 2] != track ||
         sidesect[ss][17 + (ssentry % 120) * 2] != sector)
-      goto Failed;
+      goto Done;
 
     track = datafile[ssentry][0];
     sector = datafile[ssentry][1];
   }
 
+  ok = true;
+ Done:
   free (datafile);
   free (sidesect);
-
-  return true;
+  return ok;
 }
 
 /** Generate a CP/M translation table.
@@ -1905,27 +1890,21 @@ WriteCpmImage (const struct Filename* name,
 {
   byte_t** trans;
   struct CpmDirEnt** allocated;
-  struct CpmDirEnt* dirent;
+  struct CpmDirEnt* dirent = 0;
   struct CpmDirEnt cpmname;
   unsigned au; /* allocation unit size */
   unsigned sectors; /* number of disk sectors */
   unsigned slot; /* next directory slot */
   unsigned blocksfree; /* number of free blocks */
+  enum WrStatus status = WrFail;
 
   if (!name || !data || !image || !image->buf ||
       !(trans = CpmTransTable (image, &au, &sectors)))
     return WrFail;
 
-  if (!(allocated = calloc (2 * sectors / au, sizeof(*allocated)))) {
-    free (trans);
-    return WrFail;
-  }
-
-  if (!(dirent = malloc (au * 8 * sizeof (*dirent)))) {
-    free (allocated);
-    free (trans);
-    return WrFail;
-  }
+  if (!(allocated = calloc (2 * sectors / au, sizeof(*allocated))) ||
+      !(dirent = malloc (au * 8 * sizeof (*dirent))))
+    goto Done;
 
   blocksfree = 2 * (sectors / au - 1);
 
@@ -1996,10 +1975,8 @@ WriteCpmImage (const struct Filename* name,
       if (!memcmp (dirent[d].basename, cpmname.basename,
                    sizeof cpmname.basename + sizeof cpmname.suffix)) {
         if (image->direntOpts == DirEntOnlyCreate) {
-          free (dirent);
-          free (allocated);
-          free (trans);
-          return WrFileExists;
+          status = WrFileExists;
+          goto Done;
         }
 
         found = true;
@@ -2033,12 +2010,8 @@ WriteCpmImage (const struct Filename* name,
     }
 
     /* See if the file was found */
-    if (!found && image->direntOpts == DirEntDontCreate) {
-      free (dirent);
-      free (allocated);
-      free (trans);
-      return WrFail;
-    }
+    if (!found && image->direntOpts == DirEntDontCreate)
+      goto Done;
 
     /* Clear the empty directory entries */
     memset (&dirent[slot], 0xE5, (au * 8 - slot) * sizeof(*dirent));
@@ -2048,10 +2021,8 @@ WriteCpmImage (const struct Filename* name,
     if (slot >= 8 * au ||
         length > (8 * au - slot) * au / 2 * 16 * 128 ||
         length > blocksfree * au * 128) {
-      free (dirent);
-      free (allocated);
-      free (trans);
-      return WrNoSpace;
+      status = WrNoSpace;
+      goto Done;
     }
   }
 
@@ -2110,10 +2081,13 @@ WriteCpmImage (const struct Filename* name,
       memcpy (trans[d], &dirent[d * 8], 8 * sizeof (*dirent));
   }
 
+  status = WrOK;
+
+ Done:
   free (dirent);
   free (allocated);
   free (trans);
-  return WrOK;
+  return status;
 }
 
 /** Read and convert a disk image in C128 CP/M format
@@ -2133,6 +2107,7 @@ ReadCpmImage (FILE* file,
   byte_t** trans;
   unsigned au; /* allocation unit size */
   unsigned sectors; /* number of disk sectors */
+  enum RdStatus status;
 
   (void) filename; /* unused */
 
@@ -2250,6 +2225,7 @@ ReadCpmImage (FILE* file,
       /* Read the file */
       {
         byte_t* curr, *buf = malloc (length);
+        enum WrStatus wrStatus;
 
         if (!buf) {
           (*log) (Warnings, &name, "out of memory");
@@ -2282,23 +2258,21 @@ ReadCpmImage (FILE* file,
         while (length-- && buf[length] == 0x1A);
         length++;
 
-        switch ((*writeCallback) (&name, buf, length)) {
-        case WrOK:
-          break;
-        case WrNoSpace:
-          free (buf);
-          free (image.buf);
-          free (trans);
-          return RdNoSpace;
-        case WrFail:
-        default:
-          free (buf);
-          free (image.buf);
-          free (trans);
-          return RdFail;
-        }
-
+        wrStatus = (*writeCallback) (&name, buf, length);
         free (buf);
+
+        switch (wrStatus) {
+        case WrOK:
+          goto FileDone;
+        case WrNoSpace:
+          status = RdNoSpace;
+          goto Done;
+        case WrFail:
+        case WrFileExists:
+          break;
+        }
+        status = RdFail;
+        goto Done;
       }
 
     FileDone:
@@ -2306,10 +2280,12 @@ ReadCpmImage (FILE* file,
     }
   }
 
+  status = RdOK;
+ Done:
   free (image.buf);
   free (trans);
 
-  return RdOK;
+  return status;
 }
 
 /** Write to an image in CBM DOS format
@@ -2647,6 +2623,7 @@ ReadImage (FILE* file,
 {
   const struct DiskGeometry* geom = 0;
   struct Image image;
+  enum RdStatus status = RdFail;
 
   (void) filename; /* unused */
 
@@ -2698,8 +2675,7 @@ ReadImage (FILE* file,
 
     if (1 != fread (image.buf, length, 1, file)) {
       (*log) (Errors, 0, "fread: %s", strerror(errno));
-      free (image.buf);
-      return RdFail;
+      goto Done;
     }
   }
 
@@ -2711,15 +2687,12 @@ ReadImage (FILE* file,
     if (!(block = mapInode (&directory, &image, image.dirtrack, 0, log, 0))) {
       (*log) (Errors, 0, "Could not read the directory on track %u.",
               image.dirtrack);
-      free (image.buf);
-      return RdFail;
+      goto ReadDone;
     }
 
     if (block < geom->BAMblocks) {
       (*log) (Errors, 0, "Directory too short.");
-      free (image.buf);
-      free (directory);
-      return RdFail;
+      goto ReadDone;
     }
 
     /* Traverse through the directory */
@@ -2729,6 +2702,7 @@ ReadImage (FILE* file,
       struct Filename name;
 
       for (i = 0; i < 256 / sizeof (struct DirEnt); i++) {
+        enum WrStatus wrStatus;
         struct DirEnt* dirent = &((struct DirEnt*) directory[block])[i];
 
         memcpy (name.name, dirent->name, 16);
@@ -2816,16 +2790,14 @@ ReadImage (FILE* file,
 
           if (!(buf = calloc ((2U + dirent->isVLIR) * 254U + length, 1))) {
             (*log) (Errors, &name, "Out of memory");
-            free (image.buf);
-            free (directory);
-            return RdFail;
+            goto ReadDone;
           }
 
           /* set the Convert header data */
           memcpy (&buf[0], &dirent->type, length = sizeof (struct DirEnt) - 2);
           memcpy (&buf[length], cvt, sizeof cvt); length += sizeof cvt;
-          /* clear the track/sector information from the header */
-          buf[1] = buf[2] = buf[0x13] = buf[0x14] = 0;
+          /* the track/sector information was already cleared by calloc() */
+          /* buf[1] = buf[2] = buf[0x13] = buf[0x14] = 0; */
 
           /* copy the info block */
           memcpy (&buf[254], &info[2], 254);
@@ -2899,23 +2871,22 @@ ReadImage (FILE* file,
             free (b);
           }
 
-          switch ((*writeCallback) (&name, buf, length)) {
+          wrStatus = (*writeCallback) (&name, buf, length);
+          free (buf);
+
+          switch (wrStatus) {
           case WrOK:
             continue;
           case WrNoSpace:
-            free (buf);
-            free (image.buf);
-            free (directory);
-            return RdNoSpace;
+            status = RdNoSpace;
+            /* fall through */
           case WrFail:
-          default:
-            free (buf);
-            free (image.buf);
-            free (directory);
-            return RdFail;
-          notGEOS:
-            (*log) (Warnings, &name, "not a valid GEOS file");
+          case WrFileExists:
+            break;
           }
+          goto ReadDone;
+        notGEOS:
+          (*log) (Warnings, &name, "not a valid GEOS file");
         }
         switch (name.type) {
           byte_t* buf;
@@ -2936,23 +2907,20 @@ ReadImage (FILE* file,
               dirent->blocksLow + ((unsigned) dirent->blocksHigh << 8))
             (*log) (Warnings, &name, "invalid block count");
 
-          switch ((*writeCallback) (&name, buf, length)) {
+          wrStatus = (*writeCallback) (&name, buf, length);
+          free (buf);
+
+          switch (wrStatus) {
           case WrOK:
             break;
           case WrNoSpace:
-            free (buf);
-            free (image.buf);
-            free (directory);
-            return RdNoSpace;
+            status = RdNoSpace;
+            /* fall through */
           case WrFail:
           default:
-            free (buf);
-            free (image.buf);
-            free (directory);
-            return RdFail;
+            goto ReadDone;
           }
 
-          free (buf);
           break;
 
         case CBM:
@@ -2970,15 +2938,19 @@ ReadImage (FILE* file,
         }
       }
 
-      if (!((struct DirEnt*) directory[block])->nextTrack)
+      if (!((struct DirEnt*) directory[block])->nextTrack) {
+        status = RdOK;
         break;
+      }
     }
 
+  ReadDone:
     free (directory);
   }
 
+ Done:
   free (image.buf);
-  return RdOK;
+  return status;
 }
 
 /** Open an existing disk image or create a new one.
@@ -3010,7 +2982,8 @@ OpenImage (const char* filename,
   if (!(*image = calloc (1, sizeof (**image))))
     return ImFail;
 
-  if (!((*image)->buf = malloc (geom->blocks * 256))) {
+  if (!((*image)->buf = malloc (geom->blocks * 256)) ||
+      !((*image)->name = malloc (strlen (filename) + 1))) {
   Failed:
     free ((*image)->name);
     free ((*image)->buf);
@@ -3018,9 +2991,6 @@ OpenImage (const char* filename,
     *image = 0;
     return ImFail;
   }
-
-  if (!((*image)->name = malloc (strlen (filename) + 1)))
-    goto Failed;
 
   strcpy ((char*)(*image)->name, filename);
   (*image)->type = type;

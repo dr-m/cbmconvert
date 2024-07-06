@@ -214,6 +214,7 @@ ReadT64 (FILE* file,
 
       if (fseek (file, fileoffset, SEEK_SET)) {
         (*log) (Errors, &name, "fseek: %s", strerror(errno));
+      ReadFail:
         free (buf);
         return RdFail;
       }
@@ -223,8 +224,7 @@ ReadT64 (FILE* file,
           (*log) (Warnings, &name, "Truncated file, proceeding anyway");
         if (ferror (file)) {
           (*log) (Errors, &name, "fread: %s", strerror(errno));
-          free (buf);
-          return RdFail;
+          goto ReadFail;
         }
       }
 
@@ -233,13 +233,14 @@ ReadT64 (FILE* file,
 
       switch (status) {
       case WrOK:
-        break;
+        continue;
       case WrNoSpace:
         return RdNoSpace;
       case WrFail:
-      default:
-        return RdFail;
+      case WrFileExists:
+        break;
       }
+      return RdFail;
     }
   }
 

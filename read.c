@@ -5,7 +5,7 @@
  */
 
 /*
-** Copyright © 1993-1997,2001,2006,2021 Marko Mäkelä
+** Copyright © 1993-1997,2001,2006,2021,2024 Marko Mäkelä
 **
 **     This program is free software; you can redistribute it and/or modify
 **     it under the terms of the GNU General Public License as published by
@@ -189,9 +189,10 @@ ReadNative (FILE* file,
   case WrNoSpace:
     return RdNoSpace;
   case WrFail:
-  default:
-    return RdFail;
+  case WrFileExists:
+    break;
   }
+  return RdFail;
 }
 
 /** Read a PC64 file (.P00, .S00 etc.)
@@ -269,6 +270,7 @@ ReadPC64 (FILE* file,
 
   if (1 != fread (buf, i, 1, file)) {
     (*log) (Errors, 0, "fread: %s", strerror(errno));
+  ReadFail:
     free (buf);
     return RdFail;
   }
@@ -277,8 +279,7 @@ ReadPC64 (FILE* file,
 
   if (memcmp (buf, "C64File", 8)) {
     (*log) (Errors, 0, "Invalid PC64 header");
-    free (buf);
-    return RdFail;
+    goto ReadFail;
   }
 
   memcpy (name.name, &buf[8], 16);

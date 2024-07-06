@@ -5,7 +5,7 @@
  */
 
 /*
-** Copyright © 1993-1997,2001,2006,2021,2022 Marko Mäkelä
+** Copyright © 1993-1997,2001,2006,2021,2022,2024 Marko Mäkelä
 **
 **     This program is free software; you can redistribute it and/or modify
 **     it under the terms of the GNU General Public License as published by
@@ -258,6 +258,7 @@ ReadLynx (FILE* file,
     {
       byte_t* buf;
       size_t readlength;
+      enum WrStatus wrStatus;
 
       if (fseek (file, archivePos, SEEK_SET)) {
         (*log) (Errors, &name, "fseek: %s", strerror(errno));
@@ -280,19 +281,19 @@ ReadLynx (FILE* file,
 
       archivePos += 254 * blocks;
 
-      switch ((*writeCallback) (&name, buf, readlength)) {
+      wrStatus = (*writeCallback) (&name, buf, readlength);
+      free (buf);
+
+      switch (wrStatus) {
       case WrOK:
-        break;
+        continue;
       case WrNoSpace:
-        free (buf);
         return RdNoSpace;
       case WrFail:
-      default:
-        free (buf);
-        return RdFail;
+      case WrFileExists:
+        break;
       }
-
-      free (buf);
+      return RdFail;
     }
   }
 

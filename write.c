@@ -5,7 +5,7 @@
  */
 
 /*
-** Copyright © 1993-1997,2001,2021,2022 Marko Mäkelä
+** Copyright © 1993-1997,2001,2021,2022,2024 Marko Mäkelä
 **
 **     This program is free software; you can redistribute it and/or modify
 **     it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@ filename2char (const struct Filename* name, char** newname)
     return false;
 
   /* free the old string */
-  if (*newname) free (*newname);
+  free (*newname);
   *newname = 0;
 
   /* search for shifted spaces at the end */
@@ -255,15 +255,14 @@ WriteNative (const struct Filename* name,
   if (!filename2char (name, newname))
     return WrFail;
 
-  if (!(filename = malloc (strlen (*newname) + (4 + 5 + 1)))) {
-    free (filename);
-    return WrFail;
-  }
+  if (!(filename = malloc (strlen (*newname) + (4 + 5 + 1))))
+    goto Fail;
 
   /* try the plain filename */
   sprintf (filename, "%s%.4s", *newname, filesuffix (name));
 
   if (stat (filename, &statbuf)) {
+  FoundName:
     free (*newname);
     *newname = filename;
     return do_it (data, length, newname, name, log);
@@ -271,15 +270,13 @@ WriteNative (const struct Filename* name,
 
   for (i = 0; i < 10000; i++) {
     sprintf (filename, "%s~%d%.4s", *newname, i, filesuffix (name));
-    if (stat (filename, &statbuf)) { /* found an available file name */
-      free (*newname);
-      *newname = filename;
-      return do_it (data, length, newname, name, log);
-    }
+    if (stat (filename, &statbuf))
+      goto FoundName;
   }
 
-  free (filename);
   (*log) (Errors, name, "out of file name space");
+ Fail:
+  free (filename);
   return WrFail;
 }
 
@@ -377,6 +374,7 @@ Write9660 (const struct Filename* name,
   /* try the basic file name */
   sprintf (filename, "%s%.4s", *newname, filesuffix (name));
   if (stat (filename, &statbuf)) {
+  FoundName:
     free (*newname);
     *newname = filename;
     return do_it (data, length, newname, name, log);
@@ -385,11 +383,8 @@ Write9660 (const struct Filename* name,
   /* try with .000-style file names */
   for (i = 0; i < 1000; i++) {
     sprintf (filename, "%s.%03u", *newname, i);
-    if (stat (filename, &statbuf)) { /* found an available file name */
-      free (*newname);
-      *newname = filename;
-      return do_it (data, length, newname, name, log);
-    }
+    if (stat (filename, &statbuf))
+      goto FoundName;
   }
 
   free (filename);

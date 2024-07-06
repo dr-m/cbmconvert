@@ -646,6 +646,7 @@ ReadARC (FILE* file,
     byte_t* buffer;
     byte_t* buf;
     struct Filename name;
+    enum WrStatus wrStatus;
 
     size_t length = entry.size;
 
@@ -718,19 +719,18 @@ ReadARC (FILE* file,
     if ((crc ^ entry.check) & 0xffff)
       (*log) (Errors, &name, "Checksum error!");
 
-    switch ((*writeCallback) (&name, buffer, (size_t) (buf - buffer))) {
+    wrStatus = (*writeCallback) (&name, buffer, (size_t) (buf - buffer));
+    free (buffer);
+
+    switch (wrStatus) {
     case WrOK:
       break;
     case WrNoSpace:
-      free (buffer);
       return RdNoSpace;
     case WrFail:
-    default:
-      free (buffer);
+    case WrFileExists:
       return RdFail;
     }
-
-    free (buffer);
 
     FilePos += (long)entry.blocks * 254;
 

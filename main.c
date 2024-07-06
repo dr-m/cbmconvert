@@ -171,16 +171,17 @@ writeFile (const struct Filename* name,
         unsigned char* c;
       case ImNoSpace:
         writeLog (Errors, name, "out of space");
-        free (image->name);
-        free (image);
-        image = 0;
-        return WrNoSpace;
+        status = WrNoSpace;
+        goto ImageFailed;
       case ImFail:
         writeLog (Errors, name, "failed");
+      ImageFail:
+        status = WrFail;
+      ImageFailed:
         free (image->name);
         free (image);
         image = 0;
-        return WrFail;
+        return status;
       case ImOK:
         writeLog (Everything, name, "wrote old image \"%s\"", image->name);
         /*
@@ -204,10 +205,7 @@ writeFile (const struct Filename* name,
         if (c < image->name) {
         notUnique:
           writeLog (Errors, name, "Could not generate unique image file name");
-          free (image->name);
-          free (image);
-          image = 0;
-          return WrFail;
+          goto ImageFail;
         }
 
         writeLog (Everything, name, "Continuing to image \"%s\"...",
