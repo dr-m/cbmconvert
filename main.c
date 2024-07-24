@@ -223,32 +223,33 @@ writeFile (const struct Filename* name,
 
           imstatus = OpenImage (filename, &image, type, direntOpts);
 
-          free (filename);
-
           switch (imstatus) {
           case ImOK:
             status = (*writeImageFunc) (name, data, length, image, writeLog);
 
             if (status == WrOK)
               writeLog (Everything, name, "OK, wrote %u bytes to image \"%s\"",
-                        length, image->name);
+                        length, filename);
             else
               writeLog (Errors, name, "%s while writing to \"%s\", giving up.",
                         status == WrNoSpace ? "out of space" :
                         status == WrFileExists ? "duplicate file name" :
                         "failed",
-                        image->name);
-            return status;
-
+                        filename);
+            break;
           case ImNoSpace:
             writeLog (Errors, name,
-                      "out of space while creating image \"%s\"", image->name);
-            return WrNoSpace;
+                      "out of space while creating image \"%s\"", filename);
+            status = WrNoSpace;
+            break;
           default:
             writeLog (Errors, name, "failed while creating image \"%s\"",
-                      image->name);
-            return WrFail;
+                      filename);
+            status = WrFail;
           }
+
+          free (filename);
+          return status;
         }
       }
     }
@@ -381,7 +382,7 @@ main (int argc, char** argv)
         case '1':
           ignoreDuplicates = opts[1] != '0';
           allowDuplicates = false;
-	  break;
+          break;
         case '2':
           ignoreDuplicates = false;
           allowDuplicates = true;
