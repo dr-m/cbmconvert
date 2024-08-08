@@ -1,3 +1,9 @@
+cbmconvert (2.1.6-1) unstable; urgency=medium
+
+  * Implemented more cbmconvert options for handling duplicate file names.
+
+ -- Marko Mäkelä <marko.makela@iki.fi>  Thu, 8 Aug 2024 20:40:00 +0300
+
 cbmconvert (2.1.5-1) unstable; urgency=medium
 
   * Maintenance release, with regression tests and bug fixes.
