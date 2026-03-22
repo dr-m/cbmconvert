@@ -191,7 +191,7 @@ filesuffix (const struct Filename* filename)
   case USR:
     return ".usr";
   case REL:
-    sprintf (relsuffix, ".l%02X", filename->recordLength & 0xFF);
+    sprintf (relsuffix, ".l%02X", (unsigned) (filename->recordLength & 0xFF));
     return relsuffix;
   case CBM:
     return ".cbm";
@@ -362,7 +362,7 @@ Write9660 (const struct Filename* name,
            log_t log)
 {
   char* filename;
-  int i;
+  unsigned i;
   struct stat statbuf;
 
   if (!filename2char (name, newname))
