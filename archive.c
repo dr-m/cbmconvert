@@ -70,17 +70,19 @@ WriteArchive (const struct Filename* name,
   struct ArchiveEntry* ae;
 
   switch (name->type) {
-  default:
-    (*log) (Errors, name, "Unsupported file type.");
-    return WrFail;
   case DEL:
   case SEQ:
   case PRG:
   case USR:
   case REL:
+    goto valid;
+  case CBM:
     break;
   }
 
+  (*log) (Errors, name, "Unsupported file type.");
+  return WrFail;
+ valid:
   /* check for duplicate file names */
   if (!allowDuplicates)
     for (ae = archive->first; ae; ae = ae->next)

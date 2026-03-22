@@ -236,18 +236,21 @@ writeFile (const struct Filename* name,
                         status == WrFileExists ? "duplicate file name" :
                         "failed",
                         filename);
-            break;
+            goto ImDone;
           case ImNoSpace:
             writeLog (Errors, name,
                       "out of space while creating image \"%s\"", filename);
             status = WrNoSpace;
+            goto ImDone;
+          case ImFail:
             break;
-          default:
-            writeLog (Errors, name, "failed while creating image \"%s\"",
-                      filename);
-            status = WrFail;
           }
 
+          writeLog (Errors, name, "failed while creating image \"%s\"",
+                    filename);
+          status = WrFail;
+
+        ImDone:
           free (filename);
           return status;
         }
@@ -578,41 +581,47 @@ main (int argc, char** argv)
     switch (status) {
     case RdOK:
       writeLog (Everything, 0, "Archive extracted.");
-      break;
+      continue;
 
     case RdNoSpace:
       writeLog (Errors, 0, "out of space.");
       retval = 3;
       goto read_error;
 
-    default:
-      writeLog (Errors, 0, "unexpected error.");
-      retval = 4;
-    read_error:
-      if (image || archive)
-        goto write;
-      else
-        return retval;
+    case RdFail:
+      break;
     }
+
+    writeLog (Errors, 0, "unexpected error.");
+    retval = 4;
+  read_error:
+    if (image || archive)
+      goto write;
+    else
+      return retval;
   }
 
 write:
   if (image) {
-    switch (CloseImage (image)) {
-    case ImOK:
-      writeLog (Everything, 0, "Wrote image file \"%s\"", image->name);
-      break;
+    do {
+      switch (CloseImage (image)) {
+      case ImOK:
+        writeLog (Everything, 0, "Wrote image file \"%s\"", image->name);
+        continue;
 
-    case ImNoSpace:
-      writeLog (Errors, 0, "Out of space while writing image file \"%s\"!",
-                image->name);
-      return 3;
+      case ImNoSpace:
+        writeLog (Errors, 0, "Out of space while writing image file \"%s\"!",
+                  image->name);
+        return 3;
 
-    default:
+      case ImFail:
+        break;
+      }
+
       writeLog (Errors, 0, "Unexpected error while writing image \"%s\"!",
                 image->name);
       return 4;
-    }
+    } while (0);
 
     free (image->name);
     free (image);
@@ -620,27 +629,30 @@ write:
   }
 
   if (archive) {
-    switch ((*writeArchiveFunc) (archive, archiveFilename)) {
-    case ArOK:
-      writeLog (Everything, 0, "Wrote archive file \"%s\"",
-                archiveFilename);
-      break;
+    do {
+      switch ((*writeArchiveFunc) (archive, archiveFilename)) {
+      case ArOK:
+        writeLog (Everything, 0, "Wrote archive file \"%s\"",
+                  archiveFilename);
+        deleteArchive (archive);
+        archive = 0;
+        continue;
 
-    case ArNoSpace:
-      writeLog (Everything, 0,
-                "Out of space while writing archive file \"%s\"!",
-                archiveFilename);
-      return 3;
+      case ArNoSpace:
+        writeLog (Everything, 0,
+                  "Out of space while writing archive file \"%s\"!",
+                  archiveFilename);
+        return 3;
 
-    default:
+      case ArFail:
+        break;
+      }
+
       writeLog (Everything, 0,
                 "Unexpected error while writing image \"%s\"!",
                 archiveFilename);
       return 4;
-    }
-
-    deleteArchive (archive);
-    archive = 0;
+    } while (0);
   }
 
   if (verbosityLevel == Everything)

@@ -2602,12 +2602,14 @@ WriteImage (const struct Filename* name,
       dirent->type = (byte_t) (name->type | 0x80);
       return WrOK;
 
-    default:
-      restoreBAM (image, &oldBAM);
-
-      (*log) (Errors, name, "Unsupported file type.");
-      return WrFail;
+    case CBM:
+      break;
     }
+
+    restoreBAM (image, &oldBAM);
+
+    (*log) (Errors, name, "Unsupported file type.");
+    return WrFail;
   }
 }
 
@@ -2915,30 +2917,28 @@ ReadImage (FILE* file,
 
           switch (wrStatus) {
           case WrOK:
-            break;
+            continue;
           case WrNoSpace:
             status = RdNoSpace;
             /* fall through */
           case WrFail:
-          default:
-            goto ReadDone;
+          case WrFileExists:
+            break;
           }
 
-          break;
+          goto ReadDone;
 
         case CBM:
           if (image.type == Im1581) {
             (*log) (Errors, &name, "skipping partition");
             /* TODO: Recurse... */
-            break;
+            continue;
           }
-
-          /* fall through */
-        default:
-          if (dirent->type)
-            (*log) (Errors, &name, "unknown file type $%02x, skipping",
-                    dirent->type);
         }
+
+        if (dirent->type)
+          (*log) (Errors, &name, "unknown file type $%02x, skipping",
+                  dirent->type);
       }
 
       if (!((struct DirEnt*) directory[block])->nextTrack) {

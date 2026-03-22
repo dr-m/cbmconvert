@@ -292,7 +292,8 @@ ReadPC64 (FILE* file,
   case WrNoSpace:
     return RdNoSpace;
   case WrFail:
-  default:
-    return RdFail;
+  case WrFileExists:
+    break;
   }
+  return RdFail;
 }
