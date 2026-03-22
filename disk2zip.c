@@ -66,7 +66,7 @@ static int eveninc = -10, oddinc = 11;
 /** disk identifier, two bytes */
 static unsigned char id[2] = { '6', '4' };
 /** decoding buffer for current track */
-unsigned char trackbuf[21][256];
+static unsigned char trackbuf[21][256];
 /** input file name */
 static char* inname;
 /** output file name */

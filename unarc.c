@@ -75,7 +75,7 @@ struct entry
 };
 
 /** Current C64 Archive entry header */
-struct entry entry;
+static struct entry entry;
 
 /** Lempel Zev compression string table entry */
 struct lz
@@ -85,7 +85,7 @@ struct lz
 };
 
 /** Lempel Zev compression string table */
-struct lz lztab[4096];
+static struct lz lztab[4096];
 
 /** Lempel Zev stack handling error codes */
 enum LZStackErrorType
