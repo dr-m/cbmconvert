@@ -70,6 +70,9 @@ bool allowDuplicates = false;
 /** Whether io ignore duplicate file names */
 static bool ignoreDuplicates = false;
 
+#ifdef __GNUC__
+__attribute__((format(printf, 3, 4)))
+#endif
 /** Call-back function for diagnostic output
  * @param verbosity     the verbosity level
  * @param name          the file name associated with the message (or NULL)
@@ -144,7 +147,7 @@ writeFile (const struct Filename* name,
     status = (*writeImageFunc) (name, data, length, image, writeLog);
     switch (status) {
     case WrOK:
-      writeLog (Everything, name, "Wrote %u bytes to image \"%s\"",
+      writeLog (Everything, name, "Wrote %zu bytes to image \"%s\"",
               length, image->name);
       return WrOK;
     case WrFail:
@@ -228,7 +231,8 @@ writeFile (const struct Filename* name,
             status = (*writeImageFunc) (name, data, length, image, writeLog);
 
             if (status == WrOK)
-              writeLog (Everything, name, "OK, wrote %u bytes to image \"%s\"",
+              writeLog (Everything, name,
+                        "OK, wrote %zu bytes to image \"%s\"",
                         length, filename);
             else
               writeLog (Errors, name, "%s while writing to \"%s\", giving up.",
@@ -261,8 +265,8 @@ writeFile (const struct Filename* name,
     status = WriteArchive (name, data, length, archive, writeLog);
     switch (status) {
     case WrOK:
-      writeLog (Everything, name, "Wrote %u bytes to archive \"%s\"",
-              length, archiveFilename);
+      writeLog (Everything, name, "Wrote %zu bytes to archive \"%s\"",
+                length, archiveFilename);
       return WrOK;
     case WrFail:
       writeLog (Errors, name, "Write failed!");
@@ -283,7 +287,7 @@ writeFile (const struct Filename* name,
     status = (*writeFunc) (name, data, length, &newname, writeLog);
 
     if (status == WrOK)
-      writeLog (Everything, name, "Writing %u bytes to \"%s\"",
+      writeLog (Everything, name, "Writing %zu bytes to \"%s\"",
                 length, newname);
     else
       writeLog (Errors, name, "%s while writing to \"%s\"",
