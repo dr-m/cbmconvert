@@ -49,9 +49,9 @@ struct DiskGeometry
   /** number of disk tracks */
   byte_t tracks;
   /** number of sectors per track */
-  byte_t* sectors;
+  const byte_t* sectors1;
   /** sector interleaves (number of sectors to advance) */
-  byte_t* interleave;
+  const byte_t* interleave1;
 };
 
 /* Disk directory entry */
@@ -132,7 +132,7 @@ struct CpmDirEnt
         ((unsigned) block[2 * (i) + 1] << 8))
 
 /** table of sectors per track on the 1541 */
-static byte_t sect1541[] =
+static const byte_t sect1541[] =
 {
   21, 21, 21, 21, 21, 21, 21, 21, 21, /* tracks  1 .. 9  */
   21, 21, 21, 21, 21, 21, 21, 21,     /* tracks 10 .. 17 */
@@ -142,7 +142,7 @@ static byte_t sect1541[] =
 };
 
 /** table of sectors per track on the 1571 */
-static byte_t sect1571[] =
+static const byte_t sect1571[] =
 {
   21, 21, 21, 21, 21, 21, 21, 21, 21, /* tracks  1 .. 9  */
   21, 21, 21, 21, 21, 21, 21, 21,     /* tracks 10 .. 17 */
@@ -157,7 +157,7 @@ static byte_t sect1571[] =
 };
 
 /** table of sectors per track on the 1581 */
-static byte_t sect1581[] =
+static const byte_t sect1581[] =
 {
   40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
   40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
@@ -170,7 +170,7 @@ static byte_t sect1581[] =
 };
 
 /** table of interleave per track on the 1541 */
-static byte_t int1541[] = {
+static const byte_t int1541[] = {
   10, 10, 10, 10, 10, 10, 10, 10, 10, /* tracks  1 .. 9  */
   10, 10, 10, 10, 10, 10, 10, 10,     /* tracks 10 .. 17 */
    3, 10, 10, 10, 10, 10, 10,         /* tracks 18 .. 24 */
@@ -179,7 +179,7 @@ static byte_t int1541[] = {
 };
 
 /** table of interleave per track on the 1571 */
-static byte_t int1571[] = {
+static const byte_t int1571[] = {
   10, 10, 10, 10, 10, 10, 10, 10, 10, /* tracks  1 .. 9  */
   10, 10, 10, 10, 10, 10, 10, 10,     /* tracks 10 .. 17 */
    3, 10, 10, 10, 10, 10, 10,         /* tracks 18 .. 24 */
@@ -193,7 +193,7 @@ static byte_t int1571[] = {
 };
 
 /** table of interleave per track on the 1581 */
-static byte_t int1581[] = {
+static const byte_t int1581[] = {
   1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
   1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
   1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -208,7 +208,7 @@ static byte_t int1581[] = {
  * to update the ImageType definition in output.h and all related
  * switch statements in this file.
  */
-static struct DiskGeometry diskGeometry[] =
+static const struct DiskGeometry diskGeometry[] =
 {
   {
     Im1541,
@@ -217,8 +217,8 @@ static struct DiskGeometry diskGeometry[] =
     1,
     18,
     elementsof(sect1541),
-    sect1541 - 1,
-    int1541 - 1
+    sect1541,
+    int1541
   },
   {
     Im1571,
@@ -227,8 +227,8 @@ static struct DiskGeometry diskGeometry[] =
     1,
     18,
     elementsof(sect1571),
-    sect1571 - 1,
-    int1571 - 1
+    sect1571,
+    int1571
   },
   {
     Im1581,
@@ -237,8 +237,8 @@ static struct DiskGeometry diskGeometry[] =
     1,          /* BAM blocks are in a separate chain */
     40,
     elementsof(sect1581),
-    sect1581 - 1,
-    int1581 - 1
+    sect1581,
+    int1581
   },
 };
 
@@ -275,11 +275,11 @@ getBlock (struct Image* image,
   if (!image || !image->buf || !(geom = getGeometry (image->type)))
     return 0;
 
-  if (track < 1 || track > geom->tracks || sector >= geom->sectors[track])
+  if (track < 1 || track > geom->tracks || sector >= geom->sectors1[track - 1])
     return 0; /* illegal track or sector */
 
   for (t = 1, b = 0; t < track; t++)
-    b += geom->sectors[t];
+    b += geom->sectors1[t - 1];
 
   b += sector;
 
@@ -300,7 +300,7 @@ isFreeBlock (const struct Image* image, byte_t track, byte_t sector)
   if (!image || !image->buf || !(geom = getGeometry (image->type)))
     return false;
 
-  if (track < 1 || track > geom->tracks || sector >= geom->sectors[track])
+  if (track < 1 || track > geom->tracks || sector >= geom->sectors1[track - 1])
     return false; /* illegal track or sector */
 
   switch (image->type) {
@@ -365,7 +365,7 @@ findNextFree (const struct Image* image,
   if (!image || !image->buf || !(geom = getGeometry (image->type)))
     return false;
 
-  if (t < 1 || t > geom->tracks || s >= geom->sectors[t])
+  if (t < 1 || t > geom->tracks || s >= geom->sectors1[t - 1])
     return false;
 
   if (t >= image->dirtrack) {
@@ -373,7 +373,7 @@ findNextFree (const struct Image* image,
 
     for (; t <= image->partTops[image->dirtrack - 1]; t++) {
       memset(visited, 0, sizeof visited);
-      for (i = geom->sectors[t]; i; i--) {
+      for (i = geom->sectors1[t - 1]; i; i--) {
         if (isFreeBlock (image, t, s)) {
           *track = t;
           *sector = s;
@@ -381,12 +381,12 @@ findNextFree (const struct Image* image,
         }
         visited[s / ((sizeof *visited) * CHAR_BIT)] |=
           ((size_t) 1) << (s % ((sizeof *visited) * CHAR_BIT));
-        s += geom->interleave[t];
-        s %= geom->sectors[t];
+        s += geom->interleave1[t - 1];
+        s %= geom->sectors1[t - 1];
 
         while (visited[s / ((sizeof *visited) * CHAR_BIT)] &
                ((size_t) 1) << (s % ((sizeof *visited) * CHAR_BIT)))
-          if (++s == geom->sectors[t]) {
+          if (++s == geom->sectors1[t - 1]) {
             s = 0;
             if (i == 1)
               break;
@@ -400,7 +400,7 @@ findNextFree (const struct Image* image,
     for (t = image->dirtrack - 1;
          t >= image->partBots[image->dirtrack - 1]; t--) {
       memset(visited, 0, sizeof visited);
-      for (i = geom->sectors[t]; i; i--) {
+      for (i = geom->sectors1[t - 1]; i; i--) {
         if (isFreeBlock (image, t, s)) {
           *track = t;
           *sector = s;
@@ -408,11 +408,11 @@ findNextFree (const struct Image* image,
         }
         visited[s / ((sizeof *visited) * CHAR_BIT)] |=
           ((size_t) 1) << (s % ((sizeof *visited) * CHAR_BIT));
-        s += geom->interleave[t];
-        s %= geom->sectors[t];
+        s += geom->interleave1[t - 1];
+        s %= geom->sectors1[t - 1];
         while (visited[s / ((sizeof *visited) * CHAR_BIT)] &
                ((size_t) 1) << (s % ((sizeof *visited) * CHAR_BIT)))
-          if (++s == geom->sectors[t]) {
+          if (++s == geom->sectors1[t - 1]) {
             s = 0;
             if (i == 1)
               break;
@@ -426,7 +426,7 @@ findNextFree (const struct Image* image,
 
     for (; t >= image->partBots[image->dirtrack - 1]; t--) {
       memset(visited, 0, sizeof visited);
-      for (i = geom->sectors[t]; i; i--) {
+      for (i = geom->sectors1[t - 1]; i; i--) {
         if (isFreeBlock (image, t, s)) {
           *track = t;
           *sector = s;
@@ -434,11 +434,11 @@ findNextFree (const struct Image* image,
         }
         visited[s / ((sizeof *visited) * CHAR_BIT)] |=
           ((size_t) 1) << (s % ((sizeof *visited) * CHAR_BIT));
-        s += geom->interleave[t];
-        s %= geom->sectors[t];
+        s += geom->interleave1[t - 1];
+        s %= geom->sectors1[t - 1];
         while (visited[s / ((sizeof *visited) * CHAR_BIT)] &
                ((size_t) 1) << (s % ((sizeof *visited) * CHAR_BIT)))
-          if (++s == geom->sectors[t]) {
+          if (++s == geom->sectors1[t - 1]) {
             s = 0;
             if (i == 1)
               break;
@@ -452,7 +452,7 @@ findNextFree (const struct Image* image,
     for (t = image->dirtrack + 1;
          t <= image->partTops[image->dirtrack - 1]; t++) {
       memset(visited, 0, sizeof visited);
-      for (i = geom->sectors[t]; i; i--) {
+      for (i = geom->sectors1[t - 1]; i; i--) {
         if (isFreeBlock (image, t, s)) {
           *track = t;
           *sector = s;
@@ -460,11 +460,11 @@ findNextFree (const struct Image* image,
         }
         visited[s / ((sizeof *visited) * CHAR_BIT)] |=
           ((size_t) 1) << (s % ((sizeof *visited) * CHAR_BIT));
-        s += geom->interleave[t];
-        s %= geom->sectors[t];
+        s += geom->interleave1[t - 1];
+        s %= geom->sectors1[t - 1];
         while (visited[s / ((sizeof *visited) * CHAR_BIT)] &
                ((size_t) 1) << (s % ((sizeof *visited) * CHAR_BIT)))
-          if (++s == geom->sectors[t]) {
+          if (++s == geom->sectors1[t - 1]) {
             s = 0;
             if (i == 1)
               break;
@@ -477,7 +477,7 @@ findNextFree (const struct Image* image,
     t = image->dirtrack;
     memset(visited, 0, sizeof visited);
 
-    for (i = geom->sectors[t]; i; i--) {
+    for (i = geom->sectors1[t - 1]; i; i--) {
       if (isFreeBlock (image, t, s)) {
         *track = t;
         *sector = s;
@@ -485,11 +485,11 @@ findNextFree (const struct Image* image,
       }
       visited[s / ((sizeof *visited) * CHAR_BIT)] |=
         ((size_t) 1) << (s % ((sizeof *visited) * CHAR_BIT));
-      s += geom->interleave[t];
-      s %= geom->sectors[t];
+      s += geom->interleave1[t - 1];
+      s %= geom->sectors1[t - 1];
       while (visited[s / ((sizeof *visited) * CHAR_BIT)] &
              ((size_t) 1) << (s % ((sizeof *visited) * CHAR_BIT)))
-        if (++s == geom->sectors[t]) {
+        if (++s == geom->sectors1[t - 1]) {
           s = 0;
           if (i == 1)
             break;
@@ -589,7 +589,8 @@ allocBlock (struct Image* image,
       !image || !image->buf || !(geom = getGeometry (image->type)))
     return false;
 
-  if (*track < 1 || *track > geom->tracks || *sector >= geom->sectors[*track])
+  if (*track < 1 || *track > geom->tracks ||
+      *sector >= geom->sectors1[*track - 1])
     return false; /* illegal track or sector */
 
   switch (image->type) {
@@ -729,7 +730,7 @@ FormatImage (struct Image* image)
 
     for (track = 1; track <= geom->tracks; track++) {
       /* set amount of free blocks on each track */
-      BAM[track << 2] = sector = geom->sectors[track];
+      BAM[track << 2] = sector = geom->sectors1[track - 1];
       /* allocate non-existent blocks */
       for (; sector < 24; sector++)
         BAM[(track << 2) + 1 + (sector >> 3)] &= (byte_t) ~(1 << (sector & 7));
@@ -773,7 +774,7 @@ FormatImage (struct Image* image)
 
     for (track = 1; track <= 35; track++) {
       /* set amount of free blocks on each track */
-      BAM[track << 2] = sector = geom->sectors[track];
+      BAM[track << 2] = sector = geom->sectors1[track - 1];
       /* allocate non-existent blocks */
       for (; sector < 24; sector++)
         BAM[(track << 2) + 1 + (sector >> 3)] &= (byte_t) ~(1 << (sector & 7));
@@ -781,7 +782,7 @@ FormatImage (struct Image* image)
     /* second side */
     for (track = 0; track < 35; track++) {
       /* set amount of free blocks on each track */
-      BAM[0xDC + track + 1] = sector = geom->sectors[track + 1];
+      BAM[0xDC + track + 1] = sector = geom->sectors1[track];
       /* allocate non-existent blocks */
       for (; sector < 24; sector++)
         BAM[(683 << 8) + (track * 3) + (sector >> 3)] &=
@@ -1134,7 +1135,7 @@ freeBlock (struct Image* image, byte_t track, byte_t sector)
   if (!image || !image->buf || !(geom = getGeometry (image->type)))
     return false;
 
-  if (track < 1 || track > geom->tracks || sector >= geom->sectors[track])
+  if (track < 1 || track > geom->tracks || sector >= geom->sectors1[track - 1])
     return false; /* illegal track or sector */
 
   if (isFreeBlock (image, track, sector))
@@ -1778,12 +1779,12 @@ CpmTransTable (struct Image* image,
     if ((table = calloc (*sectors = 680, sizeof (*table))))
       for (block = 0, trackbuf = image->buf; block < *sectors; block++) {
         table[block] = &trackbuf[sector << 8];
-        sector = (sector + 5) % geom->sectors[track];
+        sector = (sector + 5) % geom->sectors1[track - 1];
 
-        if (++sectorcount == geom->sectors[track]) {
-          trackbuf += geom->sectors[track++] << 8;
+        if (++sectorcount == geom->sectors1[track - 1]) {
+          trackbuf += sectorcount << 8;
 
-          if (track == geom->dirtrack) {
+          if (++track == geom->dirtrack) {
             sectorcount = 1;
             sector = 5;
           } else {
@@ -1799,12 +1800,12 @@ CpmTransTable (struct Image* image,
     if ((table = calloc (*sectors = 1360, sizeof (*table))))
       for (block = 0, trackbuf = image->buf; block < *sectors; block++) {
         table[block] = &trackbuf[sector << 8];
-        sector = (sector + 5) % geom->sectors[track];
+        sector = (sector + 5) % geom->sectors1[track - 1];
 
-        if (++sectorcount == geom->sectors[track]) {
-          trackbuf += geom->sectors[track++] << 8;
+        if (++sectorcount == geom->sectors1[track - 1]) {
+          trackbuf += sectorcount << 8;
 
-          if (track == 36) {
+          if (++track == 36) {
             sectorcount = 2;
             sector = 10;
           } else if (track % 36 == geom->dirtrack) {
@@ -1824,11 +1825,11 @@ CpmTransTable (struct Image* image,
     if ((table = calloc (*sectors = 3180, sizeof (*table))))
       for(block = 0, trackbuf = image->buf; block < *sectors; block++) {
         table[block] = &trackbuf[sector << 8];
-        sector = (sector + 1) % geom->sectors[track];
+        sector = (sector + 1) % geom->sectors1[track - 1];
 
-        if (++sectorcount == geom->sectors[track]) {
-          trackbuf += geom->sectors[track++] << 8;
-          sectorcount = sector = (track == geom->dirtrack) ? 20 : 0;
+        if (++sectorcount == geom->sectors1[track - 1]) {
+          trackbuf += sectorcount << 8;
+          sectorcount = sector = (++track == geom->dirtrack) ? 20 : 0;
         }
       }
     break;
@@ -2737,7 +2738,7 @@ ReadImage (FILE* file,
                 continue;
               else if (vlir[2 * vlirblock] > geom->tracks ||
                        vlir[2 * vlirblock + 1] >=
-                       geom->sectors[vlir[2 * vlirblock]])
+                       geom->sectors1[vlir[2 * vlirblock] - 1])
                 goto notGEOS;
               else {
                 byte_t* b = 0;
