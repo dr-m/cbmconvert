@@ -193,7 +193,7 @@ ReadT64 (FILE* file,
     else if (t64entry.fileType != 1) {
       unsigned filetype = t64entry.fileType & 0x8F;
       if (filetype >= DEL && filetype <= USR)
-        name.type = filetype;
+        name.type = (enum Filetype) filetype;
       else
         goto unknown;
     }

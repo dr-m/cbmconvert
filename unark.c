@@ -118,7 +118,7 @@ ReadArkive (FILE* file,
     case DEL:
     case SEQ:
     case PRG:
-      name.type = entry.filetype & ~0x38;
+      name.type = (enum Filetype) (entry.filetype & ~0x38);
       break;
 
     case REL:
@@ -147,7 +147,6 @@ ReadArkive (FILE* file,
       break;
 
     default:
-      name.type = 0;
       (*log) (Errors, &name, "Unknown type, defaulting to DEL");
       name.type = DEL;
       break;

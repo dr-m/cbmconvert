@@ -188,7 +188,6 @@ ReadLynx (FILE* file,
         unsigned sidesectors;
 
       default:
-        name.type = 0;
         (*log) (Errors, &name, "Unknown type, defaulting to DEL");
         /* fall through */
       case 'D':

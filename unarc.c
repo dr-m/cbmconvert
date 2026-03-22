@@ -709,7 +709,6 @@ ReadARC (FILE* file,
         name.recordLength = entry.rl;
         break;
       default:
-        name.type = 0;
         (*log) (Errors, &name, "Unknown type, defaulting to DEL");
         name.type = DEL;
         break;
