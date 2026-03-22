@@ -101,15 +101,17 @@ struct CpmDirEnt
 {
   /** user area 0-0xF or 0xE5 (unused entry) */
   byte_t area;
-  /** file base name (bits 0..6);<br>
-   * basename[0]..basename[3]: bit7=1 for user defined attributes 1 to 4;<br>
-   * basename[4]..basename[7]: bit7=1 for system interface attributes (BDOS) */
-  byte_t basename[8];
-  /** file suffix (bits 0..6);<br>
-   * suffix[0]: bit7=1 for read-only;<br>
-   * suffix[1]: bit7=1 for system file;<br>
-   * suffix[2]: bit7=1 for archive */
-  byte_t suffix[3];
+  struct {
+    /** file base name (bits 0..6);<br>
+     * name[0]..name[3]: bit7=1 for user defined attributes 1 to 4;<br>
+     * name[4]..name[7]: bit7=1 for system interface attributes (BDOS) */
+    byte_t base[8];
+    /** file suffix (bits 0..6);<br>
+     * suffix[0]: bit7=1 for read-only;<br>
+     * suffix[1]: bit7=1 for system file;<br>
+     * suffix[2]: bit7=1 for archive */
+    byte_t suffix[3];
+  } name;
   /** number of directory extent */
   byte_t extent;
   /** unused bytes */
@@ -1843,23 +1845,23 @@ static void
 CpmConvertName (const struct CpmDirEnt* dirent,
                 struct Filename* name)
 {
-  char cpmname[13];
+  char cpmname[sizeof dirent->name];
   unsigned i, j;
 
-  for (i = 0; i < sizeof(dirent->basename); i++)
-    cpmname[i] = dirent->basename[i] & 0x7f;
+  for (i = 0; i < sizeof cpmname; i++)
+    cpmname[i] = dirent->name.base[i] & 0x7f;
 
   while (cpmname[i - 1] == ' ') i--;
 
-  for (cpmname[i++] = '.', j = 0; j < sizeof(dirent->suffix); j++)
-    cpmname[i++] = dirent->suffix[j] & 0x7f;
+  for (cpmname[i++] = '.', j = 0; j < sizeof dirent->name.suffix; j++)
+    cpmname[i++] = dirent->name.suffix[j] & 0x7f;
 
   while (cpmname[i - 1] == ' ') i--;
   if (cpmname[i - 1] == '.') i--;
   cpmname[i] = 0;
 
   /* Convert the ASCII name to PETSCII name */
-  for (i = 0; cpmname[i] && i < sizeof(name->name); i++) {
+  for (i = 0; cpmname[i] && i < sizeof cpmname; i++) {
     if (cpmname[i] >= 'A' && cpmname[i] <= 'Z')
       name->name[i] = (unsigned char) (cpmname[i] - 'A' + 0xC1);
     else if (cpmname[i] >= 'a' && cpmname[i] <= 'z')
@@ -1914,47 +1916,47 @@ WriteCpmImage (const struct Filename* name,
     unsigned i;
 
     memset (&cpmname, 0, sizeof cpmname);
-    memset (cpmname.basename, ' ',
-            sizeof cpmname.basename + sizeof cpmname.suffix);
+    memset (&cpmname.name, ' ', sizeof cpmname.name);
 
     /* Convert the file name base */
 
     for (i = 0; i < sizeof(name->name) &&
-           i < sizeof(cpmname.basename) &&
+           i < sizeof(cpmname.name.base) &&
            !memchr (".\240", name->name[i], 3);
          i++)
       if (i && name->name[i] == ' ') /* stop at the first space */
         break;
       else if (name->name[i] >= 0x41 && name->name[i] <= 0x5A)
-        cpmname.basename[i] = name->name[i] + 'A' - 0x41; /* upper case only */
+        cpmname.name.base[i] = name->name[i] + 'A' - 0x41;/* upper case only */
       else if (name->name[i] >= 0xC1 && name->name[i] <= 0xDA)
-        cpmname.basename[i] = name->name[i] + 'A' - 0xC1;
+        cpmname.name.base[i] = name->name[i] + 'A' - 0xC1;
       else if ((name->name[i] & 0x7F) < 32 || name->name[i] == ' ')
-        cpmname.basename[i] = '-'; /* control chars and space */
+        cpmname.name.base[i] = '-'; /* control chars and space */
       else if (name->name[i] < 127)
-        cpmname.basename[i] = name->name[i];
+        cpmname.name.base[i] = name->name[i];
       else
-        cpmname.basename[i] = '+'; /* graphics characters */
+        cpmname.name.base[i] = '+'; /* graphics characters */
 
     /* Convert the file name suffix */
 
     if (name->name[i] != ' ' && ++i < sizeof(name->name)) {
       unsigned j;
 
-      for (j = 0; j < sizeof(cpmname.suffix) && i < sizeof(name->name);
+      for (j = 0; j < sizeof(cpmname.name.suffix) && i < sizeof(name->name);
            i++, j++)
         if ((name->name[i] & 0x7F) == ' ') /* stop at the first space */
           break;
         else if (name->name[i] >= 0x41 && name->name[i] <= 0x5A)
-          cpmname.suffix[j] = name->name[i] + 'A' - 0x41; /* upper case only */
+          /* upper case only */
+          cpmname.name.suffix[j] = name->name[i] + 'A' - 0x41;
         else if (name->name[i] >= 0xC1 && name->name[i] <= 0xDA)
-          cpmname.suffix[j] = name->name[i] + 'A' - 0xC1;
+          cpmname.name.suffix[j] = name->name[i] + 'A' - 0xC1;
         else if ((name->name[i] & 0x7F) < 32)
-          cpmname.suffix[j] = '-'; /* control chars */
+          cpmname.name.suffix[j] = '-'; /* control chars */
         else if (name->name[i] < 127)
-          cpmname.suffix[j] = name->name[i];
+          cpmname.name.suffix[j] = name->name[i];
         else
-          cpmname.suffix[j] = '+'; /* graphics characters */
+          cpmname.name.suffix[j] = '+'; /* graphics characters */
     }
   }
 
@@ -1974,8 +1976,7 @@ WriteCpmImage (const struct Filename* name,
         continue;
 
       if (image->direntOpts < DirEntDupCreate &&
-          !memcmp (dirent[d].basename, cpmname.basename,
-                   sizeof cpmname.basename + sizeof cpmname.suffix)) {
+          !memcmp (&dirent[d].name, &cpmname.name, sizeof cpmname.name)) {
         if (image->direntOpts == DirEntUniqCreate) {
           status = WrFileExists;
           goto Done;
