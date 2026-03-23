@@ -38,11 +38,11 @@ static unsigned int  crc;
 /** used in checksum calculation */
 static unsigned char crc2;
 /** Huffman codes */
-static unsigned long hc[256];
+static unsigned long hc[257];
 /** Lengths of huffman codes */
-static unsigned char hl[256];
+static unsigned char hl[257];
 /** Character associated with Huffman code */
-static unsigned char hv[256];
+static unsigned char hv[257];
 /** Number of Huffman codes */
 static int hcount;
 /** Run-Length control character */
