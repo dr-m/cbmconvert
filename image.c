@@ -1849,7 +1849,7 @@ CpmConvertName (const struct CpmDirEnt* dirent,
   char cpmname[sizeof dirent->name];
   unsigned i, j;
 
-  for (i = 0; i < sizeof cpmname; i++)
+  for (i = 0; i < sizeof dirent->name.base; i++)
     cpmname[i] = dirent->name.base[i] & 0x7f;
 
   while (cpmname[i - 1] == ' ') i--;
