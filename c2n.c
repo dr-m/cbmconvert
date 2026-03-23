@@ -115,7 +115,7 @@ ReadC2N (FILE* file,
   (void) filename; /* unused */
 
   /* clear the file type code (to denote uninitialized file name) */
-  name.type = 0;
+  name.type = NUL;
   /* clear the record length (no relative files on tapes) */
   name.recordLength = 0;
 

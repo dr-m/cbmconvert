@@ -77,6 +77,7 @@ WriteArchive (const struct Filename* name,
   case REL:
     goto valid;
   case CBM:
+  case NUL:
     break;
   }
 

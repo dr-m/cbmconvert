@@ -1487,7 +1487,7 @@ deleteDirEnt (struct Image* image,
     /* Delete the info block and the file. */
     deleteInode (image, dirent->infoTrack, dirent->infoSector, true);
     deleteInode (image, dirent->firstTrack, dirent->firstSector, true);
-    dirent->type = 0;
+    dirent->type = NUL;
     return ImOK;
   }
   else if (getFiletype (image, dirent) == REL &&
@@ -1501,7 +1501,7 @@ deleteDirEnt (struct Image* image,
 
   if (status == ImOK)
     /* nuke the directory entry */
-    dirent->type = 0;
+    dirent->type = NUL;
 
   return status;
 }
@@ -2401,7 +2401,7 @@ WriteImage (const struct Filename* name,
 
     /* set the directory entry parameters */
     memcpy ((byte_t*)dirent + 2, data, sizeof (struct DirEnt) - 2);
-    dirent->type = 0;
+    dirent->type = NUL;
     dirent->firstTrack = 0;
     dirent->firstSector = 0;
     dirent->infoTrack = image->dirtrack + 1;
@@ -2604,6 +2604,7 @@ WriteImage (const struct Filename* name,
       return WrOK;
 
     case CBM:
+    case NUL:
       break;
     }
 
@@ -2928,6 +2929,9 @@ ReadImage (FILE* file,
           }
 
           goto ReadDone;
+
+        case NUL:
+          break;
 
         case CBM:
           if (image.type == Im1581) {

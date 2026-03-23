@@ -56,6 +56,8 @@ getFilename (const struct Filename* name)
       buf[i] = '_'; /* non-ASCII character */
 
   switch (name->type) {
+  case NUL:
+    break;
   case DEL:
     strcat (buf, ",del");
     break;

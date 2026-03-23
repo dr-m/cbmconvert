@@ -89,6 +89,7 @@ extern bool allowDuplicates;
 /** Commodore file types */
 enum Filetype
 {
+  NUL = 0,      /**< unassigned */
   DEL = 0x80,   /**< Deleted (sequential) file */
   SEQ,          /**< Sequential data file */
   PRG,          /**< Sequential program file */

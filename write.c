@@ -182,6 +182,8 @@ filesuffix (const struct Filename* filename)
   static char relsuffix[5];
 
   switch (filename->type) {
+  case NUL:
+    break;
   case DEL:
     return ".del";
   case SEQ:
