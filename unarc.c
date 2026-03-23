@@ -386,12 +386,11 @@ GetStartPos (void)
   GetByte();           /* Skip to line number (which is # of header blocks) */
   GetWord();
   linenum = GetWord();
-  c = GetByte();
 
-  if (c != 0x9e)              /* Must be BASIC SYS token */
+  if (GetByte() != 0x9e)      /* Must be BASIC SYS token */
     return 0;                 /* Else probably type 1 archive */
 
-  c = GetByte();              /* Get SYS address */
+  GetByte();                  /* Get SYS address */
   cpu = GetByte();            /* '2' for C64, '7' for C128 */
 
   skip = (linenum-6)*254;     /* True except for SDA232.128 */
