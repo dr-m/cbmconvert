@@ -70,9 +70,9 @@ ReadNative (FILE* file,
   enum WrStatus status;
 
   /* Get the file base name */
-  for (i = strlen (filename); i && filename[i] != PATH_SEPARATOR; i--);
-
-  if (filename[i] == PATH_SEPARATOR) filename += i + 1;
+  const char* c = strrchr (filename, PATH_SEPARATOR);
+  if (c)
+    filename = c + 1;
 
   if (!*filename) {
     filename = "null.prg";

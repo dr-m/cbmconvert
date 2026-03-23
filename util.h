@@ -129,16 +129,16 @@ enum DirEntOpts
 /** Disk image */
 struct Image
 {
+  /** disk image file name on the host system */
+  char* name;
+  /** disk image data */
+  byte_t* buf;
   /** type of disk image */
   enum ImageType type;
   /** getDirEnt() behaviour */
   enum DirEntOpts direntOpts;
   /** (active) directory track number */
   byte_t dirtrack;
-  /** disk image file name on the host system */
-  unsigned char* name;
-  /** disk image data */
-  byte_t* buf;
   /** lower limits of partitions (for the 1581) */
   byte_t partBots[80];
   /** upper limits of partitions (for the 1581) */

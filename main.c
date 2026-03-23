@@ -173,7 +173,7 @@ writeFile (const struct Filename* name,
                 ? "non-unique file name, changing disk images..."
                 : "out of space, changing disk images...");
       switch (CloseImage (image)) {
-        unsigned char* c;
+        char* c;
       case ImNoSpace:
         writeLog (Errors, name, "out of space");
         status = WrNoSpace;
@@ -194,9 +194,12 @@ writeFile (const struct Filename* name,
         ** component of the file name (excluding any directory component),
         ** increment it.
         */
-        for (c = image->name; *c; c++);
-        for (; c >= image->name && *c != PATH_SEPARATOR; c--);
-        for (c++; *c && *c != '.'; c++);
+        c = strrchr (image->name, PATH_SEPARATOR);
+        if (c)
+          c++;
+        else
+          c = image->name;
+        for (; *c && *c != '.'; c++);
         while (--c >= image->name)
           if (*c >= '0' && *c < '9') {
             (*c)++;
