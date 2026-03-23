@@ -684,14 +684,11 @@ ReadARC (FILE* file,
 
     /* Set up the file name information */
     {
-      unsigned i;
-      for (i = 0; i < entry.fnlen && i < sizeof name.name; i++)
-        name.name[i] = entry.name[i];
-
+      unsigned i = entry.fnlen < sizeof name.name
+        ? entry.fnlen : sizeof name.name;
       /* pad the file name with shifted spaces */
-
-      while (i < sizeof name.name)
-        name.name[i++] = 0xA0;
+      memset(name.name, 0xa0, sizeof name.name);
+      memcpy(name.name, entry.name, i);
 
       switch (entry.type) {
       case 'S':
