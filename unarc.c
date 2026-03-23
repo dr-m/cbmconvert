@@ -56,22 +56,22 @@ struct entry
   /** 0=store, 1=pack, 2=squeeze, 3=crunch,
       4=squeeze+pack, 5=crunch in one pass */
   unsigned char mode;
+  /** File type. P,S,U or R */
+  unsigned char type;
+  /** Filename length */
+  unsigned char fnlen;
   /** Checksum */
   unsigned int  check;
   /** Original size. Only three bytes are stored */
   size_t        size;
   /** Compressed size in CBM disk blocks */
   unsigned int  blocks;
-  /** File type. P,S,U or R */
-  unsigned char type;
-  /** Filename length */
-  unsigned char fnlen;
+  /** Date archive was created. Same format as in MS-DOS directories */
+  unsigned int  date;
   /** Filename. Only fnlen bytes are stored */
   unsigned char name[17];
   /** Record length if relative file */
   unsigned char rl;
-  /** Date archive was created. Same format as in MS-DOS directories */
-  unsigned int  date;
 };
 
 /** Current C64 Archive entry header */
